@@ -7,3 +7,7 @@ import Xnor from "$lib/components/gates/xnor.svelte";
 import Xor from "$lib/components/gates/xor.svelte";
 
 export { And, Nand, Nor, Not, Or, Xnor, Xor };
+
+import Flow from "$lib/flow.svelte"
+
+export default Flow;
