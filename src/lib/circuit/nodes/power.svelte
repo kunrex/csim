@@ -11,16 +11,29 @@
     export let dragging = false;
     export let selected = false;
 
-    let toggleEvent: () => void = data["toggle"];
+    let enabled = data['out-1'];
+
+    let toggleEvent = async () => {
+        await data["toggle"]()
+        enabled = data['out-1'];
+    }
 </script>
 
-<button on:click={toggleEvent} class="node" style="background-color: var(--color-power); font-size: xx-large;" class:dragging class:selected>
+<button on:click={toggleEvent} class="node" class:dragging class:selected class:enabled>
     <b><FontAwesomeIcon icon={faPowerOff}/></b>
     <HandlerWrapper type="source" position={Position.Right} id="out-1" enabled={data['out-1']}/>
 </button>
 
+
 <style>
     .node {
         padding: 8px;
+        font-size: xx-large;
+        background-color: var(--color-bulb);
+    }
+
+    .node.enabled {
+        padding: 4px;
+        color: red;
     }
 </style>

@@ -1,54 +1,106 @@
 <script lang="ts">
-    import {SvelteFlowProvider} from "@xyflow/svelte";
+    import {SvelteFlowProvider, useSvelteFlow} from "@xyflow/svelte";
 
-    import {Flow, Gate, InsertButton, UtilityButton, EdgeConnection, AndGate, OrGate, NorGate, NandGate, NotGate, XorGate, XnorGate} from "$lib";
+    import {
+        Flow,
+        Gate,
+        InsertButton,
+        UtilityButton,
+        EdgeConnection,
+        AndGate,
+        OrGate,
+        NorGate,
+        NandGate,
+        NotGate,
+        XorGate,
+        XnorGate,
+        type GateData, PowerGate, BulbGate
+    } from "$lib";
     import {faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
     import {nodes} from "../../.svelte-kit/generated/client/app";
     import { ConnectionData } from "$lib/types";
     import type {IEnable} from "$lib/logic/interfaces/i-enable";
+    import {type Writable, writable} from "svelte/store";
 
     let gates: Gate[] = [];
     let edges: EdgeConnection[] = [];
     let edgePool: EdgeConnection[] = [];
 
-    function onCreateAnd() : void {
-        const id = flow.addNode('and') as string;
-        gates.push(new AndGate(id));
+    function createGameData(inCount: number, outCount: number) : GateData {
+        let data: GateData = { };
+
+        for(let i = 1; i <= inCount; i++)
+            data[`in-${i}`] = false;
+
+        for(let i = 1; i <= outCount; i++)
+            data[`out-${i}`] = false;
+
+        return data;
     }
 
-    function onCreateOr() : void {
-        const id = flow.addNode('or') as string;
-        gates.push(new OrGate(id));
+    function createAnd() : void {
+        const data = createGameData(2, 1);
+
+        const id = flow.createGate('and', data);
+        gates.push(new AndGate(id, data));
     }
 
-    function onCreateNor(): void {
-        const id = flow.addNode('nor') as string;
-        gates.push(new NorGate(id));
+    function createOr() : void {
+        const data = createGameData(2, 1);
+
+        const id = flow.createGate('or', data);
+        gates.push(new OrGate(id, data));
     }
 
-    function onCreateNand(): void {
-        const id = flow.addNode('nand') as string;
-        gates.push(new NandGate(id));
+    function createNor(): void {
+        const data = createGameData(2, 1);
+
+        const id = flow.createGate('nor', data);
+        gates.push(new NorGate(id, data));
     }
 
-    function onCreateNot(): void {
-        const id = flow.addNode('not') as string;
-        gates.push(new NotGate(id));
+    function createNand(): void {
+        const data = createGameData(2, 1);
+
+        const id = flow.createGate('nand', data);
+        gates.push(new NandGate(id, data));
     }
 
-    function onCreateXor(): void {
-        const id = flow.addNode('xor') as string;
-        gates.push(new XorGate(id));
+    function createNot(): void {
+        const data = createGameData(1, 1);
+
+        const id = flow.createGate('not', data);
+        gates.push(new NotGate(id, data));
     }
 
-    function onCreateXnor(): void {
-        const id = flow.addNode('xnor') as string;
-        gates.push(new XnorGate(id));
+    function createXor(): void {
+        const data = createGameData(2, 1);
+
+        const id = flow.createGate('xor', data);
+        gates.push(new XorGate(id, data));
+    }
+
+    function createXnor(): void {
+        const data = createGameData(2, 1);
+
+        const id = flow.createGate('xnor', data);
+        gates.push(new XnorGate(id, data));
     }
 
     function createPower() : void {
-        const id = flow.addNode('xnor') as string;
-        gates.push(new XnorGate(id));
+        const data = createGameData(0, 1);
+
+        const id = flow.createGate('power', data);
+        const gate = new PowerGate(id, data, flow.updateNodeFunction);
+        data["toggle"] = () => gate.enable();
+        gates.push(gate);
+    }
+
+    function createBulb() : void {
+        const data = createGameData(1, 0);
+
+        const id = flow.createGate('bulb', data);
+        gates.push(new BulbGate(id, data));
     }
 
     function onDeleteNode(id: string) : void {
@@ -129,15 +181,15 @@
 
     let flow: any;
     const spawnFunctions = {
-        "and": () => onCreateAnd(),
-        "or": () => onCreateOr(),
-        "nand": () => onCreateNand(),
-        "nor": () => onCreateNor(),
-        "not": () => onCreateNot(),
-        "xor": () => onCreateXor(),
-        "xnor": () => onCreateXnor(),
-        "power": () => flow.addNode('power'),
-        "bulb": () => flow.addNode('bulb'),
+        "and": () => createAnd(),
+        "or": () => createOr(),
+        "nand": () => createNand(),
+        "nor": () => createNor(),
+        "not": () => createNot(),
+        "xor": () => createXor(),
+        "xnor": () => createXnor(),
+        "power": () => createPower(),
+        "bulb": () => createBulb()
     }
 </script>
 

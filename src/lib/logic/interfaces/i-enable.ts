@@ -1,5 +1,5 @@
 export interface IEnable {
-    enable(): void;
-    disable(): void;
+    enable(): Promise<void>;
+    disable(): Promise<void>;
     enabled(): boolean;
 }

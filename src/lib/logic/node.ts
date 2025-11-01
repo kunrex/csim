@@ -24,17 +24,17 @@ export class InNode implements IEnable {
         return false;
     }
 
-    public enable(): void {
-        this.enableObject.enable();
+    public async enable(): Promise<void> {
+        await this.enableObject.enable();
     }
 
-    public disable(): void {
+    public async disable(): Promise<void> {
         for(let i = 0; i < this.inputs.length; i++) {
             if (this.inputs[i].enabled())
                 return;
         }
 
-        this.enableObject.disable();
+        await this.enableObject.disable();
     }
 }
 
@@ -58,7 +58,7 @@ export class OutNode implements IEnable {
         return this.state;
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = true;
 
@@ -66,17 +66,17 @@ export class OutNode implements IEnable {
             return;
 
         for(let i = 0; i < this.outputs.length; i++)
-            this.outputs[i].enable();
+            await this.outputs[i].enable();
     }
 
-    public disable(): void {
+    public async disable(): Promise<void> {
         const prev = this.state;
-        this.state = true;
+        this.state = false;
 
         if(prev == this.state)
             return;
 
         for(let i = 0; i < this.outputs.length; i++)
-            this.outputs[i].disable();
+            await this.outputs[i].disable();
     }
 }

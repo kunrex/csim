@@ -10,8 +10,8 @@ export abstract class Gate implements IEnable {
         return this.state;
     }
 
-    public disable(): void { }
-    public abstract enable(): void;
+    public disable(): Promise<void> { return Promise.resolve(); }
+    public abstract enable(): Promise<void>;
 
     public abstract getNode(id: string) : IEnable | null;
 }

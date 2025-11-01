@@ -11,16 +11,23 @@
     export let dragging = false;
     export let selected = false;
 
-    let toggleEvent: () => void = data["toggle"];
+    let enabled = data["in-1"];
 </script>
 
-<button on:click={toggleEvent} class="node" style="background-color: var(--color-bulb); font-size: xx-large;" class:dragging class:selected>
-    <HandlerWrapper type="target" position={Position.Left} id="in-1" enabled={data['in-1']}/>
+<div class="node" class:dragging class:selected class:enabled>
+    <HandlerWrapper type="target" position={Position.Left} id="in-1" enabled={data["in-1"]}/>
     <b><FontAwesomeIcon icon={faLightbulb}/></b>
-</button>
+</div>
 
 <style>
     .node {
         padding: 8px;
+        font-size: xx-large;
+        background-color: var(--color-bulb);
+    }
+
+    .node.enabled {
+        padding: 4px;
+        background-color: red;
     }
 </style>

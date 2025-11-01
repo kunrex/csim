@@ -2,6 +2,7 @@ import { Gate } from "$lib/logic/gate";
 import { InNode, OutNode } from "$lib/logic/node";
 import type {IEnable} from "$lib/logic/interfaces/i-enable";
 import type {GateData} from "$lib/types";
+import {useSvelteFlow} from "@xyflow/svelte";
 
 export class AndGate extends Gate {
     public readonly in1: InNode = new InNode("in-1", this);
@@ -13,7 +14,7 @@ export class AndGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = this.in2.enabled() && this.in1.enabled();
         this.gateData["in-1"] = this.in1.enabled();
@@ -23,9 +24,9 @@ export class AndGate extends Gate {
             return;
 
         if(this.state)
-            this.out.enable();
+            await this.out.enable();
         else
-            this.out.disable();
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
     }
@@ -54,7 +55,7 @@ export class OrGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = this.in2.enabled() || this.in1.enabled();
         this.gateData["in-1"] = this.in1.enabled();
@@ -64,9 +65,9 @@ export class OrGate extends Gate {
             return;
 
         if(this.state)
-            this.out.enable();
+            await this.out.enable();
         else
-            this.out.disable();
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
     }
@@ -95,7 +96,7 @@ export class NandGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = !(this.in2.enabled() && this.in1.enabled());
         this.gateData["in-1"] = this.in1.enabled();
@@ -105,11 +106,12 @@ export class NandGate extends Gate {
             return;
 
         if(this.state)
-            this.out.enable();
+            await this.out.enable();
         else
-            this.out.disable();
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
+        return Promise.resolve();
     }
 
     public getNode(id: string): IEnable | null {
@@ -136,7 +138,7 @@ export class NorGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = !(this.in2.enabled() || this.in1.enabled());
         this.gateData["in-1"] = this.in1.enabled();
@@ -146,11 +148,12 @@ export class NorGate extends Gate {
             return;
 
         if(this.state)
-            this.out.enable();
+            await this.out.enable();
         else
-            this.out.disable();
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
+        return Promise.resolve();
     }
 
     public getNode(id: string): IEnable | null {
@@ -177,19 +180,19 @@ export class XorGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = (this.in2.enabled() && !this.in1.enabled()) || (!this.in2.enabled() && this.in1.enabled());
         this.gateData["in-1"] = this.in1.enabled();
         this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
-            return;
+            return
 
         if(this.state)
-            this.out.enable();
+            await this.out.enable();
         else
-            this.out.disable();
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
     }
@@ -218,19 +221,19 @@ export class XnorGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = this.in1.enabled() == this.in2.enabled();
         this.gateData["in-1"] = this.in1.enabled();
         this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
-            return;
+            return Promise.resolve();
 
         if(this.state)
-            this.out.enable();
+            await this.out.enable();
         else
-            this.out.disable();
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
     }
@@ -258,7 +261,7 @@ export class NotGate extends Gate {
         super(id, gateData);
     }
 
-    public enable(): void {
+    public async enable(): Promise<void> {
         const prev = this.state;
         this.state = !this.in.enabled();
         this.gateData["in-1"] = this.in.enabled();
@@ -267,9 +270,9 @@ export class NotGate extends Gate {
             return;
 
         if(this.state)
-            this.out.disable();
+            await this.out.disable();
         else
-            this.out.enable();
+            await this.out.enable();
 
         this.gateData["out-1"] = this.out.enabled();
     }
@@ -280,6 +283,62 @@ export class NotGate extends Gate {
                 return this.in;
             case this.out.id:
                 return this.out;
+            default:
+                return null;
+        }
+    }
+}
+
+export class PowerGate extends Gate {
+    public readonly out: OutNode = new OutNode("out-1");
+
+    public constructor(id: string, gateData: GateData, private readonly func: any) {
+        super(id, gateData);
+    }
+
+    public async enable(): Promise<void> {
+        this.state = !this.state;
+        if(this.state)
+            await this.out.enable();
+        else
+            await this.out.disable();
+
+        this.gateData["out-1"] = this.state;
+        this.gateData["hello"] = "hello"
+        console.log("after changing state")
+        console.log(this.gateData);
+        this.func(this.id, (node: any) => ({
+            ...node,
+            data: this.gateData
+        }));
+    }
+
+    public getNode(id: string): IEnable | null {
+        switch (id) {
+            case this.out.id:
+                return this.out;
+            default:
+                return null;
+        }
+    }
+}
+
+export class BulbGate extends Gate {
+    public readonly in: InNode = new InNode("in-1", this);
+
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
+    }
+
+    public enable(): Promise<void> {
+        this.gateData["in-1"] = this.in.enabled();
+        return Promise.resolve();
+    }
+
+    public getNode(id: string): IEnable | null {
+        switch (id) {
+            case this.in.id:
+                return this.in;
             default:
                 return null;
         }

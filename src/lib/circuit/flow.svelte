@@ -19,6 +19,7 @@
     import { nodeTypes } from "$lib";
     import {ConnectionData, type GateData, GateType} from "$lib/types";
     import {preventDefault} from "svelte/legacy";
+    import type {Writable} from "svelte/store";
 
     function onMove(e: MouseEvent | TouchEvent | null, viewport: Viewport) {
         x = viewport.x;
@@ -28,18 +29,11 @@
 
     let x: number = 0, y: number = 0, zoom: number = 1;
 
-    let nodes: Node[] = $state([{
-        id: '0',
-        data: {
-            'out-1': true,
-            "toggle": () => {
-                console.log("toggle");
-            }
-        },
-        type: "power",
-        position: { x: 0, y: 0}
-    }]);
+    let nodes: Node[] = $state([]);
     let edges: Edge[] = $state([]);
+
+    const { updateNode } = useSvelteFlow();
+    export const updateNodeFunction = updateNode;
 
     let i = 1;
     export function createGate(type: string, data: GateData) : string {
