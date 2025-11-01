@@ -37,7 +37,7 @@ export class OrGate extends Gate {
 
     public enable(): void {
         const prev = this.state;
-        this.state = this.in2.enabled() && this.in1.enabled();
+        this.state = this.in2.enabled() || this.in1.enabled();
 
         if(this.state == prev)
             return;
@@ -61,7 +61,7 @@ export class NandGate extends Gate {
 
     public enable(): void {
         const prev = this.state;
-        this.state = this.in2.enabled() && this.in1.enabled();
+        this.state = !(this.in2.enabled() && this.in1.enabled());
 
         if(this.state == prev)
             return;
@@ -83,10 +83,9 @@ export class NorGate extends Gate {
         super();
     }
 
-
     public enable(): void {
         const prev = this.state;
-        this.state = this.in2.enabled() && this.in1.enabled();
+        this.state = !(this.in2.enabled() || this.in1.enabled());
 
         if(this.state == prev)
             return;
@@ -110,7 +109,7 @@ export class XorGate extends Gate {
 
     public enable(): void {
         const prev = this.state;
-        this.state = this.in2.enabled() && this.in1.enabled();
+        this.state = (this.in2.enabled() && !this.in1.enabled()) || (!this.in2.enabled() && this.in1.enabled());
 
         if(this.state == prev)
             return;
@@ -134,7 +133,7 @@ export class XnorGate extends Gate {
 
     public enable(): void {
         const prev = this.state;
-        this.state = this.in2.enabled() && this.in1.enabled();
+        this.state = this.in1.enabled() == this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -157,7 +156,7 @@ export class NotGate extends Gate {
 
     public enable(): void {
         const prev = this.state;
-        this.state = this.in.enabled();
+        this.state = !this.in.enabled();
 
         if(this.state == prev)
             return;

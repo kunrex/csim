@@ -8,85 +8,31 @@
         BackgroundVariant,
         type Edge,
         type Node,
-        type NodeTypes
+        useSvelteFlow,
     } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css'
 
-    import {And, Nand, Not, Or, Nor, Xor, Xnor, Power, Bulb} from "$lib";
+    import { nodeTypes } from "$lib/index";
 
-    const nodeTypes: NodeTypes = {
-        and: And,
-        nand: Nand,
-        not: Not,
-        or: Or,
-        nor: Nor,
-        xor: Xor,
-        xnor: Xnor,
-        power: Power,
-        bulb: Bulb
-    };
+    let x: number = 0, y: number = 0, zoom: number = 1;
 
-    let nodes: Node[] = $state.raw([
-        {
-            id: '1',
-            type: 'nor',
-            data: { label: 'Hello' },
-            position: { x: 0, y: 0 }
-        },
-        {
-            id: '2',
-            type: 'nand',
-            data: { label: 'World' },
-            position: { x: 200, y: 0 }
-        },
-        {
-            id: '3',
-            type: 'or',
-            data: { label: 'World' },
-            position: { x: 100, y: 150 }
-        },
-        {
-            id: '4',
-            type: 'and',
-            data: { label: 'World' },
-            position: { x: 200, y: 150 }
-        },
-        {
-            id: '5',
-            type: 'xor',
-            data: { label: 'World' },
-            position: { x: 150, y: 150 }
-        },
-        {
-            id: '6',
-            type: 'xnor',
-            data: { label: 'World' },
-            position: { x: 300, y: 150 }
-        },
-        {
-            id: '7',
-            type: 'not',
-            data: { label: 'World' },
-            position: { x: 400, y: 150 }
+    let nodes: Node[] = $state([]);
+    let edges: Edge[] = $state([]);
+
+    let i = 1;
+    export function addNode(type: string): string {
+        const id = (i++).toString();
+
+        const node: Node = {
+            id: id,
+            type: type,
+            data: { },
+            position: { x: (-x + window.innerWidth / 2) / zoom, y: (-y + window.innerHeight / 2) / zoom },
         }
-    ]);
 
-    let edges: Edge[] = $state.raw([
-        {
-            id: '1-3',
-            source: '1',
-            target: '3',
-            animated: false
-        },
-        {
-            id: '2-3',
-            source: '2',
-            target: '3',
-            animated: true
-        }
-    ]);
-
-
+        nodes = [...nodes, node];
+        return id;
+    }
 </script>
 
 <style>
@@ -120,8 +66,14 @@
     }
 </style>
 
-<div style="height:100vh">
-    <SvelteFlow connectionMode={ConnectionMode.Strict} bind:nodes bind:edges {nodeTypes} fitView>
+<div style="height: 100vh; width: 100vw;">
+    <SvelteFlow onmove={(e, viewport) => {
+        x = viewport.x;
+        y = viewport.y;
+        zoom = viewport.zoom;
+
+        console.log(x, y, zoom);
+    }} connectionMode={ConnectionMode.Strict} bind:nodes={nodes} bind:edges={edges} {nodeTypes} fitView>
         <Controls />
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
         <MiniMap bgColor="#1e1e1e"/>

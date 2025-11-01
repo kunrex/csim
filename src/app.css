@@ -20,7 +20,10 @@
     border: 1px solid #555;
 }
 
+.node.selected {
+    opacity: .8;
+}
+
 .node.dragging {
-    border-width: 2px;
-    background-color: ghostwhite;
+    opacity: .5;
 }
