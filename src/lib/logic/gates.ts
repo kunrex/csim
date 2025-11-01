@@ -1,254 +1,83 @@
-import { Gate } from "$lib/logic/gate";
+import {BinaryGate, Gate} from "$lib/logic/gate";
 import { InNode, OutNode } from "$lib/logic/node";
 import type {IEnable} from "$lib/logic/interfaces/i-enable";
-import type {GateData} from "$lib/types";
-import {useSvelteFlow} from "@xyflow/svelte";
+import type {GateData, onUpdateSignature} from "$lib/types";
 
-export class AndGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
-
-    public readonly out: OutNode = new OutNode("out-1");
-
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+export class AndGate extends BinaryGate {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
         const prev = this.state;
         this.state = this.in2.enabled() && this.in1.enabled();
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-
-        if(this.state == prev)
-            return;
-
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
-
-        this.gateData["out-1"] = this.out.enabled();
-    }
-
-    public getNode(id: string): IEnable | null {
-        switch (id) {
-            case this.in2.id:
-                return this.in2;
-            case this.in1.id:
-                return this.in1;
-            case this.out.id:
-                return this.out;
-            default:
-                return null;
-        }
+        await this.check(prev);
+        this.syncGameData();
     }
 }
 
-export class OrGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
-
-    public readonly out: OutNode = new OutNode("out-1");
-
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+export class OrGate extends BinaryGate {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
         const prev = this.state;
         this.state = this.in2.enabled() || this.in1.enabled();
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-
-        if(this.state == prev)
-            return;
-
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
-
-        this.gateData["out-1"] = this.out.enabled();
-    }
-
-    public getNode(id: string): IEnable | null {
-        switch (id) {
-            case this.in2.id:
-                return this.in2;
-            case this.in1.id:
-                return this.in1;
-            case this.out.id:
-                return this.out;
-            default:
-                return null;
-        }
+        await this.check(prev);
+        this.syncGameData();
     }
 }
 
-export class NandGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
-
-    public readonly out: OutNode = new OutNode("out-1");
-
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+export class NandGate extends BinaryGate {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
         const prev = this.state;
         this.state = !(this.in2.enabled() && this.in1.enabled());
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-
-        if(this.state == prev)
-            return;
-
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
-
-        this.gateData["out-1"] = this.out.enabled();
-        return Promise.resolve();
-    }
-
-    public getNode(id: string): IEnable | null {
-        switch (id) {
-            case this.in2.id:
-                return this.in2;
-            case this.in1.id:
-                return this.in1;
-            case this.out.id:
-                return this.out;
-            default:
-                return null;
-        }
+        await this.check(prev);
+        this.syncGameData();
     }
 }
 
-export class NorGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
-
-    public readonly out: OutNode = new OutNode("out-1");
-
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+export class NorGate extends BinaryGate {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
         const prev = this.state;
         this.state = !(this.in2.enabled() || this.in1.enabled());
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-
-        if(this.state == prev)
-            return;
-
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
-
-        this.gateData["out-1"] = this.out.enabled();
-        return Promise.resolve();
-    }
-
-    public getNode(id: string): IEnable | null {
-        switch (id) {
-            case this.in2.id:
-                return this.in2;
-            case this.in1.id:
-                return this.in1;
-            case this.out.id:
-                return this.out;
-            default:
-                return null;
-        }
+        await this.check(prev);
+        this.syncGameData();
     }
 }
 
-export class XorGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
-
-    public readonly out: OutNode = new OutNode("out-1");
-
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+export class XorGate extends BinaryGate {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
         const prev = this.state;
         this.state = (this.in2.enabled() && !this.in1.enabled()) || (!this.in2.enabled() && this.in1.enabled());
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-
-        if(this.state == prev)
-            return
-
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
-
-        this.gateData["out-1"] = this.out.enabled();
-    }
-
-    public getNode(id: string): IEnable | null {
-        switch (id) {
-            case this.in2.id:
-                return this.in2;
-            case this.in1.id:
-                return this.in1;
-            case this.out.id:
-                return this.out;
-            default:
-                return null;
-        }
+        await this.check(prev);
+        this.syncGameData();
     }
 }
 
-export class XnorGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
-
-    public readonly out: OutNode = new OutNode("out-1");
-
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+export class XnorGate extends BinaryGate {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
         const prev = this.state;
         this.state = this.in1.enabled() == this.in2.enabled();
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-
-        if(this.state == prev)
-            return Promise.resolve();
-
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
-
-        this.gateData["out-1"] = this.out.enabled();
-    }
-
-    public getNode(id: string): IEnable | null {
-        switch (id) {
-            case this.in2.id:
-                return this.in2;
-            case this.in1.id:
-                return this.in1;
-            case this.out.id:
-                return this.out;
-            default:
-                return null;
-        }
+        await this.check(prev);
+        this.syncGameData();
     }
 }
 
@@ -257,8 +86,8 @@ export class NotGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
@@ -275,6 +104,7 @@ export class NotGate extends Gate {
             await this.out.enable();
 
         this.gateData["out-1"] = this.out.enabled();
+        this.syncGameData();
     }
 
     public getNode(id: string): IEnable | null {
@@ -292,8 +122,8 @@ export class NotGate extends Gate {
 export class PowerGate extends Gate {
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string, gateData: GateData, private readonly func: any) {
-        super(id, gateData);
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public async enable(): Promise<void> {
@@ -304,13 +134,7 @@ export class PowerGate extends Gate {
             await this.out.disable();
 
         this.gateData["out-1"] = this.state;
-        this.gateData["hello"] = "hello"
-        console.log("after changing state")
-        console.log(this.gateData);
-        this.func(this.id, (node: any) => ({
-            ...node,
-            data: this.gateData
-        }));
+        this.syncGameData();
     }
 
     public getNode(id: string): IEnable | null {
@@ -326,12 +150,13 @@ export class PowerGate extends Gate {
 export class BulbGate extends Gate {
     public readonly in: InNode = new InNode("in-1", this);
 
-    public constructor(id: string, gateData: GateData) {
-        super(id, gateData);
+    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     public enable(): Promise<void> {
         this.gateData["in-1"] = this.in.enabled();
+        this.syncGameData();
         return Promise.resolve();
     }
 

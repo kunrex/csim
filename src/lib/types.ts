@@ -17,3 +17,5 @@ export enum GateType {
 
 export type EdgeData = Record<string, any>;
 export type GateData = Record<string, any>;
+
+export type onUpdateSignature = (id: string, nodeUpdate: (Partial<Node> | ((node: Node) => Partial<Node>)), options?: { replace: boolean }) => void
