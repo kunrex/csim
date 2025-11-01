@@ -8,22 +8,30 @@
     --color-nor: lawngreen;
     --color-xor: orange;
     --color-xnor: violet;
+    --color-prefab: cyan;
+
+    --pixel-height: 20px;
 }
 
 .node {
     color: whitesmoke;
 
-    padding: 16px;
-    background: white;
+    width: calc(var(--pixel-height) * 3);
+    height: calc(var(--pixel-height) * 2.8);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     border-radius: 4px;
     border: 1px solid #555;
 }
 
 .node.selected {
-    opacity: .8;
+    border-radius: 6px;
+    border-width: 2px;
 }
 
 .node.dragging {
-    opacity: .5;
+    opacity: .8;
 }

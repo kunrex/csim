@@ -4,16 +4,19 @@
     import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
-    import Connector from '$lib/components/connector.svelte';
+    import type { GateData } from "$lib/types";
+    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
 
+    export let data: GateData;
     export let dragging = false;
+    export let selected = false;
 </script>
 
-<div class="node" class:dragging>
+<div class="node" class:dragging class:selected>
     <div>
         <b><FontAwesomeIcon icon={faPowerOff}/></b>
     </div>
-    <Connector type="source" position={Position.Right} id="out-1"/>
+    <HandlerWrapper type="source" position={Position.Right} id="out-1" enabled={data['out-1']}/>
 </div>
 
 <style>

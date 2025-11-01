@@ -1,40 +1,42 @@
-import { AndGate, OrGate, NandGate, NorGate, NotGate, XorGate, XnorGate } from "$lib/structure/gates";
+import { Gate } from "$lib/logic/gate";
+import { EdgeConnection } from "$lib/logic/edge";
+import { AndGate, OrGate, NandGate, NorGate, NotGate, XorGate, XnorGate } from "$lib/logic/gates";
 
-export { AndGate, OrGate, NandGate, NorGate, NotGate, XorGate, XnorGate };
+export { Gate, AndGate, OrGate, NandGate, NorGate, NotGate, XorGate, XnorGate, EdgeConnection };
 
-import And from "$lib/components/gates/and.svelte";
-import Nand from "$lib/components/gates/nand.svelte";
-import Nor from "$lib/components/gates/nor.svelte";
-import Not from "$lib/components/gates/not.svelte";
-import Or from "$lib/components/gates/or.svelte";
-import Xnor from "$lib/components/gates/xnor.svelte";
-import Xor from "$lib/components/gates/xor.svelte";
+import And from "$lib/circuit/gates/and.svelte";
+import Nand from "$lib/circuit/gates/nand.svelte";
+import Nor from "$lib/circuit/gates/nor.svelte";
+import Not from "$lib/circuit/gates/not.svelte";
+import Or from "$lib/circuit/gates/or.svelte";
+import Xnor from "$lib/circuit/gates/xnor.svelte";
+import Xor from "$lib/circuit/gates/xor.svelte";
+import Prefab from "$lib/circuit/gates/prefab.svelte";
+
+import Power from "$lib/circuit/nodes/power.svelte"
+import Bulb from "$lib/circuit/nodes/bulb.svelte"
+
+import { GateType } from "$lib/types";
 
 export const nodeTypes: NodeTypes = {
-    and: And,
-    nand: Nand,
-    not: Not,
-    or: Or,
-    nor: Nor,
-    xor: Xor,
-    xnor: Xnor,
-    power: Power,
-    bulb: Bulb
+    [GateType.And]: And,
+    [GateType.Nand]: Nand,
+    [GateType.Not]: Not,
+    [GateType.Or]: Or,
+    [GateType.Nor]: Nor,
+    [GateType.Xor]: Xor,
+    [GateType.Xnor]: Xnor,
+    [GateType.Prefab]: Prefab,
+    [GateType.Power]: Power,
+    [GateType.Bulb]: Bulb,
 };
 
-export { And, Nand, Nor, Not, Or, Xnor, Xor };
+import InsertButton from "$lib/circuit/insert-button.svelte"
+import UtilityButton from "$lib/circuit/utility-button.svelte"
 
-import Power from "$lib/components/nodes/power.svelte"
-import Bulb from "$lib/components/nodes/bulb.svelte"
+export { InsertButton, UtilityButton };
 
-export { Power };
-export { Bulb };
-
-import InsertButton from "$lib/insert-button.svelte"
-
-export { InsertButton };
-
-import Flow from "$lib/flow.svelte"
-import type {NodeTypes} from "@xyflow/svelte";
+import Flow from "$lib/circuit/flow.svelte"
+import type { NodeTypes } from "@xyflow/svelte";
 
 export { Flow };

@@ -5,7 +5,7 @@
     export let position: Position = Position.Top;
     export let type: "source" | "target" = "source";
 
-    let enabled = false;
+    export let enabled = false;
     export function setState(state: boolean) {
         enabled = state;
     }

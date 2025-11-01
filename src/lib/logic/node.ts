@@ -1,9 +1,9 @@
-import type { IEnable } from "$lib/structure/interfaces/i-enable";
+import type { IEnable } from "$lib/logic/interfaces/i-enable";
 
 export class InNode implements IEnable {
     private readonly inputs: IEnable[] = [];
 
-    public constructor(private readonly enableObject: IEnable) { }
+    public constructor(public readonly id: string, private readonly enableObject: IEnable) { }
 
     public pushInput(input: IEnable): void {
         this.inputs.push(input);
@@ -37,7 +37,7 @@ export class OutNode implements IEnable {
     private state: boolean = false;
     private readonly outputs: IEnable[] = [];
 
-    public constructor() { }
+    public constructor(public readonly id: string) { }
 
     public pushOutput(input: IEnable): void {
         this.outputs.push(input);

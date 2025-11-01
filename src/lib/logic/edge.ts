@@ -1,10 +1,9 @@
-import { InNode, OutNode } from "$lib/structure/node"
-import type { IEnable } from "$lib/structure/interfaces/i-enable";
+import type { IEnable } from "$lib/logic/interfaces/i-enable";
 
 export class EdgeConnection implements IEnable {
     private state: boolean = false;
 
-    public constructor(public source: OutNode | null, public target: InNode | null) { }
+    public constructor(public id: string, public source: IEnable | null, public target: IEnable | null) { }
 
     disable(): void {
         this.target?.disable();
