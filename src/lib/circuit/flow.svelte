@@ -18,6 +18,7 @@
 
     import { nodeTypes } from "$lib";
     import {ConnectionData, type GateData, GateType} from "$lib/types";
+    import {preventDefault} from "svelte/legacy";
 
     function onMove(e: MouseEvent | TouchEvent | null, viewport: Viewport) {
         x = viewport.x;
@@ -27,7 +28,17 @@
 
     let x: number = 0, y: number = 0, zoom: number = 1;
 
-    let nodes: Node[] = $state([]);
+    let nodes: Node[] = $state([{
+        id: '0',
+        data: {
+            'out-1': true,
+            "toggle": () => {
+                console.log("toggle");
+            }
+        },
+        type: "power",
+        position: { x: 0, y: 0}
+    }]);
     let edges: Edge[] = $state([]);
 
     let i = 1;

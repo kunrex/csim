@@ -9,6 +9,8 @@
     --color-xor: orange;
     --color-xnor: violet;
     --color-prefab: cyan;
+    --color-bulb: darkorange;
+    --color-power: orangered;
 
     --pixel-height: 20px;
 }
@@ -34,4 +36,20 @@
 
 .node.dragging {
     opacity: .8;
+}
+
+.insert-button {
+    color: whitesmoke;
+
+    width: calc(var(--pixel-height) * 4);
+    height: calc(var(--pixel-height) * 3.5);
+
+    font-size: x-large;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 4px;
+    border: 1px solid #555;
 }

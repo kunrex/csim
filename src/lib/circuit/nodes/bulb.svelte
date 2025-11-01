@@ -10,14 +10,14 @@
     export let data: GateData;
     export let dragging = false;
     export let selected = false;
+
+    let toggleEvent: () => void = data["toggle"];
 </script>
 
-<div class="node" class:dragging class:selected>
+<button on:click={toggleEvent} class="node" style="background-color: var(--color-bulb); font-size: xx-large;" class:dragging class:selected>
     <HandlerWrapper type="target" position={Position.Left} id="in-1" enabled={data['in-1']}/>
-    <div>
-        <b><FontAwesomeIcon icon={faLightbulb}/></b>
-    </div>
-</div>
+    <b><FontAwesomeIcon icon={faLightbulb}/></b>
+</button>
 
 <style>
     .node {

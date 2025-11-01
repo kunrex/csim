@@ -1,6 +1,7 @@
 import { Gate } from "$lib/logic/gate";
 import { InNode, OutNode } from "$lib/logic/node";
 import type {IEnable} from "$lib/logic/interfaces/i-enable";
+import type {GateData} from "$lib/types";
 
 export class AndGate extends Gate {
     public readonly in1: InNode = new InNode("in-1", this);
@@ -8,13 +9,15 @@ export class AndGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = this.in2.enabled() && this.in1.enabled();
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -23,6 +26,8 @@ export class AndGate extends Gate {
             this.out.enable();
         else
             this.out.disable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {
@@ -45,13 +50,15 @@ export class OrGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = this.in2.enabled() || this.in1.enabled();
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -60,6 +67,8 @@ export class OrGate extends Gate {
             this.out.enable();
         else
             this.out.disable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {
@@ -82,13 +91,15 @@ export class NandGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = !(this.in2.enabled() && this.in1.enabled());
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -97,6 +108,8 @@ export class NandGate extends Gate {
             this.out.enable();
         else
             this.out.disable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {
@@ -119,13 +132,15 @@ export class NorGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = !(this.in2.enabled() || this.in1.enabled());
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -134,6 +149,8 @@ export class NorGate extends Gate {
             this.out.enable();
         else
             this.out.disable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {
@@ -156,13 +173,15 @@ export class XorGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = (this.in2.enabled() && !this.in1.enabled()) || (!this.in2.enabled() && this.in1.enabled());
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -171,6 +190,8 @@ export class XorGate extends Gate {
             this.out.enable();
         else
             this.out.disable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {
@@ -193,13 +214,15 @@ export class XnorGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = this.in1.enabled() == this.in2.enabled();
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
 
         if(this.state == prev)
             return;
@@ -208,6 +231,8 @@ export class XnorGate extends Gate {
             this.out.enable();
         else
             this.out.disable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {
@@ -229,21 +254,24 @@ export class NotGate extends Gate {
 
     public readonly out: OutNode = new OutNode("out-1");
 
-    public constructor(id: string) {
-        super(id);
+    public constructor(id: string, gateData: GateData) {
+        super(id, gateData);
     }
 
     public enable(): void {
         const prev = this.state;
         this.state = !this.in.enabled();
+        this.gateData["in-1"] = this.in.enabled();
 
         if(this.state == prev)
             return;
 
         if(this.state)
-            this.out.enable();
-        else
             this.out.disable();
+        else
+            this.out.enable();
+
+        this.gateData["out-1"] = this.out.enabled();
     }
 
     public getNode(id: string): IEnable | null {

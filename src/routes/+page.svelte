@@ -46,6 +46,11 @@
         gates.push(new XnorGate(id));
     }
 
+    function createPower() : void {
+        const id = flow.addNode('xnor') as string;
+        gates.push(new XnorGate(id));
+    }
+
     function onDeleteNode(id: string) : void {
         const count = gates.length;
 
@@ -136,7 +141,7 @@
     }
 </script>
 
-<div class="flex flex-col h-1/2 fixed top-1/2 right-0 -translate-x-0 -translate-y-1/2 mr-8 justify-evenly align-center gap-8 border-3 border-gray-300 p-4 rounded-2xl backdrop-blur overflow-y-auto z-50">
+<div class="flex flex-row w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 align-center border-2 gap-x-4 border-gray-300 rounded-2xl p-3 backdrop-blur overflow-x-auto z-50">
     <InsertButton name="And" color="var(--color-and)" onClick={spawnFunctions["and"]}></InsertButton>
     <InsertButton name="Or" color="var(--color-or)" onClick={spawnFunctions["or"]}></InsertButton>
     <InsertButton name="Nand" color="var(--color-nand)" onClick={spawnFunctions["nand"]}></InsertButton>

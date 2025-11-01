@@ -7,12 +7,17 @@ export class InNode implements IEnable {
 
     public pushInput(input: IEnable): void {
         this.inputs.push(input);
+
+        if(input.enabled())
+            this.enable();
     }
 
     public popInput(input: IEnable): void {
         const index = this.inputs.indexOf(input);
         if(index >= 0)
             this.inputs.splice(index, 1);
+
+        this.disable();
     }
 
     public enabled(): boolean {

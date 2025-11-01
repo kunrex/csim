@@ -15,4 +15,5 @@ export enum GateType {
     Prefab = "prefab",
 }
 
+export type EdgeData = Record<string, any>;
 export type GateData = Record<string, any>;

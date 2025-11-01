@@ -6,9 +6,6 @@
     export let type: "source" | "target" = "source";
 
     export let enabled = false;
-    export function setState(state: boolean) {
-        enabled = state;
-    }
 </script>
 
 <Handle type={type} position={position} id={id} {...$$restProps} class={enabled ? '!bg-rose-600': ''}/>
