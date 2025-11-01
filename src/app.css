@@ -1,6 +1,18 @@
 @import 'tailwindcss';
 
+:root {
+    --color-and: red;
+    --color-or: mediumpurple;
+    --color-not: black;
+    --color-nand: deepskyblue;
+    --color-nor: lawngreen;
+    --color-xor: orange;
+    --color-xnor: violet;
+}
+
 .node {
+    color: whitesmoke;
+
     padding: 16px;
     background: white;
 

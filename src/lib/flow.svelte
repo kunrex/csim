@@ -1,8 +1,30 @@
 <script lang="ts">
-    import { SvelteFlow, Controls, Background, MiniMap, ConnectionMode, BackgroundVariant, type Edge, type Node } from '@xyflow/svelte';
+    import {
+        SvelteFlow,
+        Controls,
+        Background,
+        MiniMap,
+        ConnectionMode,
+        BackgroundVariant,
+        type Edge,
+        type Node,
+        type NodeTypes
+    } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css'
 
-    import { And, Nand, Not, Or, Nor, Xor, Xnor } from "$lib";
+    import {And, Nand, Not, Or, Nor, Xor, Xnor, Power, Bulb} from "$lib";
+
+    const nodeTypes: NodeTypes = {
+        and: And,
+        nand: Nand,
+        not: Not,
+        or: Or,
+        nor: Nor,
+        xor: Xor,
+        xnor: Xnor,
+        power: Power,
+        bulb: Bulb
+    };
 
     let nodes: Node[] = $state.raw([
         {
@@ -28,6 +50,24 @@
             type: 'and',
             data: { label: 'World' },
             position: { x: 200, y: 150 }
+        },
+        {
+            id: '5',
+            type: 'xor',
+            data: { label: 'World' },
+            position: { x: 150, y: 150 }
+        },
+        {
+            id: '6',
+            type: 'xnor',
+            data: { label: 'World' },
+            position: { x: 300, y: 150 }
+        },
+        {
+            id: '7',
+            type: 'not',
+            data: { label: 'World' },
+            position: { x: 400, y: 150 }
         }
     ]);
 
@@ -46,22 +86,14 @@
         }
     ]);
 
-    const nodeTypes = {
-        and: And,
-        nand: Nand,
-        not: Not,
-        or: Or,
-        nor: Nor,
-        xor: Xor,
-        Xnor: Xnor
-    }
+
 </script>
 
 <style>
     :global(.svelte-flow__handle) {
         width: 14px;
         height: 14px;
-        border: 2px solid white;
+        border: 2px solid #1e1e1e;
         border-radius: 50%;
     }
 
@@ -91,7 +123,7 @@
 <div style="height:100vh">
     <SvelteFlow connectionMode={ConnectionMode.Strict} bind:nodes bind:edges {nodeTypes} fitView>
         <Controls />
-        <Background bgColor="#fff3dc" variant={BackgroundVariant.Dots} />
-        <MiniMap />
+        <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
+        <MiniMap bgColor="#1e1e1e"/>
     </SvelteFlow>
 </div>

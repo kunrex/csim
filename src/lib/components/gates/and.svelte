@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+    import { Position } from '@xyflow/svelte';
 
     import Connector from '$lib/components/connector.svelte';
     import { topRight, bottomRight } from "$lib/components/constants";
@@ -15,3 +15,9 @@
     </div>
     <Connector type="source" position={Position.Right} id="out-3"/>
 </div>
+
+<style>
+    .node {
+        background-color: var(--color-and);
+    }
+</style>

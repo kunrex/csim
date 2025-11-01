@@ -8,6 +8,16 @@ import Xor from "$lib/components/gates/xor.svelte";
 
 export { And, Nand, Nor, Not, Or, Xnor, Xor };
 
+import Power from "$lib/components/nodes/power.svelte"
+import Bulb from "$lib/components/nodes/bulb.svelte"
+
+export { Power };
+export { Bulb };
+
+import InsertButton from "$lib/insert-button.svelte"
+
+export { InsertButton };
+
 import Flow from "$lib/flow.svelte"
 
-export default Flow;
+export { Flow };

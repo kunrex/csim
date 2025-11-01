@@ -1,6 +1,9 @@
 <script lang="ts">
     import { Position } from '@xyflow/svelte';
 
+    import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
+    import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
+
     import Connector from '$lib/components/connector.svelte';
 
     export let dragging = false;
@@ -9,13 +12,12 @@
 <div class="node" class:dragging>
     <Connector type="target" position={Position.Left} id="in-1"/>
     <div>
-        <b>Not</b>
+        <b><FontAwesomeIcon icon={faLightbulb}/></b>
     </div>
-    <Connector type="source" position={Position.Right} id="out-3"/>
 </div>
 
 <style>
     .node {
-        background-color: var(--color-not);
+        padding: 8px;
     }
 </style>
