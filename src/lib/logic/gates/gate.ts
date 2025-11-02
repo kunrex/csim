@@ -1,11 +1,16 @@
-import type { GateData, onUpdateSignature } from "$lib/types";
-import type { IEnable } from "$lib/logic/interfaces/i-enable";
-import {InNode, OutNode} from "$lib/logic/node";
+import type { GateData, UpdateSignature } from "$lib/circuit";
 
-export abstract class Gate implements IEnable {
+import { Handle, InHandle, OutHandle } from "$lib/logic";
+
+import type { IIdentity } from "$lib/logic/interfaces";
+
+export abstract class Gate implements IIdentity {
     protected state: boolean = false;
 
-    protected constructor(public readonly id: string, protected readonly gateData: GateData, protected readonly onUpdateFunction: onUpdateSignature) { }
+    public abstract inCount() : number;
+    public abstract outCount(): number;
+
+    protected constructor(public id: string, public readonly gateData: GateData, protected readonly onUpdateFunction: UpdateSignature) { }
 
     protected syncGameData() : void {
         this.onUpdateFunction(this.id, (node: any) => ({
@@ -21,25 +26,26 @@ export abstract class Gate implements IEnable {
     public disable(): Promise<void> { return Promise.resolve(); }
     public abstract enable(): Promise<void>;
 
-    public abstract getNode(id: string) : IEnable | null;
+    public abstract getNode(id: string) : Handle | null;
 }
 
 export abstract class BinaryGate extends Gate {
-    public readonly in1: InNode = new InNode("in-1", this);
-    public readonly in2: InNode = new InNode("in-2", this);
+    public readonly in1: InHandle = new InHandle("in-1", this);
+    public readonly in2: InHandle = new InHandle("in-2", this);
 
-    public readonly out: OutNode = new OutNode("out-1");
+    public readonly out: OutHandle = new OutHandle("out-1");
 
-    protected constructor(id: string, gateData: GateData, onUpdateFUnction: onUpdateSignature) {
-        super(id, gateData, onUpdateFUnction);
+    protected constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
+        super(id, gateData, onUpdateFunction);
     }
 
     protected async check(prev: boolean) : Promise<void> {
         this.gateData["in-1"] = this.in1.enabled();
         this.gateData["in-2"] = this.in2.enabled();
+        this.syncGameData();
 
         if(this.state == prev)
-            return
+            return;
 
         if(this.state)
             await this.out.enable();
@@ -47,9 +53,10 @@ export abstract class BinaryGate extends Gate {
             await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
+        this.syncGameData();
     }
 
-    public getNode(id: string): IEnable | null {
+    public getNode(id: string): Handle | null {
         switch (id) {
             case this.in2.id:
                 return this.in2;

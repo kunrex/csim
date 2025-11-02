@@ -4,7 +4,7 @@
     import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
-    import type { GateData } from "$lib/types";
+    import type { GateData } from "$lib/circuit";
     import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
 
     export let data: GateData;
@@ -14,7 +14,7 @@
     let enabled = data['out-1'];
 
     let toggleEvent = async () => {
-        await data["toggle"]()
+        await data["toggle"]();
         enabled = data['out-1'];
     }
 </script>

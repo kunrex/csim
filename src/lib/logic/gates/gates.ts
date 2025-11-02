@@ -1,10 +1,12 @@
-import {BinaryGate, Gate} from "$lib/logic/gate";
-import { InNode, OutNode } from "$lib/logic/node";
-import type {IEnable} from "$lib/logic/interfaces/i-enable";
-import type {GateData, onUpdateSignature} from "$lib/types";
+import { BinaryGate, Gate } from "$lib/logic/gates/gate";
+import { Handle, InHandle, OutHandle } from "$lib/logic/handle";
+import type { GateData, UpdateSignature } from "$lib/circuit";
 
 export class AndGate extends BinaryGate {
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public inCount() : number { return 2; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -12,12 +14,14 @@ export class AndGate extends BinaryGate {
         const prev = this.state;
         this.state = this.in2.enabled() && this.in1.enabled();
         await this.check(prev);
-        this.syncGameData();
     }
 }
 
 export class OrGate extends BinaryGate {
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public inCount() : number { return 2; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -25,12 +29,14 @@ export class OrGate extends BinaryGate {
         const prev = this.state;
         this.state = this.in2.enabled() || this.in1.enabled();
         await this.check(prev);
-        this.syncGameData();
     }
 }
 
-export class NandGate extends BinaryGate {
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+export class NAndGate extends BinaryGate {
+    public inCount() : number { return 2; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -38,12 +44,14 @@ export class NandGate extends BinaryGate {
         const prev = this.state;
         this.state = !(this.in2.enabled() && this.in1.enabled());
         await this.check(prev);
-        this.syncGameData();
     }
 }
 
-export class NorGate extends BinaryGate {
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+export class NOrGate extends BinaryGate {
+    public inCount() : number { return 2; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -51,12 +59,14 @@ export class NorGate extends BinaryGate {
         const prev = this.state;
         this.state = !(this.in2.enabled() || this.in1.enabled());
         await this.check(prev);
-        this.syncGameData();
     }
 }
 
 export class XorGate extends BinaryGate {
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public inCount() : number { return 2; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -64,12 +74,13 @@ export class XorGate extends BinaryGate {
         const prev = this.state;
         this.state = (this.in2.enabled() && !this.in1.enabled()) || (!this.in2.enabled() && this.in1.enabled());
         await this.check(prev);
-        this.syncGameData();
     }
 }
+export class XNorGate extends BinaryGate {
+    public inCount() : number { return 2; };
+    public outCount(): number { return 1; };
 
-export class XnorGate extends BinaryGate {
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -77,16 +88,18 @@ export class XnorGate extends BinaryGate {
         const prev = this.state;
         this.state = this.in1.enabled() == this.in2.enabled();
         await this.check(prev);
-        this.syncGameData();
     }
 }
 
 export class NotGate extends Gate {
-    public readonly in: InNode = new InNode("in-1", this);
+    public readonly in: InHandle = new InHandle("in-1", this);
 
-    public readonly out: OutNode = new OutNode("out-1");
+    public readonly out: OutHandle = new OutHandle("out-1");
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public inCount() : number { return 1; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -95,19 +108,21 @@ export class NotGate extends Gate {
         this.state = !this.in.enabled();
         this.gateData["in-1"] = this.in.enabled();
 
-        if(this.state == prev)
+        if(this.state == prev) {
+            this.syncGameData();
             return;
+        }
 
         if(this.state)
-            await this.out.disable();
-        else
             await this.out.enable();
+        else
+            await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
         this.syncGameData();
     }
 
-    public getNode(id: string): IEnable | null {
+    public getNode(id: string): Handle | null {
         switch (id) {
             case this.in.id:
                 return this.in;
@@ -120,9 +135,12 @@ export class NotGate extends Gate {
 }
 
 export class PowerGate extends Gate {
-    public readonly out: OutNode = new OutNode("out-1");
+    public readonly out: OutHandle = new OutHandle("out-1");
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public inCount() : number { return 0; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -137,7 +155,7 @@ export class PowerGate extends Gate {
         this.syncGameData();
     }
 
-    public getNode(id: string): IEnable | null {
+    public getNode(id: string): Handle | null {
         switch (id) {
             case this.out.id:
                 return this.out;
@@ -148,9 +166,12 @@ export class PowerGate extends Gate {
 }
 
 export class BulbGate extends Gate {
-    public readonly in: InNode = new InNode("in-1", this);
+    public readonly in: InHandle = new InHandle("in-1", this);
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: onUpdateSignature) {
+    public inCount() : number { return 1; };
+    public outCount(): number { return 0; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
     }
 
@@ -160,7 +181,7 @@ export class BulbGate extends Gate {
         return Promise.resolve();
     }
 
-    public getNode(id: string): IEnable | null {
+    public getNode(id: string): Handle | null {
         switch (id) {
             case this.in.id:
                 return this.in;

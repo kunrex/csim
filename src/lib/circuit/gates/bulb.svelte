@@ -4,7 +4,7 @@
     import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
-    import type { GateData } from "$lib/types";
+    import type { GateData } from "$lib/circuit";
     import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
 
     export let data: GateData;

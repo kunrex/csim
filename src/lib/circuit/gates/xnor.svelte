@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Position } from '@xyflow/svelte';
 
-    import type { GateData } from "$lib/types";
-    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
+    import type { GateData } from "$lib/circuit";
     import { topRight, bottomRight } from "$lib/circuit/constants";
+    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
 
     export let data: GateData;
     export let dragging = false;

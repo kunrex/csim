@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Position } from '@xyflow/svelte';
 
-    import type { GateData } from "$lib/types";
+    import type { GateData } from "$lib/circuit";
     import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
 
     export let data: GateData;

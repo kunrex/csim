@@ -1,11 +1,13 @@
 <script lang="ts">
     import { Position } from '@xyflow/svelte';
 
-    import type { GateData } from "$lib/types";
-    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
+    import type { GateData } from "$lib/circuit";
     import { pixelHeight } from "$lib/circuit/constants";
+    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
 
     export let data: GateData;
+    export let dragging = false;
+    export let selected = false;
 
     const inCount: number = data["in"];
     const outCount: number = data["out"];
@@ -14,9 +16,6 @@
     const height = pixelHeight * (max + 2);
     const inSpacing = height / (inCount + 1);
     const outSpacing = height / (outCount + 1);
-
-    export let dragging = false;
-    export let selected = false;
 </script>
 
 <div class="node" style={`height: ${height}px;`} class:dragging class:selected>

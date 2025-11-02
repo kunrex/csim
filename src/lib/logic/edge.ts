@@ -1,23 +1,32 @@
-import type { EdgeData } from "$lib/types";
-import type { IEnable } from "$lib/logic/interfaces/i-enable";
+import type { UpdateSignature } from "$lib/circuit";
 
-export class EdgeConnection implements IEnable {
+import type { IEnable } from "$lib/logic/interfaces";
+
+export class EdgeConnection {
     private state: boolean = false;
-    public readonly edgeData: EdgeData = { };
 
-    public constructor(public id: string, public source: IEnable | null, public target: IEnable | null) { }
+    public constructor(public id: string, public source: IEnable | null, public target: IEnable | null, private readonly onUpdateFunction: UpdateSignature) { }
 
-    disable(): void {
-        this.target?.disable();
-        this.edgeData["enabled"] = false;
+    private syncEdgeData() : void {
+        this.onUpdateFunction(this.id, (edge: any) => ({
+            ...edge,
+            animated: this.state
+        }));
     }
 
-    enable(): void {
-        this.target?.enable();
-        this.edgeData["enabled"] = true;
+    public async enable(): Promise<void> {
+        this.state = true;
+        await this.target!.enable();
+        this.syncEdgeData();
     }
 
-    enabled(): boolean {
-        return this.source ? this.source.enabled() : false;
+    public async disable(): Promise<void> {
+        this.state = false;
+        await this.target!.disable();
+        this.syncEdgeData();
+    }
+
+    public enabled(): boolean {
+        return this.state;
     }
 }

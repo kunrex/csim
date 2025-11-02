@@ -1,84 +1,69 @@
 <script lang="ts">
-    import {
-        SvelteFlow,
-        Controls,
-        Background,
-        MiniMap,
-        ConnectionMode,
-        BackgroundVariant,
-        type Edge,
-        type Node,
-        useSvelteFlow,
-        type Viewport,
-        type Connection, type NodeTypes, type EdgeTypes
-    } from '@xyflow/svelte';
+    import { SvelteFlow, Controls, Background, MiniMap, ConnectionMode, BackgroundVariant, type Edge, type Node, useSvelteFlow, type Viewport, type Connection, addEdge } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css'
 
-    import {createEventDispatcher} from "svelte";
+    import { createEventDispatcher } from "svelte";
 
-    import { nodeTypes } from "$lib";
-    import {ConnectionData, type GateData, GateType} from "$lib/types";
-    import {preventDefault} from "svelte/legacy";
-    import type {Writable} from "svelte/store";
+    import { createEdge } from "$lib/circuit/utils";
+    import { nodeTypes, ConnectionData, type GateData, type GateDeleteData, type GateType, type OnDeleteParams } from "$lib/circuit";
 
+    const { updateNode, updateEdge } = useSvelteFlow();
+    export const updateNodeFunction = updateNode;
+    export const updateEdgeFunction = updateEdge;
+
+    export const onDestroyGateCallback = createEventDispatcher<{ destroy: GateDeleteData }>();
+    export const onConnectionCallback = createEventDispatcher<{ connection: ConnectionData }>();
+    export const onDisconnectionCallback = createEventDispatcher<{ disconnection: ConnectionData }>();
+
+    let x = 0, y = 0, zoom = 1;
     function onMove(e: MouseEvent | TouchEvent | null, viewport: Viewport) {
         x = viewport.x;
         y = viewport.y;
         zoom = viewport.zoom;
     }
 
-    let x: number = 0, y: number = 0, zoom: number = 1;
+    let gates: Node[] = $state([]);
+    let connections: Edge[] = $state([]);
 
-    let nodes: Node[] = $state([]);
-    let edges: Edge[] = $state([]);
-
-    const { updateNode } = useSvelteFlow();
-    export const updateNodeFunction = updateNode;
-
-    let i = 1;
-    export function createGate(type: string, data: GateData) : string {
-        const id = (i++).toString();
+    let gateCount = 1;
+    export function createGate(type: GateType, data: GateData) : string {
+        const id = (gateCount++).toString();
         const node: Node = {
             id: id,
-            type: type,
+            type: type as string,
             data: data,
             position: { x: (-x + window.innerWidth / 2) / zoom, y: (-y + window.innerHeight / 2) / zoom },
         }
 
-        nodes = [...nodes, node];
+        gates = [...gates, node];
         return id;
     }
 
-    export const onDestroyGateCallback = createEventDispatcher<{ destroyed: string }>();
-    export const onConnectionCallback = createEventDispatcher<{ connection: ConnectionData }>();
-    export const onDisconnectionCallback = createEventDispatcher<{ disconnection: ConnectionData }>();
-    export const onReconnectionCallback = createEventDispatcher<{ reconnection: { old: ConnectionData, new: ConnectionData } }>();
-
     function onConnection(connection: Connection) : void {
-        if(connection.sourceHandle && connection.targetHandle)
-            onConnectionCallback("connection", new ConnectionData(connection.source, connection.target, connection.sourceHandle, connection.targetHandle));
+        if(connection.sourceHandle && connection.targetHandle) {
+            const edge = createEdge(connection);
+            connections = addEdge(edge, connections);
+            onConnectionCallback("connection", new ConnectionData(edge.id, connection.source, connection.target, connection.sourceHandle, connection.targetHandle));
+        }
     }
 
-    function onReconnection(edge: Edge, connection: Connection) : void {
-        if(edge.sourceHandle && edge.targetHandle && connection.sourceHandle && connection.targetHandle)
-            onReconnectionCallback("reconnection", {
-                old: new ConnectionData(edge.source, edge.target, edge.sourceHandle, edge.targetHandle),
-                new: new ConnectionData(connection.source, connection.target, connection.sourceHandle, connection.targetHandle)
-            });
-    }
+    function onDelete(details: OnDeleteParams) : void {
+        const edges = details.edges;
+        const nodes = details.nodes;
 
-    function onDelete(nodes: NodeTypes[], edges: EdgeTypes[]) : void {
         const edgeCount = edges.length;
         for(let i = 0; i < edgeCount; i++)
         {
             const edge = edges[i] as any;
             if(edge.sourceHandle && edge.targetHandle)
-                onDisconnectionCallback("disconnection", new ConnectionData(edge.source, edge.target, edge.sourceHandle, edge.targetHandle));
+                onDisconnectionCallback("disconnection", new ConnectionData(edge.id, edge.source, edge.target, edge.sourceHandle, edge.targetHandle));
         }
 
         const nodeCount = nodes.length;
-        for(let i = 0; i < nodeCount; i++)
-            onDestroyGateCallback("destroyed", (nodes[i] as any).id);
+        for(let i = 0; i < nodeCount; i++) {
+            const node = nodes[i] as any;
+            onDestroyGateCallback("destroy", { id: node.id, type: node.type });
+        }
     }
 </script>
 
@@ -114,7 +99,7 @@
 </style>
 
 <div style="height: 100vh; width: 100vw;">
-    <SvelteFlow onmove={onMove} onconnect={onConnection} onreconnect={onReconnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={nodes} bind:edges={edges} {nodeTypes} fitView>
+    <SvelteFlow onmove={onMove} onconnect={onConnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={connections} {nodeTypes} fitView>
         <Controls />
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
         <MiniMap bgColor="#1e1e1e"/>
