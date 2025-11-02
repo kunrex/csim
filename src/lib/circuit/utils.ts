@@ -1,7 +1,7 @@
 import type { Connection, Node, Edge } from "@xyflow/svelte";
 
 import { PrefabData } from "$lib/logic";
-import type {NodeDetails} from "$lib/logic/prefab";
+import type { NodeDetails } from "$lib/logic/prefab";
 
 export function createEdge(connection: Connection) : Edge {
     const id = `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`;
@@ -9,7 +9,7 @@ export function createEdge(connection: Connection) : Edge {
     return {
         id:id,
         type: "bezier",
-        animated: true,
+        animated: false,
         source: connection.source,
         target: connection.target,
         sourceHandle: connection.sourceHandle,

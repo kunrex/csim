@@ -8,6 +8,11 @@
     export let data: GateData;
     export let dragging = false;
     export let selected = false;
+
+    let in1Connected = false, in2Connected = false;
+    function validateA() {
+        return !in1Connected;
+    }
 </script>
 
 <div class="node" class:dragging class:selected>

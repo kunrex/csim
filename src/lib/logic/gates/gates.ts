@@ -190,3 +190,34 @@ export class BulbGate extends Gate {
         }
     }
 }
+
+export class ClockGate extends Gate {
+    public readonly out: OutHandle = new OutHandle("out-1");
+
+    public inCount() : number { return 0; };
+    public outCount(): number { return 1; };
+
+    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
+        super(id, gateData, onUpdateFunction);
+    }
+
+    public async enable(): Promise<void> {
+        this.state = !this.state;
+        if(this.state)
+            await this.out.enable();
+        else
+            await this.out.disable();
+
+        this.gateData["out-1"] = this.state;
+        this.syncGameData();
+    }
+
+    public getNode(id: string): Handle | null {
+        switch (id) {
+            case this.out.id:
+                return this.out;
+            default:
+                return null;
+        }
+    }
+}

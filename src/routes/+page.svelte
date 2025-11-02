@@ -1,10 +1,11 @@
 <script lang="ts">
     import { SvelteFlowProvider } from "@xyflow/svelte";
 
-    import { faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
+    import {faClock, faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
 
     import { Flow, InsertButton, UtilityButton, type GateData,  Handle, type GateType, ConnectionData, type GateDeleteData,
         EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool, NotGatePool, OrGatePool, PowerGatePool, XNorGatePool, XorGatePool } from "$lib";
+    import {ClockGatePool} from "$lib/pools/gate-pool";
 
     function onDeleteNode(node: GateDeleteData) : void {
         const id = node.id;
@@ -33,9 +34,13 @@
             case 'bulb':
                 BulbGatePool.instance.deleteGate(id);
                 break;
-            case 'power':
-                BulbGatePool.instance.deleteGate(id);
+            case 'clock':
+                ClockGatePool.instance.deleteGate(id);
                 break;
+            case 'power':
+                PowerGatePool.instance.deleteGate(id);
+                break;
+
         }
     }
 
@@ -85,6 +90,7 @@
         XorGatePool.initInstance(createGate, flow.updateNodeFunction);
         XNorGatePool.initInstance(createGate, flow.updateNodeFunction);
         BulbGatePool.initInstance(createGate, flow.updateNodeFunction);
+        ClockGatePool.initInstance(createGate, flow.updateNodeFunction);
         PowerGatePool.initInstance(createGate, flow.updateNodeFunction);
     }
 </script>
@@ -97,8 +103,9 @@
     <InsertButton name="Not" color="var(--color-not)" onClick={() => NotGatePool.instance.createGate()}></InsertButton>
     <InsertButton name="Xor" color="var(--color-xor)" onClick={() => XorGatePool.instance.createGate()}></InsertButton>
     <InsertButton name="Xnor" color="var(--color-xnor)" onClick={() => XNorGatePool.instance.createGate()}></InsertButton>
-    <UtilityButton fabIcon={faPowerOff} color="var(--color-and)" onClick={() => PowerGatePool.instance.createGate()}></UtilityButton>
-    <UtilityButton fabIcon={faLightbulb} color="orange" onClick={() => BulbGatePool.instance.createGate()}></UtilityButton>
+    <UtilityButton fabIcon={faClock} color="var(--color-clock)" onClick={() => ClockGatePool.instance.createGate()}></UtilityButton>
+    <UtilityButton fabIcon={faPowerOff} color="var(--color-power)" onClick={() => PowerGatePool.instance.createGate()}></UtilityButton>
+    <UtilityButton fabIcon={faLightbulb} color="var(--color-bulb)" onClick={() => BulbGatePool.instance.createGate()}></UtilityButton>
 </div>
 <SvelteFlowProvider>
     <Flow bind:this={flow} on:connection={(e) => onConnection(e.detail)} on:disconnection={(e) => onDisconnection(e.detail)} on:destroy={(e) => onDeleteNode(e.detail)}/>

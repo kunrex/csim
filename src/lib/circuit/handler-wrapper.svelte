@@ -9,4 +9,3 @@
 </script>
 
 <Handle type={type} position={position} id={id} {...$$restProps} class={enabled ? '!bg-rose-600': ''}/>
-

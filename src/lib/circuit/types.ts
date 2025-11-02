@@ -2,7 +2,7 @@ import type {EdgeTypes, NodeTypes} from "@xyflow/svelte";
 
 export type GateData = Record<string, any>;
 
-export type GateType = "not" | "or" | "nor" | "and" | "nand" | "xor" | "xnor" | "bulb" | "power" | "prefab";
+export type GateType = "not" | "or" | "nor" | "and" | "nand" | "xor" | "xnor" | "bulb" | "power" | "clock" | "prefab";
 
 export class ConnectionData {
     constructor(public readonly id: string, public readonly source: string, public readonly target: string, public readonly sourceHandle: string, public readonly targetHandle: string) { }
