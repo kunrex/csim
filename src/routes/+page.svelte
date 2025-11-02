@@ -95,7 +95,7 @@
     }
 </script>
 
-<div class="flex flex-row w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 align-center border-2 gap-x-4 border-gray-300 rounded-2xl p-3 backdrop-blur overflow-x-auto z-50">
+<div class="flex flex-row w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 align-center border-2 gap-x-4 border-gray-300 rounded-2xl p-3 backdrop-blur-xs overflow-x-auto z-50">
     <InsertButton name="And" color="var(--color-and)" onClick={() => AndGatePool.instance.createGate()}></InsertButton>
     <InsertButton name="Or" color="var(--color-or)" onClick={() => OrGatePool.instance.createGate()}></InsertButton>
     <InsertButton name="Nand" color="var(--color-nand)" onClick={() => NAndGatePool.instance.createGate()}></InsertButton>

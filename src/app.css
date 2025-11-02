@@ -42,8 +42,10 @@
 .insert-button {
     color: whitesmoke;
 
-    width: calc(var(--pixel-height) * 4);
-    height: calc(var(--pixel-height) * 3.5);
+    min-width: 84px;
+    min-height: 64px;
+    width: calc(var(--pixel-height) * 6);
+    height: calc(var(--pixel-height) * 4);
 
     font-size: x-large;
 

@@ -3,6 +3,7 @@ import type { GateData, UpdateSignature } from "$lib/circuit";
 import { Handle, InHandle, OutHandle } from "$lib/logic";
 
 import type { IIdentity } from "$lib/logic/interfaces";
+import { shortCircuitThreshold } from "$lib/logic/constants";
 
 export abstract class Gate implements IIdentity {
     protected state: boolean = false;
@@ -35,8 +36,11 @@ export abstract class BinaryGate extends Gate {
 
     public readonly out: OutHandle = new OutHandle("out-1");
 
+    private lastCheck: number = 0;
+
     protected constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
         super(id, gateData, onUpdateFunction);
+        this.lastCheck = performance.now();
     }
 
     protected async check(prev: boolean) : Promise<void> {
@@ -44,6 +48,12 @@ export abstract class BinaryGate extends Gate {
         this.gateData["in-2"] = this.in2.enabled();
         this.syncGameData();
 
+        if(performance.now() - this.lastCheck < shortCircuitThreshold) {
+            console.log("hello")
+            return
+        }
+
+        this.lastCheck = performance.now();
         if(this.state == prev)
             return;
 

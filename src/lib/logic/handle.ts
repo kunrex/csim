@@ -17,6 +17,8 @@ export abstract class Handle implements IEnable {
 }
 
 export class InHandle extends Handle {
+    private state: boolean = false;
+
     public constructor(id: string, private readonly enableObject: IEnable) {
         super(id);
     }
@@ -37,18 +39,11 @@ export class InHandle extends Handle {
     }
 
     public enabled(): boolean {
-        const count = this.connections.length;
-        if(count == 0)
-            return false;
-
-        for(let i = 0; i < count; i++)
-            if(this.connections[i].enabled())
-                return true;
-
-        return false;
+        return this.state;
     }
 
     public async enable(): Promise<void> {
+        this.state = true;
         await this.enableObject.enable();
     }
 
@@ -58,6 +53,7 @@ export class InHandle extends Handle {
                 return;
         }
 
+        this.state = false;
         await this.enableObject.enable();
     }
 }
