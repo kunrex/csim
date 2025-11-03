@@ -26,8 +26,18 @@ export abstract class Gate implements IIdentity {
 
     public disable(): Promise<void> { return Promise.resolve(); }
     public abstract enable(): Promise<void>;
+    public abstract reset(): Promise<void>;
 
     public abstract getNode(id: string) : Handle | null;
+
+    public setInputConnected(id: string, state: boolean) : void {
+        const handle = this.getNode(id);
+        if(handle) {
+            this.gateData[`${id}-connected`] = state;
+            this.syncGameData();
+            console.log(this.gateData);
+        }
+    }
 }
 
 export abstract class BinaryGate extends Gate {
@@ -64,6 +74,14 @@ export abstract class BinaryGate extends Gate {
 
         this.gateData["out-1"] = this.out.enabled();
         this.syncGameData();
+    }
+
+    public async reset(): Promise<void> {
+        await this.in1.reset();
+        await this.in2.reset();
+        this.gateData["in-1-connected"] = this.gateData["in-2-connected"] = false;
+
+        await this.out.reset();
     }
 
     public getNode(id: string): Handle | null {

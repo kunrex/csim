@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Position } from '@xyflow/svelte';
-
     import type { GateData } from "$lib/circuit";
     import { topRight, bottomRight } from "$lib/circuit/constants";
-    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
+
+    import InputHandle from '../handles/input-handle.svelte';
+    import OutputHandle from '$lib/circuit/handles/output-handle.svelte';
 
     export let data: GateData;
     export let dragging = false;
@@ -11,12 +11,12 @@
 </script>
 
 <div class="node" class:dragging class:selected>
-    <HandlerWrapper type="target" position={Position.Left} id="in-1" style="{topRight}" enabled={data['in-1']}/>
-    <HandlerWrapper type="target" position={Position.Left} id="in-2" style="{bottomRight}" enabled={data['in-2']}/>
+    <InputHandle id="in-1" style="{topRight}" enabled={data['in-1']} connected={data["in-1-connected"]}/>
+    <InputHandle id="in-2" style="{bottomRight}" enabled={data['in-2']} connected={data["in-2-connected"]}/>
     <div>
         <b>Nand</b>
     </div>
-    <HandlerWrapper type="source" position={Position.Right} id="out-1" enabled={data['out-1']}/>
+    <OutputHandle id="out-1" enabled={data['out-1']}/>
 </div>
 
 <style>

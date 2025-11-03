@@ -1,11 +1,10 @@
 <script lang="ts">
-    import { Position } from '@xyflow/svelte';
-
     import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
     import type { GateData } from "$lib/circuit";
-    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
+
+    import InputHandle from '../handles/input-handle.svelte';
 
     export let data: GateData;
     export let dragging = false;
@@ -15,7 +14,7 @@
 </script>
 
 <div class="node" class:dragging class:selected class:enabled>
-    <HandlerWrapper type="target" position={Position.Left} id="in-1" enabled={data["in-1"]}/>
+    <InputHandle type="target" id="in-1" enabled={data["in-1"]} connected={data["in-1-connected"]}/>
     <b><FontAwesomeIcon icon={faLightbulb}/></b>
 </div>
 

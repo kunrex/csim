@@ -1,11 +1,10 @@
 <script lang="ts">
-    import { Position } from '@xyflow/svelte';
-
     import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
     import type { GateData } from "$lib/circuit";
-    import HandlerWrapper from '$lib/circuit/handler-wrapper.svelte';
+
+    import OutputHandle from '$lib/circuit/handles/output-handle.svelte';
 
     export let data: GateData;
     export let dragging = false;
@@ -21,7 +20,7 @@
 
 <button on:click={toggleEvent} class="node" class:dragging class:selected class:enabled>
     <b><FontAwesomeIcon icon={faPowerOff}/></b>
-    <HandlerWrapper type="source" position={Position.Right} id="out-1" enabled={data['out-1']}/>
+    <OutputHandle id="out-1" enabled={data['out-1']}/>
 </button>
 
 

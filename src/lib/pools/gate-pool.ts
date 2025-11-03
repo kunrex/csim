@@ -26,8 +26,10 @@ abstract class GatePool {
     protected createGameData(inCount: number, outCount: number) : GateData {
         let data: GateData = { };
 
-        for(let i = 1; i <= inCount; i++)
+        for(let i = 1; i <= inCount; i++) {
             data[`in-${i}`] = false;
+            data[`in-${i}-connected`] = false;
+        }
 
         for(let i = 1; i <= outCount; i++)
             data[`out-${i}`] = false;
@@ -68,14 +70,13 @@ abstract class GatePool {
         {
             if(this.gates[i].id == id) {
                 const gate = this.gates[i];
-                gate.disable().then(() => {
+                gate.reset().then(() => {
                     this.gates.splice(i, 1);
                     this.gatePool.push(gate);
                 });
                 break;
             }
         }
-
     }
 }
 

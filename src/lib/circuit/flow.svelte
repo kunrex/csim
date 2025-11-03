@@ -65,6 +65,16 @@
             onDestroyGateCallback("destroy", { id: node.id, type: node.type });
         }
     }
+
+    function isValidConnection(connection: Connection | Edge) : boolean {
+        const targetNode = gates.find(n => n.id === connection.target);
+        if(targetNode) {
+            const data = targetNode.data;
+            return !data[`${connection.targetHandle}-connected`];
+        }
+
+        return false;
+    }
 </script>
 
 <style>
@@ -99,7 +109,7 @@
 </style>
 
 <div style="height: 100vh; width: 100vw;">
-    <SvelteFlow onmove={onMove} onconnect={onConnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={connections} {nodeTypes} fitView>
+    <SvelteFlow onmove={onMove} onconnect={onConnection} ondelete={onDelete} isValidConnection={isValidConnection} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={connections} {nodeTypes} fitView>
         <Controls />
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
         <MiniMap bgColor="#1e1e1e"/>

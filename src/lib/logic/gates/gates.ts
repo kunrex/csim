@@ -122,6 +122,13 @@ export class NotGate extends Gate {
         this.syncGameData();
     }
 
+    public async reset(): Promise<void> {
+        await this.in.reset();
+        this.gateData["in-1-connected"] = false;
+
+        await this.out.reset();
+    }
+
     public getNode(id: string): Handle | null {
         switch (id) {
             case this.in.id:
@@ -155,6 +162,10 @@ export class PowerGate extends Gate {
         this.syncGameData();
     }
 
+    public async reset(): Promise<void> {
+        await this.out.reset();
+    }
+
     public getNode(id: string): Handle | null {
         switch (id) {
             case this.out.id:
@@ -179,6 +190,11 @@ export class BulbGate extends Gate {
         this.gateData["in-1"] = this.in.enabled();
         this.syncGameData();
         return Promise.resolve();
+    }
+
+    public async reset(): Promise<void> {
+        await this.in.reset();
+        this.gateData["in-1-connected"] = false;
     }
 
     public getNode(id: string): Handle | null {
@@ -210,6 +226,10 @@ export class ClockGate extends Gate {
 
         this.gateData["out-1"] = this.state;
         this.syncGameData();
+    }
+
+    public async reset(): Promise<void> {
+        await this.out.reset();
     }
 
     public getNode(id: string): Handle | null {
