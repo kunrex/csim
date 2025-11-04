@@ -2,6 +2,7 @@ import type { Connection, Node, Edge } from "@xyflow/svelte";
 
 import { PrefabData } from "$lib/logic";
 import type { NodeDetails } from "$lib/logic/prefab";
+import { sevenSegmentBits, segments } from "$lib/circuit/constants";
 
 export function createEdge(connection: Connection) : Edge {
     const id = `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`;
@@ -51,4 +52,11 @@ export function calculatePrefabData(name: string, gates: Node[], connections: Ed
     }
 
     return prefabData;
+}
+
+export function isSegmentOn(digit: number, segment: string) : boolean {
+    if(digit > 9)
+        return false;
+
+    return !!((sevenSegmentBits[digit] >> segments.indexOf(segment)) & 1);
 }

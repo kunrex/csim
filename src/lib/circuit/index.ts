@@ -1,5 +1,5 @@
-import { Not, Or, NOr, And, NAnd, Xor, XNor, Bulb, Power, Clock, Prefab } from "$lib/circuit/gates";
-export { Not, Or, NOr, And, NAnd, Xor, XNor, Bulb, Power, Clock, Prefab };
+import { Not, Or, NOr, And, NAnd, Xor, XNor, Bulb, Power, Clock, Prefab, Display } from "$lib/circuit/gates";
+export { Not, Or, NOr, And, NAnd, Xor, XNor, Bulb, Power, Clock, Prefab, Display };
 
 import { type GateData, type GateType, ConnectionData, type GateDeleteData, type OnDeleteParams } from "$lib/circuit/types";
 export { type GateData, type GateType, ConnectionData, type GateDeleteData, type OnDeleteParams };
@@ -20,6 +20,7 @@ export const nodeTypes: NodeTypes = {
     "power": Power,
     "clock": Clock,
     "prefab": Prefab,
+    "display": Display
 };
 
 import { calculatePrefabData } from "$lib/circuit/utils";

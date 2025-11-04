@@ -241,3 +241,56 @@ export class ClockGate extends Gate {
         }
     }
 }
+
+export class SevenSegmentDisplay extends Gate {
+    private readonly in1 = new InHandle("in-1", this);
+    private readonly in2 = new InHandle("in-2", this);
+    private readonly in3 = new InHandle("in-3", this);
+    private readonly in4 = new InHandle("in-4", this);
+    private readonly in5 = new InHandle("in-5", this);
+
+    public inCount(): number { return 5; }
+    public outCount(): number { return 0; }
+
+    constructor(id: string, data: GateData, onUpdateFunction: UpdateSignature) {
+        super(id, data, onUpdateFunction);
+    }
+
+    public enable(): Promise<void> {
+        this.gateData["in-1"] = this.in1.enabled();
+        this.gateData["in-2"] = this.in2.enabled();
+        this.gateData["in-3"] = this.in3.enabled();
+        this.gateData["in-4"] = this.in4.enabled();
+        this.gateData["in-5"] = this.in5.enabled();
+
+        this.gateData["value"] = +this.in1.enabled() + (+this.in2.enabled() << 1) + (+this.in3.enabled() << 2) + (+this.in4.enabled() << 3);
+        this.syncGameData();
+        return Promise.resolve();
+    }
+
+    public async reset(): Promise<void> {
+        await this.in1.reset();
+        await this.in2.reset();
+        await this.in3.reset();
+        await this.in4.reset();
+        await this.in5.reset();
+        this.syncGameData();
+    }
+
+    public getNode(id: string): Handle | null {
+        switch(id) {
+            case "in-1":
+                return this.in1;
+            case "in-2":
+                return this.in2;
+            case "in-3":
+                return this.in3;
+            case "in-4":
+                return this.in4;
+            case "in-5":
+                return this.in5;
+            default:
+                return null;
+        }
+    }
+}

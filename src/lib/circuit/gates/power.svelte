@@ -23,7 +23,6 @@
     <OutputHandle id="out-1" enabled={data['out-1']}/>
 </button>
 
-
 <style>
     .node {
         padding: 8px;

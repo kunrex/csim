@@ -35,7 +35,6 @@ export abstract class Gate implements IIdentity {
         if(handle) {
             this.gateData[`${id}-connected`] = state;
             this.syncGameData();
-            console.log(this.gateData);
         }
     }
 }
@@ -58,10 +57,8 @@ export abstract class BinaryGate extends Gate {
         this.gateData["in-2"] = this.in2.enabled();
         this.syncGameData();
 
-        if(performance.now() - this.lastCheck < shortCircuitThreshold) {
-            console.log("hello")
+        if(performance.now() - this.lastCheck < shortCircuitThreshold)
             return
-        }
 
         this.lastCheck = performance.now();
         if(this.state == prev)

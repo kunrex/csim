@@ -1,6 +1,7 @@
 import { type GateData, type GateType, type UpdateSignature } from "$lib/circuit";
 import { AndGate, BulbGate, Gate, NAndGate, NOrGate, NotGate, OrGate, PowerGate, XNorGate, XorGate } from "$lib/logic";
 import {ClockGate} from "$lib/logic/gates";
+import { SevenSegmentDisplay } from "$lib/logic/gates/gates";
 
 type CreateGateSignature = (type: GateType, gameData: GateData) => string;
 
@@ -265,5 +266,26 @@ export class PowerGatePool extends GatePool {
         const gate = new PowerGate(id, data, this.updateFunction);
         data["toggle"] = () => gate.enable();
         return gate;
+    }
+}
+
+export class SevenSegmentPool extends GatePool {
+    public static instance: SevenSegmentPool;
+    protected type: GateType = "display";
+    
+    public static initInstance(createFunction: CreateGateSignature, updateFUnction: UpdateSignature) {
+        this.instance = new SevenSegmentPool(createFunction, updateFUnction);
+    }
+
+    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateSignature) {
+        super(createFunction, updateFunction);
+    }
+
+    protected initGate() : Gate {
+        const data = this.createGameData(5, 0);
+        data["value"] = 0;
+
+        const id = this.createFunction(this.type, data);
+        return new SevenSegmentDisplay(id, data, this.updateFunction);
     }
 }

@@ -12,8 +12,12 @@
     --color-bulb: darkorange;
     --color-power: orangered;
     --color-clock: darkred;
+    --color-display: #2d2d2d;
 
     --pixel-height: 20px;
+
+    --segment-height: 10px;
+    --segment-width: 50px;
 }
 
 .node {
