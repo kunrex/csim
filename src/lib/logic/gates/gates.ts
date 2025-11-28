@@ -4,7 +4,7 @@ import { deleteGate } from "$lib/pools";
 
 import type { GateData, GateType } from "$lib/logic/types";
 
-import { MasterClock } from "$lib/logic/clock";
+import { registerClock } from "$lib/logic/clock";
 import { BinaryGate, Gate } from "$lib/logic/gates/gate";
 import { Handle, InHandle, OutHandle } from "$lib/logic/handle";
 import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
@@ -251,11 +251,17 @@ export class ClockGate extends Gate {
         super(id, gateData, onUpdateFunction);
         gateData["icon"] = faClock;
         gateData["color"] = "color-clock";
-        MasterClock.instance.registerClock(this);
+
+        registerClock(this);
     }
 
     public async enable(): Promise<void> {
         this.state = !this.state;
+
+        if(!this.state) {
+            await this.out.disable();
+            this.gateData["out-1"] = false;
+        }
     }
 
     public async reset(): Promise<void> {

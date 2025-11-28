@@ -29,8 +29,7 @@
     } from "$lib";
 
     import { deleteGate } from "$lib/pools/utils";
-    import {MasterClock} from "$lib/logic/clock";
-    import {onMount} from "svelte";
+    import { masterTick} from "$lib/logic/clock";
 
     function onDeleteNode(node: CoreGateData) : void {
         deleteGate(node);
@@ -86,7 +85,7 @@
         PowerGatePool.initInstance(createGate, flow.updateGate);
         SevenSegmentPool.initInstance(createGate, flow.updateGate);
 
-        //MasterClock.instance.startCycle();
+        requestAnimationFrame(masterTick);
     }
 </script>
 

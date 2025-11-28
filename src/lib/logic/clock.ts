@@ -1,41 +1,29 @@
 import { ClockGate } from "$lib/logic/gates";
-import {onMount} from "svelte";
 
-const frameRate: number = 0.5;
+const frameRate = 0.5;
+const clocks: ClockGate[] = [];
 
-export class MasterClock {
-    public static instance: MasterClock = new MasterClock();
+export function registerClock(clock: ClockGate) {
+    clocks.push(clock);
+}
 
-    private acc: number = 0;
-    private then: number = 0;
-    private state: boolean = false;
-    private clocks: ClockGate[] = [];
+let acc = 0;
+let last = 0;
+let state = false;
 
-    private constructor() { }
+export async function masterTick(time: number) {
+    const dt = (time - last) / 1000;
+    last = time;
 
-    public registerClock(gate: ClockGate) : void {
-        this.clocks.push(gate);
+    acc += dt;
+
+    while (acc >= frameRate) {
+        state = !state;
+        for (const clock of clocks)
+            await clock.clockPulse(state);
+
+        acc -= frameRate;
     }
 
-    public startCycle() {
-        requestAnimationFrame(() => { this.clockLoop(0); });
-    }
-
-    private clockLoop(time: number) : void {
-        let dt = (time - this.then) / 1000;
-        this.then += time;
-        this.acc += dt;
-
-        this.state = !this.state;
-
-        while(this.acc >= frameRate) {
-            const length = this.clocks.length;
-            for(let i = 0; i < length; i++)
-                this.clocks[i].clockPulse(this.state);
-
-            this.acc -= frameRate;
-        }
-
-        requestAnimationFrame(this.clockLoop);
-    }
+    requestAnimationFrame(masterTick);
 }
