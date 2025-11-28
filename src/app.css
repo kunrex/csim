@@ -127,4 +127,12 @@
     .vertical.enabled, .horizontal.enabled {
         @apply bg-rose-600
     }
+
+    .gate-handle {
+        @apply relative inline-block
+    }
+
+    .gate-handle-popup {
+        @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-gray-950 text-center text-white text-xs p-1 rounded z-20
+    }
 }
