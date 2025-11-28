@@ -1,14 +1,15 @@
 import type { Connection, Node, Edge } from "@xyflow/svelte";
 
-import { PrefabData } from "$lib/logic";
-import type { NodeDetails } from "$lib/logic/prefab";
 import { sevenSegmentBits, segments } from "$lib/circuit/constants";
+import { type CircuitGateData, CoreConnectionData } from "$lib/circuit/types";
+
+export function edgeId(source: string, target: string, sourceHandle: string, targetHandle: string) {
+    return `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`;
+}
 
 export function createEdge(connection: Connection) : Edge {
-    const id = `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`;
-
     return {
-        id:id,
+        id: edgeId(connection.source, connection.target, connection.sourceHandle!, connection.targetHandle!),
         type: "bezier",
         animated: false,
         source: connection.source,
@@ -17,46 +18,51 @@ export function createEdge(connection: Connection) : Edge {
         targetHandle: connection.targetHandle,
     };
 }
-function getGateType(id: string, gates: Node[]) : string {
-    const count = gates.length;
-    for(let i = 0; i < count; i++)
-        if(gates[i].id == id)
-            return gates[i].type as string;
-
-    return "";
-}
-
-export function calculatePrefabData(name: string, gates: Node[], connections: Edge[]) : PrefabData {
-    const prefabData = new PrefabData(name);
-    const gateMap: Record<string, NodeDetails> = { };
-
-    const connectionsCount = connections.length;
-    for(let i = 0; i < connectionsCount; i++) {
-        const sourceId = connections[i].source;
-        const targetId = connections[i].target;
-
-        let j = i;
-        if(gateMap[sourceId] == undefined) {
-            const id = (j++).toString();
-            gateMap[sourceId] = { id: id, type: getGateType(sourceId, gates)};
-            prefabData.gates[id] = gateMap[sourceId].type;
-        }
-
-        if(gateMap[targetId] == undefined) {
-            const id = j.toString();
-            gateMap[targetId] = { id: j.toString(), type: getGateType(targetId, gates) };
-            prefabData.gates[id] = gateMap[targetId].type;
-        }
-
-        prefabData.connections.push({ start: gateMap[sourceId].id, end: gateMap[targetId].id });
-    }
-
-    return prefabData;
-}
 
 export function isSegmentOn(digit: number, segment: string) : boolean {
     if(digit > 9)
         return false;
 
     return !!((sevenSegmentBits[digit] >> segments.indexOf(segment)) & 1);
+}
+
+export function layerGates(map: Map<string, CircuitGateData>, connections: CoreConnectionData[]) : void {
+    const connectionsMap = new Map<string, string[]>();
+    for (const c of connections) {
+        if (!connectionsMap.has(c.source))
+            connectionsMap.set(c.source, []);
+
+        connectionsMap.get(c.source)!.push(c.target);
+    }
+
+    const queue: string[] = [];
+    map.forEach((value: CircuitGateData, key: string) => {
+        if(value.type == "power") {
+            value.layer = 0;
+            queue.push(key);
+        }
+        else
+            value.layer = Infinity;
+    });
+
+    while (queue.length > 0) {
+        const current = queue.shift()!;
+        const currentLayer = map.get(current)!.layer;
+
+        const neighbors = connectionsMap.get(current);
+        if(neighbors) {
+            for (const next of neighbors) {
+                const nextNode = map.get(next);
+                if (!nextNode)
+                    continue;
+
+                if (nextNode.layer > currentLayer + 1) {
+                    nextNode.layer = currentLayer + 1;
+                    queue.push(next);
+                }
+            }
+
+            connectionsMap.delete(current);
+        }
+    }
 }

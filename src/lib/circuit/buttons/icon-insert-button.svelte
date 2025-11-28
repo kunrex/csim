@@ -7,8 +7,6 @@
     export let onClick = () => {};
 </script>
 
-<button on:click={onClick} class="insert-button hover:cursor-pointer hover:opacity-80" style="background-color: { color };">
-    <div class="text-2xl text-center">
-        <b><FontAwesomeIcon icon={fabIcon}/></b>
-    </div>
+<button on:click={onClick} class={`${color} insert-button text-2xl`}>
+    <b><FontAwesomeIcon icon={fabIcon}/></b>
 </button>

@@ -1,17 +1,14 @@
-import type { UpdateSignature } from "$lib/circuit";
+import type { ConnectionUpdateSignature } from "$lib/circuit";
 
 import type { IEnable } from "$lib/logic/interfaces";
 
 export class EdgeConnection {
     private state: boolean = false;
 
-    public constructor(public id: string, public source: IEnable | null, public target: IEnable | null, private readonly onUpdateFunction: UpdateSignature) { }
+    public constructor(public id: string, public source: IEnable | null, public target: IEnable | null, private readonly onUpdateFunction: ConnectionUpdateSignature) { }
 
     private syncEdgeData() : void {
-        this.onUpdateFunction(this.id, (edge: any) => ({
-            ...edge,
-            animated: this.state
-        }));
+        this.onUpdateFunction(this.id, this.state);
     }
 
     public async enable(): Promise<void> {

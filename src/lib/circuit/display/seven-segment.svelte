@@ -5,7 +5,7 @@
     import { a as A, b as B, c as C, d as D, e as E, f as F, g as G } from "$lib/circuit/constants";
 
     export let value = 0;
-    export let decimal = true;
+    export let decimal = false;
 </script>
 
 <div class="flex flex-col relative">
@@ -26,5 +26,5 @@
     <div class="flex flex-row justify-center">
         <HorizontalDisplay enabled={isSegmentOn(value, D)}/>
     </div>
-    <div class="absolute bottom-0 -right-4 w-3 h-3 rounded-full" style={`background-color: ${decimal ? 'red' : ''}`}></div>
+    <div class={`absolute bottom-0 -right-4 w-3 h-3 rounded-full ${decimal ? "!bg-rose-500" : ""}`}></div>
 </div>

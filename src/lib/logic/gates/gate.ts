@@ -1,66 +1,69 @@
-import type { GateData, UpdateSignature } from "$lib/circuit";
+import type { UpdateGateSignature } from "$lib/circuit";
 
 import { Handle, InHandle, OutHandle } from "$lib/logic";
+import type { GateType, GateData } from "$lib/logic/types";
 
+import { flipThreshold } from "$lib/logic/constants";
 import type { IIdentity } from "$lib/logic/interfaces";
-import { shortCircuitThreshold } from "$lib/logic/constants";
 
 export abstract class Gate implements IIdentity {
-    protected state: boolean = false;
+    private then: number = 0;
 
-    public abstract inCount() : number;
-    public abstract outCount(): number;
+    public abstract gateType(): GateType;
 
-    protected constructor(public id: string, public readonly gateData: GateData, protected readonly onUpdateFunction: UpdateSignature) { }
-
-    protected syncGameData() : void {
-        this.onUpdateFunction(this.id, (node: any) => ({
-            ...node,
-            data: this.gateData
-        }));
+    protected constructor(public readonly id: string, public readonly gateData: GateData, public updateNodeFunction: UpdateGateSignature) {
+        this.then = performance.now();
     }
 
-    public enabled(): boolean {
-        return this.state;
-    }
+    public abstract enabled(): boolean;
 
-    public disable(): Promise<void> { return Promise.resolve(); }
-    public abstract enable(): Promise<void>;
     public abstract reset(): Promise<void>;
+    
+    public abstract enable(): Promise<void>;
+    public disable(): Promise<void> { return Promise.resolve(); }
 
     public abstract getNode(id: string) : Handle | null;
 
     public setInputConnected(id: string, state: boolean) : void {
-        const handle = this.getNode(id);
-        if(handle) {
-            this.gateData[`${id}-connected`] = state;
-            this.syncGameData();
-        }
+        this.gateData[`${id}-connected`] = state;
+        this.syncGateData();
+    }
+
+    protected syncGateData() : void {
+        this.updateNodeFunction(this.id, this.gateData);
+    }
+
+    protected rapidFlipCheck() : boolean {
+        const now = performance.now();
+        const result = now - this.then <= flipThreshold;
+        this.then = now;
+        return result;
     }
 }
 
 export abstract class BinaryGate extends Gate {
+    protected state: boolean = false;
+
     public readonly in1: InHandle = new InHandle("in-1", this);
     public readonly in2: InHandle = new InHandle("in-2", this);
 
     public readonly out: OutHandle = new OutHandle("out-1");
+    
+    public enabled() : boolean { return this.state; }
 
-    private lastCheck: number = 0;
-
-    protected constructor(id: string, gateData: GateData, onUpdateFunction: UpdateSignature) {
+    protected constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
         super(id, gateData, onUpdateFunction);
-        this.lastCheck = performance.now();
     }
 
     protected async check(prev: boolean) : Promise<void> {
         this.gateData["in-1"] = this.in1.enabled();
         this.gateData["in-2"] = this.in2.enabled();
-        this.syncGameData();
 
-        if(performance.now() - this.lastCheck < shortCircuitThreshold)
-            return
+        this.syncGateData();
 
-        this.lastCheck = performance.now();
+        if(this.rapidFlipCheck())
+            return;
+
         if(this.state == prev)
             return;
 
@@ -70,13 +73,14 @@ export abstract class BinaryGate extends Gate {
             await this.out.disable();
 
         this.gateData["out-1"] = this.out.enabled();
-        this.syncGameData();
+        this.syncGateData();
     }
 
     public async reset(): Promise<void> {
         await this.in1.reset();
         await this.in2.reset();
-        this.gateData["in-1-connected"] = this.gateData["in-2-connected"] = false;
+        this.gateData["in-1-connected"] = false;
+        this.gateData["in-2-connected"] = false;
 
         await this.out.reset();
     }

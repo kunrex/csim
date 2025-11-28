@@ -1,62 +1,130 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-    --color-and: red;
-    --color-or: mediumpurple;
-    --color-not: black;
-    --color-nand: deepskyblue;
-    --color-nor: lawngreen;
-    --color-xor: orange;
-    --color-xnor: violet;
-    --color-prefab: cyan;
-    --color-bulb: darkorange;
-    --color-power: orangered;
-    --color-clock: darkred;
-    --color-display: #2d2d2d;
+@layer base {
+    :root {
+        --handle-radius: 8px;
 
-    --pixel-height: 20px;
+        --core-gate-width: 64px;
+        --core-gate-height: 56px;
 
-    --segment-height: 10px;
-    --segment-width: 50px;
+        --segment-width: 48px;
+        --segment-height: 12px;
+
+        --display-width: 128px;
+        --display-height: 164px;
+
+        --insert-button-width: 84px;
+        --insert-button-height: 64px;
+
+        --prefab-handle-gap: 20px;
+    }
 }
 
-.node {
-    color: whitesmoke;
-
-    width: calc(var(--pixel-height) * 3);
-    height: calc(var(--pixel-height) * 2.8);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 4px;
-    border: 1px solid #555;
+.color-not {
+    @apply bg-gray-900;
 }
 
-.node.selected {
-    border-radius: 6px;
-    border-width: 2px;
+.color-nand {
+    @apply bg-sky-400;
 }
 
-.node.dragging {
-    opacity: .8;
+.color-and {
+    @apply bg-red-600;
+}
+
+.color-nor {
+    @apply bg-lime-500;
+}
+
+.color-or {
+    @apply bg-purple-500;
+}
+
+.color-xor {
+    @apply bg-orange-500;
+}
+
+.color-xnor {
+    @apply bg-violet-500;
+}
+
+.color-prefab {
+    @apply bg-cyan-400;
+}
+
+.color-bulb {
+    @apply bg-orange-600;
+}
+
+.color-power {
+    @apply bg-red-500;
+}
+
+.color-clock {
+    @apply bg-red-800;
+}
+
+.color-display {
+    @apply bg-gray-800;
+}
+
+.core-gate, .icon-core-gate {
+    width: var(--core-gate-width);
+    height: var(--core-gate-height);
+}
+
+.seven-segment-display {
+    width: var(--display-width);
+    height: var(--display-height);
 }
 
 .insert-button {
-    color: whitesmoke;
+    min-width: var(--insert-button-width);
+    min-height: var(--insert-button-height);
+}
 
-    min-width: 84px;
-    min-height: 64px;
-    width: calc(var(--pixel-height) * 6);
-    height: calc(var(--pixel-height) * 4);
+@layer components {
+    .core-gate, .icon-core-gate, .prefab-gate, .seven-segment-display {
+        @apply flex items-center justify-center border rounded-md border-solid border-slate-600 text-white;
+    }
 
-    font-size: x-large;
+    .core-gate.selected, .icon-core-gate.selected, .prefab-gate.selected, .seven-segment-display.selected {
+        @apply border-2 rounded-md;
+    }
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    .core-gate.dragging, .icon-core-gate.dragging, .prefab-gate.dragging, .seven-segment-display.dragging {
+        @apply opacity-80;
+    }
 
-    border-radius: 4px;
-    border: 1px solid #555;
+    .icon-core-gate {
+        @apply text-2xl;
+    }
+
+    .insert-button {
+        @apply flex flex-col items-center justify-center text-xl border rounded-sm border-solid border-slate-600 text-white;
+    }
+
+    .insert-button:hover {
+        @apply cursor-pointer opacity-80;
+    }
+
+    .vertical {
+        width: var(--segment-height);
+        height: var(--segment-width);
+    }
+
+    .horizontal {
+        width: var(--segment-width);
+        height: var(--segment-height);
+    }
+
+    .vertical, .horizontal {
+        @apply rounded-sm bg-neutral-50
+    }
+
+    .vertical.enabled, .horizontal.enabled {
+        @apply bg-rose-600
+    }
 }

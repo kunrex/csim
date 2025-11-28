@@ -1,3 +1,3 @@
 import InsertButton from "$lib/circuit/buttons/insert-button.svelte";
-import UtilityButton from "$lib/circuit/buttons/utility-button.svelte";
-export { InsertButton, UtilityButton } ;
+import IconInsertButton from "$lib/circuit/buttons/icon-insert-button.svelte";
+export { InsertButton, IconInsertButton };

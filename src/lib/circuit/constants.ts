@@ -1,9 +1,3 @@
-export const pixelHeight = 20;
-export const pixelPadding = 3;
-
-export const topRight =  `top: ${pixelHeight}px`;
-export const bottomRight = `top: ${pixelHeight * 2 + pixelPadding}px`;
-
 export const a = 'a', b = 'b', c = 'c', d = 'd', e = 'e', f = 'f', g = 'g';
 export const segments = [a, b, c, d, e, f, g];
 export const sevenSegmentBits: Record<number, number> = {

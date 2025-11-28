@@ -1,50 +1,39 @@
 <script lang="ts">
     import { SvelteFlowProvider } from "@xyflow/svelte";
 
-    import {fa8, faClock, faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
+    import { fa8, faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
-    import { Flow, InsertButton, UtilityButton, type GateData,  Handle, type GateType, ConnectionData, type GateDeleteData,
-        EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool, NotGatePool, OrGatePool, PowerGatePool, XNorGatePool, XorGatePool } from "$lib";
-    import {ClockGatePool, SevenSegmentPool} from "$lib/pools/gate-pool";
-    import { SevenSegmentDisplay } from "$lib/logic/gates/gates";
+    import {
+        Flow,
+        InsertButton,
+        IconInsertButton,
+        Handle,
+        type GateNodeType,
+        ConnectionData,
+        type CoreGateData,
+        EdgePool,
+        AndGatePool,
+        BulbGatePool,
+        getGate,
+        NAndGatePool,
+        NOrGatePool,
+        NotGatePool,
+        OrGatePool,
+        PowerGatePool,
+        XNorGatePool,
+        XorGatePool,
+        ClockGatePool,
+        BufferGatePool,
+        SevenSegmentPool,
+        Gate
+    } from "$lib";
 
-    function onDeleteNode(node: GateDeleteData) : void {
-        const id = node.id;
-        switch (node.type) {
-            case "not":
-                NotGatePool.instance.deleteGate(id);
-                break;
-            case "or":
-                OrGatePool.instance.deleteGate(id);
-                break;
-            case "nor":
-                NOrGatePool.instance.deleteGate(id);
-                break;
-            case "and":
-                AndGatePool.instance.deleteGate(id);
-                break;
-            case "nand":
-                NAndGatePool.instance.deleteGate(id);
-                break;
-            case "xor":
-                XorGatePool.instance.deleteGate(id);
-                break;
-            case "xnor":
-                XNorGatePool.instance.deleteGate(id);
-                break;
-            case "bulb":
-                BulbGatePool.instance.deleteGate(id);
-                break;
-            case "clock":
-                ClockGatePool.instance.deleteGate(id);
-                break;
-            case "power":
-                PowerGatePool.instance.deleteGate(id);
-                break;
-            case "display":
-                SevenSegmentPool.instance.deleteGate(id);
-                break;
-        }
+    import { deleteGate } from "$lib/pools/utils";
+    import {MasterClock} from "$lib/logic/clock";
+    import {onMount} from "svelte";
+
+    function onDeleteNode(node: CoreGateData) : void {
+        deleteGate(node);
     }
 
     function getNodes(connectionData: ConnectionData) : [Handle, Handle] | null {
@@ -79,38 +68,40 @@
     }
 
     let flow: any;
-    function createGate(type: GateType, data: GateData) : string {
-        return flow.createGate(type, data);
+    function createGate(type: GateNodeType, gate: Gate) : void {
+        return flow.createGate(type, gate);
     }
 
     $: if (flow) {
-        EdgePool.initInstance(flow.updateEdgeFunction);
-        NotGatePool.initInstance(createGate, flow.updateNodeFunction);
-        OrGatePool.initInstance(createGate, flow.updateNodeFunction);
-        NOrGatePool.initInstance(createGate, flow.updateNodeFunction);
-        AndGatePool.initInstance(createGate, flow.updateNodeFunction);
-        NAndGatePool.initInstance(createGate, flow.updateNodeFunction);
-        XorGatePool.initInstance(createGate, flow.updateNodeFunction);
-        XNorGatePool.initInstance(createGate, flow.updateNodeFunction);
-        BulbGatePool.initInstance(createGate, flow.updateNodeFunction);
-        ClockGatePool.initInstance(createGate, flow.updateNodeFunction);
-        PowerGatePool.initInstance(createGate, flow.updateNodeFunction);
-        SevenSegmentPool.initInstance(createGate, flow.updateNodeFunction);
+        EdgePool.initInstance(flow.updateConnection);
+        NotGatePool.initInstance(createGate, flow.updateGate);
+        OrGatePool.initInstance(createGate, flow.updateGate);
+        NOrGatePool.initInstance(createGate, flow.updateGate);
+        AndGatePool.initInstance(createGate, flow.updateGate);
+        NAndGatePool.initInstance(createGate, flow.updateGate);
+        XorGatePool.initInstance(createGate, flow.updateGate);
+        XNorGatePool.initInstance(createGate, flow.updateGate);
+        BulbGatePool.initInstance(createGate, flow.updateGate);
+        ClockGatePool.initInstance(createGate, flow.updateGate);
+        PowerGatePool.initInstance(createGate, flow.updateGate);
+        SevenSegmentPool.initInstance(createGate, flow.updateGate);
+
+        //MasterClock.instance.startCycle();
     }
 </script>
 
 <div class="flex flex-row w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 align-center border-2 gap-x-4 border-gray-300 rounded-2xl p-3 backdrop-blur-xs overflow-x-auto z-50">
-    <InsertButton name="And" color="var(--color-and)" onClick={() => AndGatePool.instance.createGate()}></InsertButton>
-    <InsertButton name="Or" color="var(--color-or)" onClick={() => OrGatePool.instance.createGate()}></InsertButton>
-    <InsertButton name="Nand" color="var(--color-nand)" onClick={() => NAndGatePool.instance.createGate()}></InsertButton>
-    <InsertButton name="Nor" color="var(--color-nor)" onClick={() => NOrGatePool.instance.createGate()}></InsertButton>
-    <InsertButton name="Not" color="var(--color-not)" onClick={() => NotGatePool.instance.createGate()}></InsertButton>
-    <InsertButton name="Xor" color="var(--color-xor)" onClick={() => XorGatePool.instance.createGate()}></InsertButton>
-    <InsertButton name="Xnor" color="var(--color-xnor)" onClick={() => XNorGatePool.instance.createGate()}></InsertButton>
-    <UtilityButton fabIcon={faClock} color="var(--color-clock)" onClick={() => ClockGatePool.instance.createGate()}></UtilityButton>
-    <UtilityButton fabIcon={faPowerOff} color="var(--color-power)" onClick={() => PowerGatePool.instance.createGate()}></UtilityButton>
-    <UtilityButton fabIcon={faLightbulb} color="var(--color-bulb)" onClick={() => BulbGatePool.instance.createGate()}></UtilityButton>
-    <UtilityButton fabIcon={fa8} color="var(--color-display)" onClick={() => SevenSegmentPool.instance.createGate()}></UtilityButton>
+    <InsertButton name="And" color="color-and" onClick={() => AndGatePool.instance.createGate(true)}></InsertButton>
+    <InsertButton name="Or" color="color-or" onClick={() => OrGatePool.instance.createGate(true)}></InsertButton>
+    <InsertButton name="Nand" color="color-nand" onClick={() => NAndGatePool.instance.createGate(true)}></InsertButton>
+    <InsertButton name="Nor" color="color-nor" onClick={() => NOrGatePool.instance.createGate(true)}></InsertButton>
+    <InsertButton name="Not" color="color-not" onClick={() => NotGatePool.instance.createGate(true)}></InsertButton>
+    <InsertButton name="Xor" color="color-xor" onClick={() => XorGatePool.instance.createGate(true)}></InsertButton>
+    <InsertButton name="Xnor" color="color-xnor" onClick={() => XNorGatePool.instance.createGate(true)}></InsertButton>
+    <IconInsertButton fabIcon={faClock} color="color-clock" onClick={() => ClockGatePool.instance.createGate(true)}></IconInsertButton>
+    <IconInsertButton fabIcon={faPowerOff} color="color-power" onClick={() => PowerGatePool.instance.createGate(true)}></IconInsertButton>
+    <IconInsertButton fabIcon={faLightbulb} color="color-bulb" onClick={() => BulbGatePool.instance.createGate(true)}></IconInsertButton>
+    <IconInsertButton fabIcon={fa8} color="color-display" onClick={() => SevenSegmentPool.instance.createGate(true)}></IconInsertButton>
 </div>
 <SvelteFlowProvider>
     <Flow bind:this={flow} on:connection={(e) => onConnection(e.detail)} on:disconnection={(e) => onDisconnection(e.detail)} on:destroy={(e) => onDeleteNode(e.detail)}/>

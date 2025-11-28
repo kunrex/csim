@@ -1,5 +1,5 @@
 import { EdgeConnection, Handle } from "$lib/logic";
-import type { UpdateSignature } from "$lib/circuit";
+import type { UpdateConnectionSignature } from "$lib/circuit";
 
 export class EdgePool {
     private readonly edges: EdgeConnection[] = [];
@@ -7,11 +7,11 @@ export class EdgePool {
 
     public static instance: EdgePool;
 
-    public static initInstance(signature: UpdateSignature) : void {
+    public static initInstance(signature: UpdateConnectionSignature) : void {
         EdgePool.instance = new EdgePool(signature);
     }
 
-    private constructor(private readonly updateEdgeFunction: UpdateSignature) { }
+    private constructor(private readonly updateEdgeFunction: UpdateConnectionSignature) { }
 
     public async createEdgeConnection(id: string, source: Handle, target: Handle): Promise<void> {
         if(this.edgePool.length > 0) {

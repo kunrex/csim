@@ -1,1 +1,2 @@
-export const shortCircuitThreshold: number = .002;
+
+export const flipThreshold: number = .002;

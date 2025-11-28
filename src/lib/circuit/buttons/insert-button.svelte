@@ -4,6 +4,6 @@
     export let onClick = () => {};
 </script>
 
-<button on:click={onClick} class="insert-button hover:cursor-pointer hover:opacity-80" style="background-color: { color };">
+<button on:click={onClick} class={`${color} insert-button`}>
     <b> { name } </b>
 </button>
