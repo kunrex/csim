@@ -135,4 +135,39 @@
     .gate-handle-popup {
         @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-gray-950 text-center text-white text-xs p-1 rounded z-20
     }
+
+    .ui-element {
+        @apply border-2 border-gray-300 rounded-2xl p-3 backdrop-blur-sm z-50;
+    }
+
+    .input-clean {
+        @apply bg-transparent border-0 inline-block;
+    }
+
+    .input-clean {
+        @apply bg-transparent border-none outline-none ring-0 shadow-none text-gray-400;
+
+        border: 0 !important;
+    }
+
+    .input-clean:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .inspector-element, .input-clean {
+        @apply text-gray-400;
+    }
+
+    .inspector-element:hover, .input-clean:hover {
+        @apply text-gray-500;
+    }
+
+    .inspector-element:focus, .input-clean:focus {
+        @apply text-gray-500;
+    }
+
+    .inspector-element:active, .input-clean:active {
+        @apply text-gray-800;
+    }
 }

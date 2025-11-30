@@ -30,6 +30,7 @@
 
     import { deleteGate } from "$lib/pools/utils";
     import { masterTick} from "$lib/logic/clock";
+    import {FontAwesomeIcon} from "@fortawesome/svelte-fontawesome";
 
     function onDeleteNode(node: CoreGateData) : void {
         deleteGate(node);
@@ -47,7 +48,7 @@
         if(!sourceNode || !targetNode)
             return null;
 
-        return [sourceNode, targetNode]
+        return [sourceNode, targetNode];
     }
 
     function onConnection(connectionData: ConnectionData) : void {
@@ -83,13 +84,14 @@
         BulbGatePool.initInstance(createGate, flow.updateGate);
         ClockGatePool.initInstance(createGate, flow.updateGate);
         PowerGatePool.initInstance(createGate, flow.updateGate);
+        BufferGatePool.initInstance(createGate, flow.updateGate);
         SevenSegmentPool.initInstance(createGate, flow.updateGate);
 
         requestAnimationFrame(masterTick);
     }
 </script>
 
-<div class="flex flex-row w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 align-center border-2 gap-x-4 border-gray-300 rounded-2xl p-3 backdrop-blur-xs overflow-x-auto z-50">
+<div class="flex flex-row items-center w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 overflow-x-auto gap-x-4 ui-element">
     <InsertButton name="And" color="color-and" onClick={() => AndGatePool.instance.createGate(true)}></InsertButton>
     <InsertButton name="Or" color="color-or" onClick={() => OrGatePool.instance.createGate(true)}></InsertButton>
     <InsertButton name="Nand" color="color-nand" onClick={() => NAndGatePool.instance.createGate(true)}></InsertButton>
@@ -101,6 +103,9 @@
     <IconInsertButton fabIcon={faPowerOff} color="color-power" onClick={() => PowerGatePool.instance.createGate(true)}></IconInsertButton>
     <IconInsertButton fabIcon={faLightbulb} color="color-bulb" onClick={() => BulbGatePool.instance.createGate(true)}></IconInsertButton>
     <IconInsertButton fabIcon={fa8} color="color-display" onClick={() => SevenSegmentPool.instance.createGate(true)}></IconInsertButton>
+</div>
+<div class="flex flex-col min-w-96 w-1/6 fixed bottom-0 right-0 mr-8 mb-8 ui-element text-white p-4">
+
 </div>
 <SvelteFlowProvider>
     <Flow bind:this={flow} on:connection={(e) => onConnection(e.detail)} on:disconnection={(e) => onDisconnection(e.detail)} on:destroy={(e) => onDeleteNode(e.detail)}/>
