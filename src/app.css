@@ -167,7 +167,19 @@
         @apply text-gray-500;
     }
 
-    .inspector-element:active, .input-clean:active {
+    .inspector-element:active, .input-clean:focus {
         @apply text-gray-800;
+    }
+
+    .control-button {
+        @apply w-16 h-16 rounded-full text-gray-800 text-3xl bg-slate-200 border-4 border-gray-900;
+    }
+
+    .control-button:hover {
+        @apply bg-slate-100;
+    }
+
+    .control-button:active {
+        @apply bg-slate-50;
     }
 }

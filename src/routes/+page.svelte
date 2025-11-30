@@ -104,9 +104,6 @@
     <IconInsertButton fabIcon={faLightbulb} color="color-bulb" onClick={() => BulbGatePool.instance.createGate(true)}></IconInsertButton>
     <IconInsertButton fabIcon={fa8} color="color-display" onClick={() => SevenSegmentPool.instance.createGate(true)}></IconInsertButton>
 </div>
-<div class="flex flex-col min-w-96 w-1/6 fixed bottom-0 right-0 mr-8 mb-8 ui-element text-white p-4">
-
-</div>
 <SvelteFlowProvider>
     <Flow bind:this={flow} on:connection={(e) => onConnection(e.detail)} on:disconnection={(e) => onDisconnection(e.detail)} on:destroy={(e) => onDeleteNode(e.detail)}/>
 </SvelteFlowProvider>
