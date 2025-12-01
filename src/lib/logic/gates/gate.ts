@@ -9,7 +9,6 @@ import type { IIdentity } from "$lib/logic/interfaces";
 export abstract class Gate implements IIdentity {
     private then: number = 0;
 
-    public name: string = "";
     public abstract gateType(): GateType;
 
     protected constructor(public readonly id: string, public readonly gateData: GateData, public updateNodeFunction: UpdateGateSignature) {

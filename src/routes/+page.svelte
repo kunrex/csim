@@ -14,8 +14,6 @@
 
     import {
         Flow,
-        InsertButton,
-        IconInsertButton,
         Handle,
         type GateNodeType,
         ConnectionData,
@@ -36,7 +34,7 @@
         SevenSegmentPool,
         Gate,
         Inspector,
-        UtilityButton
+        UtilityButton, type CircuitData, Assets
     } from "$lib";
 
     import { deleteGate } from "$lib/pools/utils";
@@ -82,8 +80,15 @@
     let flow: any;
     function createGate(type: GateNodeType, gate: Gate) : void {
         flow.createGate(type, gate);
-        gate.name = `Gate ${gate.id}`;
+        gate.gateData["name"] = `Gate ${gate.id}`;
         inspector.addGate(gate);
+    }
+
+    function createPrefab() : void {
+        const data: CircuitData | null = flow.getCircuit();
+        if(data) {
+
+        }
     }
 
     $: if (flow) {
@@ -104,22 +109,10 @@
         requestAnimationFrame(masterTick);
     }
 </script>
-<Inspector bind:this={inspector}></Inspector>
-<div class="flex flex-row items-center w-1/2 h-auto fixed bottom-0 right-0 -translate-y-0 mb-8 mr-8 overflow-x-auto gap-x-4 ui-element">
-    <InsertButton name="And" color="color-and" onClick={() => AndGatePool.instance.createGate(true)}></InsertButton>
-    <InsertButton name="Or" color="color-or" onClick={() => OrGatePool.instance.createGate(true)}></InsertButton>
-    <InsertButton name="Nand" color="color-nand" onClick={() => NAndGatePool.instance.createGate(true)}></InsertButton>
-    <InsertButton name="Nor" color="color-nor" onClick={() => NOrGatePool.instance.createGate(true)}></InsertButton>
-    <InsertButton name="Not" color="color-not" onClick={() => NotGatePool.instance.createGate(true)}></InsertButton>
-    <InsertButton name="Xor" color="color-xor" onClick={() => XorGatePool.instance.createGate(true)}></InsertButton>
-    <InsertButton name="Xnor" color="color-xnor" onClick={() => XNorGatePool.instance.createGate(true)}></InsertButton>
-    <IconInsertButton fabIcon={faClock} color="color-clock" onClick={() => ClockGatePool.instance.createGate(true)}></IconInsertButton>
-    <IconInsertButton fabIcon={faPowerOff} color="color-power" onClick={() => PowerGatePool.instance.createGate(true)}></IconInsertButton>
-    <IconInsertButton fabIcon={faLightbulb} color="color-bulb" onClick={() => BulbGatePool.instance.createGate(true)}></IconInsertButton>
-    <IconInsertButton fabIcon={fa8} color="color-display" onClick={() => SevenSegmentPool.instance.createGate(true)}></IconInsertButton>
-</div>
+<Inspector bind:this={inspector} title="Scene"></Inspector>
+<Assets></Assets>
 <div class="flex md:flex-row flex-col items-center max-w-1/4 fixed bottom-0 left-0 mb-8 ml-8 gap-y-4 md:gap-x-4 z-50">
-    <UtilityButton action="Prefab" fabIcon={faCube} onClick={() => { }}></UtilityButton>
+    <UtilityButton action="Prefab" fabIcon={faCube} onClick={createPrefab}></UtilityButton>
     <UtilityButton action="Assistant" fabIcon={faRobot} onClick={() => { }}></UtilityButton>
     <UtilityButton action="Fit" fabIcon={faExpand} onClick={() => { flow.flowFitView(); }}></UtilityButton>
     <UtilityButton action="Clear" fabIcon={faTrashCan} onClick={() => { flow.clearCircuit(); }}></UtilityButton>

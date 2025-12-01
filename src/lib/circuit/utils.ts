@@ -26,7 +26,7 @@ export function isSegmentOn(digit: number, segment: string) : boolean {
     return !!((sevenSegmentBits[digit] >> segments.indexOf(segment)) & 1);
 }
 
-export function layerGates(map: Map<string, CircuitGateData>, connections: CoreConnectionData[]) : void {
+export function layerGates(map: Map<string, CircuitGateData>, connections: CoreConnectionData[]) : boolean {
     const connectionsMap = new Map<string, string[]>();
     for (const c of connections) {
         if (!connectionsMap.has(c.source))
@@ -35,15 +35,23 @@ export function layerGates(map: Map<string, CircuitGateData>, connections: CoreC
         connectionsMap.get(c.source)!.push(c.target);
     }
 
+    let inFlag = false, outFlag = false;
     const queue: string[] = [];
     map.forEach((value: CircuitGateData, key: string) => {
-        if(value.type == "power") {
+        if(value.type == "power" || value.type == "clock") {
             value.layer = 0;
             queue.push(key);
+            inFlag = true;
         }
         else
             value.layer = Infinity;
+
+        if(value.type == "bulb" || value.type == "display")
+            outFlag = true;
     });
+
+    if(!inFlag || !outFlag)
+        return false;
 
     while (queue.length > 0) {
         const current = queue.shift()!;
@@ -65,4 +73,6 @@ export function layerGates(map: Map<string, CircuitGateData>, connections: CoreC
             connectionsMap.delete(current);
         }
     }
+
+    return true;
 }

@@ -84,7 +84,7 @@
     }
 
     let localGateMap = new Map<string, string>();
-    export function getCircuit() : CircuitData {
+    export function getCircuit() : CircuitData | null {
         localGateMap.clear();
 
         const gateData = new Map<string, CircuitGateData>();
@@ -100,20 +100,28 @@
             if(relativeSource == undefined) {
                 relativeSource = gateData.size.toString();
                 localGateMap.set(sourceId, relativeSource);
-                gateData.set(relativeSource, new CircuitGateData(gateMap.get(sourceId)!.data.type));
+
+                const gate = gateMap.get(sourceId);
+                if(gate)
+                    gateData.set(relativeSource, new CircuitGateData(gate.data["type"], gate.data["name"]));
             }
 
             if(relativeTarget == undefined) {
                 relativeTarget = gateData.size.toString();
                 localGateMap.set(targetId, relativeTarget);
-                gateData.set(relativeTarget, new CircuitGateData(gateMap.get(targetId)!.data.type));
+
+                const gate = gateMap.get(targetId);
+                if(gate)
+                    gateData.set(relativeTarget, new CircuitGateData(gate.data["type"], gate.data["name"]));
             }
 
             connectionData.push(new CoreConnectionData(relativeSource, relativeTarget, connection.sourceHandle!, connection.targetHandle!));
         }
 
-        layerGates(gateData, connectionData);
-        return new CircuitData(gateData, connectionData);
+        if(layerGates(gateData, connectionData))
+                return new CircuitData(gateData, connectionData);
+
+        return null;
     }
 
     function onConnection(connection: Connection) : void {

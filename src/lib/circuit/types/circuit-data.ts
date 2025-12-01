@@ -4,7 +4,7 @@ import { CoreConnectionData } from "$lib/circuit/types/conection-data";
 
 export class CircuitGateData {
     public layer: number = 0;
-    public constructor(public readonly type: GateType) { }
+    public constructor(public readonly type: GateType, public readonly name: string) { }
 }
 
 export class CircuitData {
