@@ -4,15 +4,13 @@
     import { iconMap } from "$lib/inspector/constants";
     import InspectorElement from "$lib/inspector/inspector-element.svelte";
 
-    const gates: Gate[] = [];
+    let gates: Gate[] = [];
     export function addGate(gate: Gate): void {
-        gates.push(gate);
+        gates = [... gates, gate];
     }
 
     export function removeGate(gateId: string): void {
-        const index = gates.findIndex(gate => gate.id === gateId);
-        if (index >= 0)
-            gates.splice(index, 1);
+        gates = gates.filter(g => g.id !== gateId);
     }
 </script>
 

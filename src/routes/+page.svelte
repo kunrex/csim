@@ -25,14 +25,16 @@
         ClockGatePool,
         BufferGatePool,
         SevenSegmentPool,
-        Gate
+        Gate,
+        Inspector
     } from "$lib";
 
     import { deleteGate } from "$lib/pools/utils";
     import { masterTick} from "$lib/logic/clock";
-    import {FontAwesomeIcon} from "@fortawesome/svelte-fontawesome";
 
+    let inspector: any;
     function onDeleteNode(node: CoreGateData) : void {
+        inspector.removeGate(node.id);
         deleteGate(node);
     }
 
@@ -69,7 +71,9 @@
 
     let flow: any;
     function createGate(type: GateNodeType, gate: Gate) : void {
-        return flow.createGate(type, gate);
+        flow.createGate(type, gate);
+        gate.name = `Gate ${gate.id}`;
+        inspector.addGate(gate);
     }
 
     $: if (flow) {
@@ -90,7 +94,7 @@
         requestAnimationFrame(masterTick);
     }
 </script>
-
+<Inspector bind:this={inspector}></Inspector>
 <div class="flex flex-row items-center w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 overflow-x-auto gap-x-4 ui-element">
     <InsertButton name="And" color="color-and" onClick={() => AndGatePool.instance.createGate(true)}></InsertButton>
     <InsertButton name="Or" color="color-or" onClick={() => OrGatePool.instance.createGate(true)}></InsertButton>

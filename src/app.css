@@ -168,7 +168,7 @@
     }
 
     .inspector-element:active, .input-clean:focus {
-        @apply text-gray-800;
+        @apply text-gray-600;
     }
 
     .control-button {

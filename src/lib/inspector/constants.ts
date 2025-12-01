@@ -13,11 +13,11 @@ export function iconMap(key: string): IconDefinition {
             return faTablet;
         case "display":
             return fa8;
-        case "input":
+        case "power":
             return faPowerOff;
         case "clock":
             return faClock;
-        case "output":
+        case "bulb":
             return faLightbulb;
         default:
             return faMicrochip;

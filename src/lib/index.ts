@@ -15,3 +15,6 @@ export { Flow };
 
 import { EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool, NotGatePool, OrGatePool, PowerGatePool, XNorGatePool, XorGatePool, ClockGatePool, BufferGatePool, SevenSegmentPool, deleteGate } from "$lib/pools";
 export { EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool, NotGatePool, OrGatePool, PowerGatePool, XNorGatePool, XorGatePool, ClockGatePool, BufferGatePool, SevenSegmentPool, deleteGate }
+
+import { Inspector } from "$lib/inspector";
+export { Inspector };
