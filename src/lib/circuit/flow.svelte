@@ -51,9 +51,10 @@
 
         gateMap.set(gate.id, node);
         gates = [...gates, node];
+        fitView();
     }
 
-    const { updateNode, updateEdge } = useSvelteFlow();
+    const { updateNode, updateEdge, fitView, zoomIn, zoomOut } = useSvelteFlow();
 
     export function updateGate(id: string, gateData: GateData) : void {
         updateNode(id, (properties: any) => ({
@@ -69,7 +70,14 @@
         }));
     }
 
+    export function flowFitView() : void {
+        fitView();
+    }
+
     export function clearCircuit() : void {
+        for(const gate of gates)
+            onDestroyGateCallback("destroy", new CoreGateData(gate.id, gate.data.type));
+
         gates = [];
         connections = [];
         gateMap.clear();
@@ -181,8 +189,7 @@
 
 <div class="w-screen h-screen">
     <SvelteFlow onmove={onMove} onconnect={onConnection} ondelete={onDelete} isValidConnection={isValidConnection} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={connections} {nodeTypes} fitView>
-        <Controls />
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
-        <MiniMap bgColor="#1e1e1e"/>
+        <MiniMap bgColor="#1e1e1e" position="top-right"/>
     </SvelteFlow>
 </div>

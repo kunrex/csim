@@ -1,7 +1,16 @@
 <script lang="ts">
     import { SvelteFlowProvider } from "@xyflow/svelte";
 
-    import { fa8, faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
+    import {
+        fa8,
+        faClock,
+        faCube, faExpand,
+        faLightbulb, faMagnifyingGlassMinus, faMagnifyingGlassPlus,
+        faMinus,
+        faPlus,
+        faPowerOff,
+        faRobot, faTrashCan
+    } from "@fortawesome/free-solid-svg-icons";
 
     import {
         Flow,
@@ -26,7 +35,8 @@
         BufferGatePool,
         SevenSegmentPool,
         Gate,
-        Inspector
+        Inspector,
+        UtilityButton
     } from "$lib";
 
     import { deleteGate } from "$lib/pools/utils";
@@ -95,7 +105,7 @@
     }
 </script>
 <Inspector bind:this={inspector}></Inspector>
-<div class="flex flex-row items-center w-1/2 h-auto fixed bottom-0 right-1/2 translate-x-1/2 -translate-y-0 mb-8 overflow-x-auto gap-x-4 ui-element">
+<div class="flex flex-row items-center w-1/2 h-auto fixed bottom-0 right-0 -translate-y-0 mb-8 mr-8 overflow-x-auto gap-x-4 ui-element">
     <InsertButton name="And" color="color-and" onClick={() => AndGatePool.instance.createGate(true)}></InsertButton>
     <InsertButton name="Or" color="color-or" onClick={() => OrGatePool.instance.createGate(true)}></InsertButton>
     <InsertButton name="Nand" color="color-nand" onClick={() => NAndGatePool.instance.createGate(true)}></InsertButton>
@@ -107,6 +117,12 @@
     <IconInsertButton fabIcon={faPowerOff} color="color-power" onClick={() => PowerGatePool.instance.createGate(true)}></IconInsertButton>
     <IconInsertButton fabIcon={faLightbulb} color="color-bulb" onClick={() => BulbGatePool.instance.createGate(true)}></IconInsertButton>
     <IconInsertButton fabIcon={fa8} color="color-display" onClick={() => SevenSegmentPool.instance.createGate(true)}></IconInsertButton>
+</div>
+<div class="flex flex-row items-center max-w-1/4 fixed bottom-0 left-0 overflow-x-scroll mb-8 ml-8 gap-x-4 ui-element">
+    <UtilityButton fabIcon={faCube} onClick={() => { }}></UtilityButton>
+    <UtilityButton fabIcon={faRobot} onClick={() => { }}></UtilityButton>
+    <UtilityButton fabIcon={faExpand} onClick={() => { flow.flowFitView(); }}></UtilityButton>
+    <UtilityButton fabIcon={faTrashCan} onClick={() => { flow.clearCircuit(); }}></UtilityButton>
 </div>
 <SvelteFlowProvider>
     <Flow bind:this={flow} on:connection={(e) => onConnection(e.detail)} on:disconnection={(e) => onDisconnection(e.detail)} on:destroy={(e) => onDeleteNode(e.detail)}/>

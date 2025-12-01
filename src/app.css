@@ -172,7 +172,7 @@
     }
 
     .control-button {
-        @apply w-16 h-16 rounded-full text-gray-800 text-3xl bg-slate-200 border-4 border-gray-900;
+        @apply min-w-14 min-h-14 rounded-full text-gray-800 text-2xl bg-slate-200 border-4 border-gray-900;
     }
 
     .control-button:hover {

@@ -18,3 +18,6 @@ export { EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool
 
 import { Inspector } from "$lib/inspector";
 export { Inspector };
+
+import { UtilityButton } from "$lib/utilities";
+export { UtilityButton };
