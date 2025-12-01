@@ -108,9 +108,21 @@
 
         requestAnimationFrame(masterTick);
     }
+
+    function editGate(gateId: string) {
+        console.log("ediding " + gateId)
+    }
+
+    function maximiseGate(gateId: string) {
+        console.log("maxmimising " + gateId)
+    }
+
+    function addPrefab(prefab: string) {
+        console.log("adding " + prefab)
+    }
 </script>
-<Inspector bind:this={inspector} title="Scene"></Inspector>
-<Assets></Assets>
+<Inspector bind:this={inspector} title="Scene" onEdit={editGate} onMaximise={maximiseGate}></Inspector>
+<Assets onPrefabClick={addPrefab}></Assets>
 <div class="flex md:flex-row flex-col items-center max-w-1/4 fixed bottom-0 left-0 mb-8 ml-8 gap-y-4 md:gap-x-4 z-50">
     <UtilityButton action="Prefab" fabIcon={faCube} onClick={createPrefab}></UtilityButton>
     <UtilityButton action="Assistant" fabIcon={faRobot} onClick={() => { }}></UtilityButton>
