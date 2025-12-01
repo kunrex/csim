@@ -128,16 +128,16 @@
         @apply bg-rose-600
     }
 
-    .gate-handle {
+    .handle-popup-parent, .utility-popup-parent {
         @apply relative inline-block
     }
 
-    .gate-handle-popup {
+    .handle-popup {
         @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-gray-950 text-center text-white text-xs p-1 rounded z-20
     }
 
     .ui-element {
-        @apply border-2 border-gray-300 rounded-2xl p-3 backdrop-blur-sm z-50;
+        @apply border-2 border-gray-300 rounded-xl p-3 backdrop-blur-sm z-50;
     }
 
     .input-clean {
@@ -171,15 +171,19 @@
         @apply text-gray-600;
     }
 
-    .control-button {
+    .utility-button {
         @apply min-w-14 min-h-14 rounded-full text-gray-800 text-2xl bg-slate-200 border-4 border-gray-900;
     }
 
-    .control-button:hover {
+    .utility-button:hover {
         @apply bg-slate-100;
     }
 
-    .control-button:active {
-        @apply bg-slate-50;
+    .utility-button:active {
+        @apply bg-slate-400;
+    }
+
+    .utility-popup {
+        @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-transparent text-center font-bold text-gray-400 text-xs p-1 z-20
     }
 }

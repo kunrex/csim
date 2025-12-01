@@ -118,11 +118,11 @@
     <IconInsertButton fabIcon={faLightbulb} color="color-bulb" onClick={() => BulbGatePool.instance.createGate(true)}></IconInsertButton>
     <IconInsertButton fabIcon={fa8} color="color-display" onClick={() => SevenSegmentPool.instance.createGate(true)}></IconInsertButton>
 </div>
-<div class="flex flex-row items-center max-w-1/4 fixed bottom-0 left-0 overflow-x-scroll mb-8 ml-8 gap-x-4 ui-element">
-    <UtilityButton fabIcon={faCube} onClick={() => { }}></UtilityButton>
-    <UtilityButton fabIcon={faRobot} onClick={() => { }}></UtilityButton>
-    <UtilityButton fabIcon={faExpand} onClick={() => { flow.flowFitView(); }}></UtilityButton>
-    <UtilityButton fabIcon={faTrashCan} onClick={() => { flow.clearCircuit(); }}></UtilityButton>
+<div class="flex md:flex-row flex-col items-center max-w-1/4 fixed bottom-0 left-0 mb-8 ml-8 gap-y-4 md:gap-x-4 z-50">
+    <UtilityButton action="Prefab" fabIcon={faCube} onClick={() => { }}></UtilityButton>
+    <UtilityButton action="Assistant" fabIcon={faRobot} onClick={() => { }}></UtilityButton>
+    <UtilityButton action="Fit" fabIcon={faExpand} onClick={() => { flow.flowFitView(); }}></UtilityButton>
+    <UtilityButton action="Clear" fabIcon={faTrashCan} onClick={() => { flow.clearCircuit(); }}></UtilityButton>
 </div>
 <SvelteFlowProvider>
     <Flow bind:this={flow} on:connection={(e) => onConnection(e.detail)} on:disconnection={(e) => onDisconnection(e.detail)} on:destroy={(e) => onDeleteNode(e.detail)}/>

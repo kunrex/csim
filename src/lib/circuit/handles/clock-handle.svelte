@@ -5,8 +5,8 @@
     export let enabled = false;
 </script>
 
-<Handle class={`gate-handle group ${enabled ? '!bg-rose-600' : ''}`} type="target" position={Position.Top} id={id} {...$$restProps}>
-    <div class="gate-handle-popup -right-full -top-7">
+<Handle class={`handle-popup-parent group ${enabled ? '!bg-rose-600' : ''}`} type="target" position={Position.Top} id={id} {...$$restProps}>
+    <div class="handle-popup left-1/2 -translate-x-1/2 -top-7">
         { id }
     </div>
 </Handle>
