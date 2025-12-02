@@ -1,7 +1,26 @@
-import {type CreateGateSignature, type GateNodeType, type UpdateGateSignature} from "$lib/circuit";
-import { Gate, AndGate, BulbGate, NAndGate, NOrGate, NotGate, OrGate, XNorGate, XorGate, ClockGate, PowerGate, BufferGate, SevenSegmentDisplay, type GateType } from "$lib/logic";
+import {type CreateGateSignature, edgeId, type GateNodeType, type UpdateGateSignature} from "$lib/circuit";
+import {
+    Gate,
+    AndGate,
+    BulbGate,
+    NAndGate,
+    NOrGate,
+    NotGate,
+    OrGate,
+    XNorGate,
+    XorGate,
+    ClockGate,
+    PowerGate,
+    BufferGate,
+    SevenSegmentDisplay,
+    type GateType,
+    PrefabData, type GateData
+} from "$lib/logic";
 
 import { createGameData } from "$lib/pools/utils";
+import {PrefabGate} from "$lib/logic/gates/gates";
+import {CircuitGateData} from "$lib/circuit/types";
+import {EdgePool} from "$lib";
 
 const allGates = new Map<string, Gate>();
 
@@ -49,7 +68,7 @@ abstract class GatePool {
         {
             if(this.gates[i].id == id) {
                 const gate = this.gates[i];
-                gate.reset().then(() => {
+                gate.resetState().then(() => {
                     this.gates.splice(i, 1);
                     this.gatePool.push(gate);
                 });
@@ -229,7 +248,7 @@ export class ClockGatePool extends GatePool {
 
         const id = allGates.size.toString();
         const gate = new ClockGate(id, data, this.updateFunction);
-        data["toggle"] = () => gate.enable();
+        data["toggle"] = () => gate.toggleClock();
         return gate;
     }
 }
@@ -252,7 +271,7 @@ export class PowerGatePool extends GatePool {
 
         const id = allGates.size.toString();
         const gate = new PowerGate(id, data, this.updateFunction);
-        data["toggle"] = () => gate.enable();
+        data["toggle"] = () => gate.calculateState();
         return gate;
     }
 }
@@ -297,4 +316,67 @@ export class BufferGatePool extends GatePool {
         return new BufferGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
- 
+
+export class PrefabManager {
+    public static instance: PrefabManager;
+
+    public static initInstance(updateFunction: UpdateGateSignature) {
+        this.instance = new PrefabManager(updateFunction);
+    }
+
+    private readonly prefabs = new Map<string, PrefabData>();
+
+    private constructor(private readonly updateFunction: UpdateGateSignature) { }
+    public setPrefab(prefabData: PrefabData): void {
+        this.prefabs.set(prefabData.name, prefabData);
+    }
+
+    public async initPrefab(prefabId: string): Promise<Gate> {
+        const prefab = this.prefabs.get(prefabId)!;
+        const data = prefab.circuitData;
+
+        const gateData: GateData = { }
+        const prefabGate = new PrefabGate(allGates.size.toString(), gateData, this.updateFunction);
+
+        const gates = new Map<string, Gate>();
+        for(const pair of data.gates)
+            gates.set(pair[0], await this.createGate(pair[1]).then());
+
+        for(const connection of data.connections) {
+            const source = gates.get(connection.source)!;
+            const target = gates.get(connection.target)!;
+
+            const id = edgeId(source.id, target.id, connection.sourceHandle, connection.targetHandle);
+            await EdgePool.instance.createEdgeConnection(id, source.getNode(connection.sourceHandle)!, target.getNode(connection.targetHandle)!);
+        }
+
+        return prefabGate;
+    }
+
+    private async createGate(gateData: CircuitGateData) : Promise<Gate> {
+        switch (gateData.type) {
+            case "not":
+                return NotGatePool.instance.createGate(false);
+            case "and":
+                return AndGatePool.instance.createGate(false);
+            case "nand":
+                return NAndGatePool.instance.createGate(false);
+            case "or":
+                return OrGatePool.instance.createGate(false);
+            case "nor":
+                return NOrGatePool.instance.createGate(false);
+            case "xor":
+                return XorGatePool.instance.createGate(false);
+            case "xnor":
+                return XNorGatePool.instance.createGate(false);
+            case "power":
+            case "clock":
+            case "bulb":
+                return BufferGatePool.instance.createGate(false);
+            case "display":
+                return SevenSegmentPool.instance.createGate(false);
+            default:
+                return await this.initPrefab(gateData.type);
+        }
+    }
+}

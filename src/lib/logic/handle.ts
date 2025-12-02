@@ -1,23 +1,25 @@
 import { EdgeConnection, Gate } from "$lib/logic";
+import {LoopGuard} from "$lib/logic/cycles";
 
-import type { IEnable } from "$lib/logic/interfaces/i-enable";
-
-export abstract class Handle implements IEnable {
+export abstract class Handle {
     protected state: boolean = false;
-    protected constructor(public readonly id: string) { }
 
-    public abstract popConnection(connection: EdgeConnection) : Promise<void>;
-    public abstract pushConnection(connection: EdgeConnection) : Promise<void>;
+    public enabled(): boolean {
+        return this.state;
+    }
+
+    protected constructor(public readonly id: string) { }
 
     public abstract enable(): Promise<void>;
     public abstract disable(): Promise<void>;
+
+    public abstract popConnection(connection: EdgeConnection) : Promise<void>;
+    public abstract pushConnection(connection: EdgeConnection) : Promise<void>;
 
     public reset(): Promise<void> {
         this.state = false;
         return Promise.resolve();
     }
-
-    public abstract enabled(): boolean ;
 }
 
 export class InHandle extends Handle {
@@ -25,6 +27,16 @@ export class InHandle extends Handle {
 
     public constructor(id: string, private readonly gate: Gate) {
         super(id);
+    }
+
+    public async enable(): Promise<void> {
+        this.state = true;
+        await this.gate.calculateState();
+    }
+
+    public async disable(): Promise<void> {
+        this.state = false;
+        await this.gate.calculateState();
     }
 
     public async pushConnection(input: EdgeConnection): Promise<void> {
@@ -45,21 +57,8 @@ export class InHandle extends Handle {
         this.connection = null;
         this.gate.setInputConnected(this.id, false);
 
+        LoopGuard.instance.resetCycle();
         await this.disable();
-    }
-
-    public enabled(): boolean {
-        return this.state;
-    }
-
-    public async enable(): Promise<void> {
-        this.state = true;
-        await this.gate.enable();
-    }
-
-    public async disable(): Promise<void> {
-        this.state = false;
-        await this.gate.enable();
     }
 }
 
@@ -70,10 +69,24 @@ export class OutHandle extends Handle {
         super(id);
     }
 
+    public async enable(): Promise<void> {
+        this.state = true;
+        for(const connection of this.connections)
+            await connection.propagate();
+    }
+
+    public async disable(): Promise<void> {
+        this.state = false;
+        for(const connection of this.connections)
+            await connection.propagate();
+    }
+
     public async pushConnection(input: EdgeConnection): Promise<void> {
         this.connections.push(input);
-        if(this.state)
-            await input.enable();
+        if(this.state) {
+            LoopGuard.instance.resetCycle();
+            await input.propagate();
+        }
     }
 
     public popConnection(input: EdgeConnection): Promise<void> {
@@ -82,23 +95,5 @@ export class OutHandle extends Handle {
             this.connections.splice(index, 1);
 
         return Promise.resolve();
-    }
-
-    public enabled(): boolean {
-        return this.state;
-    }
-
-    public async enable(): Promise<void> {
-        this.state = true;
-
-        for(let i = 0; i < this.connections.length; i++)
-            await this.connections[i].enable();
-    }
-
-    public async disable(): Promise<void> {
-        this.state = false;
-
-        for(let i = 0; i < this.connections.length; i++)
-            await this.connections[i].disable();
     }
 }

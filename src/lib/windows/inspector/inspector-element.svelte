@@ -16,7 +16,7 @@
 <div class="flex flex-row items-center gap-2">
     <FontAwesomeIcon icon={fabIcon} />
     <div class="flex-1 overflow-x-scroll">
-        <input class="input-clean w-full" type="text" minlength="0" maxlength="32" bind:value={gate.gateData["name"]}>
+        <input class="input-clean w-full" type="text" minlength="0" maxlength="16" bind:value={gate.gateData["name"]}>
     </div>
     <button class="inspector-utility-button" disabled={checkEditable(gate.gateType())} on:click={() => { onEdit(gate.id); }}>
         <FontAwesomeIcon icon={faPencil} />

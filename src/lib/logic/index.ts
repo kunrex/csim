@@ -1,7 +1,7 @@
-import { Handle, InHandle, OutHandle } from "$lib/logic/handle";
-export { Handle, InHandle, OutHandle };
+import { Handle } from "$lib/logic/handle";
+export { Handle };
 
-import { EdgeConnection } from "$lib/logic/edge";
+import { EdgeConnection } from "$lib/logic/edge-connection";
 export { EdgeConnection };
 
 import { type GateType, type GateData, PrefabData } from "$lib/logic/types";

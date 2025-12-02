@@ -1,4 +1,11 @@
-import type { IEnable } from "$lib/logic/interfaces/i-enable";
-import type { IIdentity } from "$lib/logic/interfaces/i-identity";
+export interface IState {
+    resetState(): Promise<void>;
+    calculateState(): Promise<void>;
+    propagateState(): Promise<boolean>;
+}
 
-export type { IEnable, IIdentity };
+export interface IBinaryState {
+    enabled(): boolean;
+    enable(): Promise<void>;
+    disable(): Promise<void>;
+}

@@ -1,4 +1,5 @@
 import { ClockGate } from "$lib/logic/gates";
+import {LoopGuard} from "$lib/logic/cycles/loop-guard";
 
 const frameRate = 0.5;
 const clocks: ClockGate[] = [];
@@ -11,7 +12,11 @@ let acc = 0;
 let last = 0;
 let state = false;
 
-export async function masterTick(time: number) {
+export function masterState(): boolean {
+    return state;
+}
+
+export async function masterTick(time: number): Promise<void> {
     const dt = (time - last) / 1000;
     last = time;
 
@@ -19,8 +24,10 @@ export async function masterTick(time: number) {
 
     while (acc >= frameRate) {
         state = !state;
+
+        LoopGuard.instance.resetCycle();
         for (const clock of clocks)
-            await clock.clockPulse(state);
+            await clock.calculateState();
 
         acc -= frameRate;
     }

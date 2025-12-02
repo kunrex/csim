@@ -34,14 +34,13 @@
         SevenSegmentPool,
         Gate,
         Inspector,
-        UtilityButton, type CircuitData, Assets, promptPrefabModal, PromptPrefabModal
+        UtilityButton, type CircuitData, Assets, promptPrefabModal, PromptPrefabModal, PrefabManager
     } from "$lib";
 
 
     import { deleteGate } from "$lib/pools/utils";
-    import { masterTick} from "$lib/logic/clock";
+    import { masterTick} from "$lib/logic/cycles/clock";
     import {PrefabData} from "$lib/logic";
-    import {PrefabManager} from "$lib/pools/prefab-manager";
 
     let inspector: any;
     function onDeleteNode(node: CoreGateData) : void {
@@ -121,6 +120,8 @@
         PowerGatePool.initInstance(createGate, flow.updateGate);
         BufferGatePool.initInstance(createGate, flow.updateGate);
         SevenSegmentPool.initInstance(createGate, flow.updateGate);
+
+        PrefabManager.initInstance(flow.updateGate);
 
         requestAnimationFrame(masterTick);
     }
