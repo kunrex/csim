@@ -13,5 +13,5 @@ export { Flow };
 import { EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool, NotGatePool, OrGatePool, PowerGatePool, XNorGatePool, XorGatePool, ClockGatePool, BufferGatePool, SevenSegmentPool, deleteGate } from "$lib/pools";
 export { EdgePool, AndGatePool, BulbGatePool, getGate, NAndGatePool, NOrGatePool, NotGatePool, OrGatePool, PowerGatePool, XNorGatePool, XorGatePool, ClockGatePool, BufferGatePool, SevenSegmentPool, deleteGate }
 
-import { Assets, Inspector, UtilityButton } from "$lib/windows";
-export { Assets, Inspector, UtilityButton };
+import { Assets, Inspector, UtilityButton, promptPrefabModal, PromptPrefabModal } from "$lib/windows";
+export { Assets, Inspector, UtilityButton, promptPrefabModal, PromptPrefabModal };

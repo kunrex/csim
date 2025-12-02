@@ -35,23 +35,15 @@ export function layerGates(map: Map<string, CircuitGateData>, connections: CoreC
         connectionsMap.get(c.source)!.push(c.target);
     }
 
-    let inFlag = false, outFlag = false;
     const queue: string[] = [];
     map.forEach((value: CircuitGateData, key: string) => {
         if(value.type == "power" || value.type == "clock") {
             value.layer = 0;
             queue.push(key);
-            inFlag = true;
         }
         else
             value.layer = Infinity;
-
-        if(value.type == "bulb" || value.type == "display")
-            outFlag = true;
     });
-
-    if(!inFlag || !outFlag)
-        return false;
 
     while (queue.length > 0) {
         const current = queue.shift()!;

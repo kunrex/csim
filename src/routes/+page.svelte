@@ -34,11 +34,14 @@
         SevenSegmentPool,
         Gate,
         Inspector,
-        UtilityButton, type CircuitData, Assets
+        UtilityButton, type CircuitData, Assets, promptPrefabModal, PromptPrefabModal
     } from "$lib";
+
 
     import { deleteGate } from "$lib/pools/utils";
     import { masterTick} from "$lib/logic/clock";
+    import {PrefabData} from "$lib/logic";
+    import {PrefabManager} from "$lib/pools/prefab-manager";
 
     let inspector: any;
     function onDeleteNode(node: CoreGateData) : void {
@@ -84,11 +87,24 @@
         inspector.addGate(gate);
     }
 
-    function createPrefab() : void {
-        const data: CircuitData | null = flow.getCircuit();
-        if(data) {
+    function onCreatePrefab(result: boolean, value: string): void {
+        if(!result)
+            return;
 
-        }
+        console.log(value);
+    }
+
+    let assets: any;
+    async function createPrefab() : Promise<void> {
+        const data: CircuitData | null = flow.getCircuit();
+
+        const result = await promptPrefabModal.open();
+        if(!result.result)
+            return;
+
+        const prefab = new PrefabData(result.value, data!);
+        PrefabManager.instance.setPrefab(prefab);
+        assets.addPrefab(result.value);
     }
 
     $: if (flow) {
@@ -114,7 +130,7 @@
     }
 
     function maximiseGate(gateId: string) {
-        console.log("maxmimising " + gateId)
+        flow.flowFitGate(gateId);
     }
 
     function addPrefab(prefab: string) {
@@ -122,8 +138,9 @@
     }
 </script>
 <Inspector bind:this={inspector} title="Scene" onEdit={editGate} onMaximise={maximiseGate}></Inspector>
-<Assets onPrefabClick={addPrefab}></Assets>
-<div class="flex md:flex-row flex-col items-center max-w-1/4 fixed bottom-0 left-0 mb-8 ml-8 gap-y-4 md:gap-x-4 z-50">
+<Assets bind:this={assets} onPrefabClick={addPrefab}></Assets>
+<PromptPrefabModal></PromptPrefabModal>
+<div class="flex md:flex-row flex-col items-center max-w-1/4 fixed bottom-0 left-0 mb-8 ml-8 gap-y-4 md:gap-x-4 z-40">
     <UtilityButton action="Prefab" fabIcon={faCube} onClick={createPrefab}></UtilityButton>
     <UtilityButton action="Assistant" fabIcon={faRobot} onClick={() => { }}></UtilityButton>
     <UtilityButton action="Fit" fabIcon={faExpand} onClick={() => { flow.flowFitView(); }}></UtilityButton>

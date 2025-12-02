@@ -133,15 +133,15 @@
     }
 
     .handle-popup {
-        @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-gray-950 text-center text-white text-xs p-1 rounded z-20
+        @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-gray-950 text-center font-extralight text-white text-xs p-1 rounded z-20
     }
 
     .ui-element {
-        @apply border-2 border-gray-300 rounded-xl p-3 backdrop-blur-sm z-50;
+        @apply border-2 border-gray-300 rounded-xl p-3 backdrop-blur-sm z-40;
     }
 
     .input-clean {
-        @apply bg-transparent border-0 inline-block;
+        @apply bg-transparent border-0 inline-block font-extralight;
     }
 
     .input-clean {
@@ -159,12 +159,16 @@
         @apply text-gray-400 font-extralight;
     }
 
-    .inspector-element:hover, .input-clean:hover, .inspector-utility-button {
+    .inspector-element:hover, .input-clean:hover, .inspector-utility-button:hover {
         @apply text-gray-500;
     }
 
-    .inspector-element:active, .input-clean:focus, .inspector-utility-button:focus {
-        @apply text-gray-600;
+    .inspector-element:active, .input-clean:focus, .inspector-utility-button:active {
+        @apply text-gray-300;
+    }
+
+    .inspector-utility-button:disabled {
+        @apply text-gray-700;
     }
 
     .utility-button {
@@ -180,11 +184,11 @@
     }
 
     .utility-popup {
-        @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-transparent text-center font-bold text-gray-400 text-xs p-1 z-20
+        @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-transparent text-center font-extralight text-gray-400 text-xs p-1 z-20
     }
 
     .asset-button {
-        @apply text-lg text-gray-400 font-extralight p-2 pb-0.5 bg-gray-700 border-b-2 border-b-gray-300 rounded-t-xl backdrop-blur-sm z-40
+        @apply text-lg text-gray-400 font-extralight p-1 px-4 pb-0.5 bg-gray-700 border-b-2 border-b-gray-300 rounded-t-xl backdrop-blur-sm z-40
     }
 
     .asset-button:hover {
@@ -193,5 +197,17 @@
 
     .asset-button.selected {
         @apply text-xl text-white font-bold bg-slate-500;
+    }
+
+    .modal-button {
+        @apply font-extralight text-white text-xl py-2 px-4 bg-slate-400 rounded-lg m-2;
+    }
+
+    .modal-button:hover {
+        @apply text-gray-400;
+    }
+
+    .modal-button:active {
+        @apply text-gray-600;
     }
 }

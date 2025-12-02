@@ -1,13 +1,11 @@
 import { PrefabData } from "$lib/logic";
 
 export class PrefabManager {
-    public static instance: PrefabManager;
+    public static instance: PrefabManager = new PrefabManager();
 
     private readonly prefabs = new Map<string, PrefabData>();
 
-    private constructor() {
-
-    }
+    private constructor() { }
 
     public getPrefab(name: string): PrefabData | undefined {
         return this.prefabs.get(name);

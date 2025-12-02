@@ -54,7 +54,7 @@
         fitView();
     }
 
-    const { updateNode, updateEdge, fitView, zoomIn, zoomOut } = useSvelteFlow();
+    const { updateNode, updateEdge, fitView, setCenter } = useSvelteFlow();
 
     export function updateGate(id: string, gateData: GateData) : void {
         updateNode(id, (properties: any) => ({
@@ -81,6 +81,14 @@
         gates = [];
         connections = [];
         gateMap.clear();
+    }
+
+    export function flowFitGate(gateId: string) : void {
+        const node = gateMap.get(gateId);
+        if(!node)
+            return;
+
+        setCenter(node.position.x, node.position.y);
     }
 
     let localGateMap = new Map<string, string>();
@@ -118,10 +126,8 @@
             connectionData.push(new CoreConnectionData(relativeSource, relativeTarget, connection.sourceHandle!, connection.targetHandle!));
         }
 
-        if(layerGates(gateData, connectionData))
-                return new CircuitData(gateData, connectionData);
-
-        return null;
+        layerGates(gateData, connectionData)
+        return new CircuitData(gateData, connectionData);
     }
 
     function onConnection(connection: Connection) : void {

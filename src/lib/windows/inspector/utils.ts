@@ -14,9 +14,9 @@ export function checkEditable(key: string) : boolean {
         case "power":
         case "clock":
         case "bulb":
-            return false;
-        default:
             return true;
+        default:
+            return false;
     }
 }
 
