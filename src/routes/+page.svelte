@@ -30,7 +30,6 @@
         XNorGatePool,
         XorGatePool,
         ClockGatePool,
-        BufferGatePool,
         SevenSegmentPool,
         Gate,
         Inspector,
@@ -41,11 +40,12 @@
     import { deleteGate } from "$lib/pools/utils";
     import { masterTick} from "$lib/logic/cycles/clock";
     import {PrefabData} from "$lib/logic";
+    import {BufferGatePool} from "$lib/pools";
 
     let inspector: any;
     function onDeleteNode(node: CoreGateData) : void {
         inspector.removeGate(node.id);
-        deleteGate(node);
+        deleteGate(node).then();
     }
 
     function getNodes(connectionData: ConnectionData) : [Handle, Handle] | null {
@@ -89,8 +89,6 @@
     function onCreatePrefab(result: boolean, value: string): void {
         if(!result)
             return;
-
-        console.log(value);
     }
 
     let assets: any;
@@ -118,16 +116,17 @@
         BulbGatePool.initInstance(createGate, flow.updateGate);
         ClockGatePool.initInstance(createGate, flow.updateGate);
         PowerGatePool.initInstance(createGate, flow.updateGate);
-        BufferGatePool.initInstance(createGate, flow.updateGate);
         SevenSegmentPool.initInstance(createGate, flow.updateGate);
 
-        PrefabManager.initInstance(flow.updateGate);
+        PrefabManager.initInstance(createGate, flow.updateGate);
+
+        BufferGatePool.initInstance(createGate, PrefabManager.instance.syncBufferUpdate);
 
         requestAnimationFrame(masterTick);
     }
 
     function editGate(gateId: string) {
-        console.log("ediding " + gateId)
+        console.log("editing " + gateId)
     }
 
     function maximiseGate(gateId: string) {
@@ -135,7 +134,7 @@
     }
 
     function addPrefab(prefab: string) {
-        console.log("adding " + prefab)
+        PrefabManager.instance.instantiatePrefabGate(prefab, true).then();
     }
 </script>
 <Inspector bind:this={inspector} title="Scene" onEdit={editGate} onMaximise={maximiseGate}></Inspector>

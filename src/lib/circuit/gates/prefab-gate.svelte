@@ -7,50 +7,35 @@
     export let dragging = false;
     export let selected = false;
 
-    const gate = data["gate"] as string;
+    const gate = data["type"] as string;
 
-    const inCount = data["in"] as number;
-    const outCount = data["out"] as number;
-    const clockCount = data["clock"] as number;
-    const displayCount = data["display"] as number;
+    const ins = data["in"] as string[];
+    const outs = data["out"] as string[];
+    const clocks = data["clock"] as string[];
+    const displays = data["display"] as string[];
 
-    const verticalHandles = inCount > outCount ? inCount : outCount;
-    const horizontalHandles = clockCount > displayCount * 4 ? clockCount : displayCount * 4;
-
-    const width = `width: calc(var(--prefab-handle-gap) * ${horizontalHandles + 2})`;
-    const height = `height: calc(var(--prefab-handle-gap) * ${verticalHandles + 2})`;
-
-    function inputHandle(index: number) : GateData {
-        return data["in-" + index] as GateData ?? { };
+    function max(a: number, b: number): number {
+        return a > b ? a : b;
     }
 
-    function clockHandle(index: number) : GateData {
-        return data["clock-" + index] as GateData ?? { };
-    }
-
-    function outputHandle(index: number) : GateData {
-        return data["out-" + index] as GateData ?? { };
-    }
-
-    function displayHandle(index: number) : GateData {
-        return data["display-" + index] as GateData ?? { };
-    }
+    const height = `min-height: calc(var(--prefab-handle-gap) * ${max(ins.length, outs.length) + 2})`;
+    const width = `min-width: calc(var(--prefab-handle-gap) * ${max(clocks.length, displays.length) + 2})`;
 </script>
 
 <div class="prefab-gate color-prefab" class:dragging class:selected style={`${height}; ${width};`}>
-    {#each { length: inCount } as _, i}
-        <InputHandle id={"in-" + i} style={`top: ${(100 / (inCount + 1)) * (i + 1)}%;`} enabled={inputHandle(i + 1)["in-1"]}></InputHandle>
+    {#each ins as input, i}
+        <InputHandle id={input} style={`top: ${(100 / (ins.length + 1)) * (i + 1)}%;`} enabled={data[input]}></InputHandle>
     {/each}
-    {#each { length: clockCount } as _, i}
-        <ClockHandle id={"clock-" + i} style={`left: ${(100 / (clockCount + 1)) * (i + 1)}%;`} enabled={clockHandle(i + 1)["in-1"]}></ClockHandle>
+    {#each clocks as clock, i}
+        <ClockHandle id={clock} style={`left: ${(100 / (clocks.length + 1)) * (i + 1)}%;`} enabled={data[clock]}></ClockHandle>
     {/each}
     <div class="p-1 overflow-x-scroll overflow-hidden">
         <b>{ gate }</b>
     </div>
-    {#each { length: outCount } as _, i}
-        <OutputHandle id={"out-" + i} style={`top: ${(100 / (outCount + 1)) * (i + 1)}%;`} enabled={outputHandle(i + 1)["out-1"]}></OutputHandle>
+    {#each outs as output, i}
+        <OutputHandle id={output} style={`top: ${(100 / (outs.length + 1)) * (i + 1)}%;`} enabled={data[output]}></OutputHandle>
     {/each}
-    {#each { length: displayCount } as _, i}
-        <DisplayHandle id={"out-" + i} style={`left: ${(100 / (displayCount + 1)) * (i + 1)}%;`} enabled={displayHandle(i + 1)["out-1"]}></DisplayHandle>
+    {#each displays as display, i}
+        <DisplayHandle id={display} style={`left: ${(100 / ((displays.length * 5) + 1)) * (i + 1)}%;`} enabled={data[display]}></DisplayHandle>
     {/each}
 </div>

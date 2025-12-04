@@ -102,6 +102,10 @@
         @apply text-2xl;
     }
 
+    .prefab-gate {
+        @apply p-3;
+    }
+
     .insert-button {
         @apply flex flex-col items-center justify-center text-xl border rounded-sm border-solid border-slate-600 text-white;
     }

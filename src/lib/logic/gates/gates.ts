@@ -2,12 +2,12 @@ import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-ic
 
 import { deleteGate } from "$lib/pools";
 
-import { type GateNodeType, type UpdateGateSignature } from "$lib/circuit";
+import {CoreGateData, type GateNodeType, type UpdateGateSignature} from "$lib/circuit";
 
 import { Handle, InHandle } from "$lib/logic/handle";
-import type { GateData, GateType } from "$lib/logic/types";
+import {type GateData, type GateType, HandleWrapper} from "$lib/logic/types";
 import { LoopGuard, masterState, registerClock } from "$lib/logic/cycles";
-import {BinaryGate, Gate, InputGate, OutputGate, UnaryGate} from "$lib/logic/gates/gate";
+import { BinaryGate, Gate, InputGate, OutputGate, UnaryGate } from "$lib/logic/gates/gate";
 
 export class NotGate extends UnaryGate {
     public gateType(): GateType { return "not"; }
@@ -253,25 +253,6 @@ export class ClockGate extends OutputGate {
     }
 }
 
-export class BufferGate extends UnaryGate {
-    public gateType(): GateType { return "buffer"; }
-
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-    }
-
-    public async onCalculateState(): Promise<void> {
-        this.onCalculateSyncState();
-        this.next = this.in.enabled();
-
-        return Promise.resolve();
-    }
-
-    public async propagateState(): Promise<void> {
-        await this.onPropagateSyncState();
-    }
-}
-
 export class SevenSegmentDisplay extends Gate {
     public gateType(): GateType { return "display"; }
 
@@ -341,59 +322,81 @@ export class SevenSegmentDisplay extends Gate {
     }
 }
 
+export class BufferGate extends UnaryGate {
+    public gateType(): GateType { return "buffer"; }
+
+    public constructor(id: string, gateData: GateData, updateFunction: UpdateGateSignature) {
+        super(id, gateData, updateFunction);
+    }
+
+    public async onCalculateState(): Promise<void> {
+        this.onCalculateSyncState();
+        this.next = this.in.enabled();
+
+        return Promise.resolve();
+    }
+
+    public async propagateState(): Promise<void> {
+        await this.onPropagateSyncState();
+    }
+}
+
 export class PrefabGate extends Gate {
-    public gateType(): GateNodeType { return "prefab" }
+    public gateType(): GateType { return "prefab" }
 
     public readonly gates: Gate[] = [];
-    public readonly handles: Map<string, Handle | undefined> = new Map<string, Handle | undefined>();
+    public readonly handleMap = new Map<string, Handle>();
+    public readonly bufferMap = new Map<string, HandleWrapper>();
 
-    public enabled(): boolean { return false; }
-    
     public constructor(id: string, gateData: GateData, private readonly onUpdateFunction: UpdateGateSignature) {
         super(id, gateData);
     }
 
+    protected onSyncGateData(): void {
+        this.onUpdateFunction(this.id, this.gateData);
+    }
 
     protected onCalculateState(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-
-    protected onSyncGateData(): void {
-    }
-
-    protected propagateState(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-
-    resetState(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-    
-    public enable(): Promise<void> {
+        this.syncGateData();
         return Promise.resolve();
     }
 
-    public async reset(): Promise<void> {
-        const count = this.gates.length;
-        for(let i = 0; i < count; i++) {
-            const gate = this.gates[i];
-            deleteGate({
-                id: gate.id,
-                type: gate.gateType()
-            });
+    protected propagateState(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public async resetState(): Promise<void> {
+        for(const gate of this.gates)
+            await deleteGate(new CoreGateData(gate.id, gate.gateType()));
+
+        this.bufferMap.clear();
+        this.gates.splice(0, this.gates.length);
+    }
+
+    public getNode(handleId: string): Handle | null {
+        return this.handleMap.get(handleId) ?? null;
+    }
+
+    public syncGateHandle(bufferId: string, gateData: GateData) : void {
+        const wrapper = this.bufferMap.get(bufferId);
+        if(!wrapper)
+            return;
+
+        const handleId = wrapper.handleId;
+        switch (wrapper.gateType) {
+            case "clock":
+            case "power": {
+                    this.gateData[handleId] = gateData["in-1"];
+                    this.gateData["connections"][handleId] = gateData["connections"]["in-1"];
+                }
+                break;
+            case "bulb":
+            case "display":
+                this.gateData[handleId] = gateData["out-1"];
+                break;
         }
 
-        this.gates.splice(0, this.gates.length);
-        this.handles.clear();
-    }
 
-    public getNode(id: string): Handle | null {
-        const handle = this.handles.get(id);
-        return handle ?? null;
-    }
-
-    public updateGateData(id: string, gateData: GateData): void {
-        this.gateData[id] = gateData;
-        //this.updateNodeFunction(this.id, this.gateData);
+        this.syncGateData();
     }
 }

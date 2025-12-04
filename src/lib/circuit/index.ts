@@ -1,8 +1,8 @@
-import { type GateNodeType, ConnectionData, type CoreGateData } from "$lib/circuit/types";
-export { type GateNodeType, ConnectionData, type CoreGateData };
-
 import { edgeId } from "$lib/circuit/utils";
 export { edgeId };
 
-import type { CreateGateSignature, UpdateGateSignature, UpdateConnectionSignature, GetCircuitSignature, ClearCircuitSignature, CircuitData } from "$lib/circuit/types";
-export type { CreateGateSignature, UpdateGateSignature, UpdateConnectionSignature, GetCircuitSignature, ClearCircuitSignature, CircuitData };
+import { type GateNodeType, ConnectionData, CoreGateData } from "$lib/circuit/types";
+export { type GateNodeType, ConnectionData, CoreGateData };
+
+import type { CircuitData, CreateGateSignature, UpdateGateSignature, UpdateConnectionSignature, GetCircuitSignature, ClearCircuitSignature } from "$lib/circuit/types";
+export type { CircuitData, CreateGateSignature, UpdateGateSignature, UpdateConnectionSignature, GetCircuitSignature, ClearCircuitSignature };

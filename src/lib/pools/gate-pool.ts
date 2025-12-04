@@ -17,7 +17,7 @@ import {
     PrefabData, type GateData
 } from "$lib/logic";
 
-import { createGameData } from "$lib/pools/utils";
+import {createGateData, createPrefabGateData, instantiatePrefabInternals} from "$lib/pools/utils";
 import {PrefabGate} from "$lib/logic/gates/gates";
 import {CircuitGateData} from "$lib/circuit/types";
 import {EdgePool} from "$lib";
@@ -35,23 +35,44 @@ abstract class GatePool {
     protected abstract readonly type: GateType;
     protected abstract readonly nodeType: GateNodeType;
 
-    protected constructor(protected readonly createFunction: CreateGateSignature, protected readonly updateFunction: UpdateGateSignature) { }
+    protected constructor(protected readonly createFunction: CreateGateSignature) { }
 
     protected abstract initGate() : Gate;
 
     public createGate(render: boolean) : Gate {
-        if(this.gatePool.length > 0) {
-            const gate = this.gatePool.pop();
+        return this.tryReuseGate(render) ?? this.instantiateGate(render);
+    }
 
-            if(gate) {
-                this.gates.push(gate);
-                if(render)
-                    this.createFunction(this.nodeType, gate);
-
-                return gate;
+    public async deleteGate(id: string) : Promise<void> {
+        let i = 0;
+        for(const gate of this.gates) {
+            if(gate.id == id) {
+                await gate.resetState();
+                this.gates.splice(i, 1);
+                this.gatePool.push(gate);
+                break;
             }
+
+            i++;
+        }
+    }
+
+    private tryReuseGate(render: boolean) : Gate | null {
+        if(this.gatePool.length > 0) {
+            const gate = this.gatePool.pop()!;
+            this.gates.push(gate);
+
+            if(render)
+                this.createFunction(this.nodeType, gate);
+
+            gate.sync = render;
+            return gate;
         }
 
+        return null;
+    }
+
+    private instantiateGate(render: boolean) : Gate {
         const gate = this.initGate();
         allGates.set(gate.id, gate);
         this.gates.push(gate);
@@ -59,22 +80,8 @@ abstract class GatePool {
         if(render)
             this.createFunction(this.nodeType, gate);
 
+        gate.sync = render;
         return gate;
-    }
-
-    public deleteGate(id: string) : void {
-        const count = this.gates.length;
-        for(let i = 0; i <= count; i++)
-        {
-            if(this.gates[i].id == id) {
-                const gate = this.gates[i];
-                gate.resetState().then(() => {
-                    this.gates.splice(i, 1);
-                    this.gatePool.push(gate);
-                });
-                break;
-            }
-        }
     }
 }
 
@@ -87,12 +94,12 @@ export class NotGatePool extends GatePool {
         NotGatePool.instance = new NotGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 1, 1);
+        const data = createGateData(this.type, 1, 1);
         return new NotGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -106,12 +113,12 @@ export class OrGatePool extends GatePool {
         OrGatePool.instance = new OrGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 2, 1);
+        const data = createGateData(this.type, 2, 1);
         return new OrGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -125,12 +132,12 @@ export class NOrGatePool extends GatePool {
         NOrGatePool.instance = new NOrGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 2, 1);
+        const data = createGateData(this.type, 2, 1);
         return new NOrGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -144,12 +151,12 @@ export class AndGatePool extends GatePool {
         AndGatePool.instance = new AndGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 2, 1);
+        const data = createGateData(this.type, 2, 1);
         return new AndGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -163,12 +170,12 @@ export class NAndGatePool extends GatePool {
         NAndGatePool.instance = new NAndGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 2, 1);
+        const data = createGateData(this.type, 2, 1);
         return new NAndGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -182,12 +189,12 @@ export class XorGatePool extends GatePool {
         XorGatePool.instance = new XorGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 2, 1);
+        const data = createGateData(this.type, 2, 1);
         return new XorGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -201,12 +208,12 @@ export class XNorGatePool extends GatePool {
         XNorGatePool.instance = new XNorGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 2, 1);
+        const data = createGateData(this.type, 2, 1);
         return new XNorGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -220,12 +227,12 @@ export class BulbGatePool extends GatePool {
         BulbGatePool.instance = new BulbGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 1, 0);
+        const data = createGateData(this.type, 1, 0);
         return new BulbGate(allGates.size.toString(), data, this.updateFunction);
     }
 }
@@ -239,12 +246,12 @@ export class ClockGatePool extends GatePool {
         ClockGatePool.instance = new ClockGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 0, 1);
+        const data = createGateData(this.type, 0, 1);
 
         const id = allGates.size.toString();
         const gate = new ClockGate(id, data, this.updateFunction);
@@ -262,12 +269,12 @@ export class PowerGatePool extends GatePool {
         PowerGatePool.instance = new PowerGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate(): Gate {
-        const data = createGameData(this.type, 0, 1);
+        const data = createGateData(this.type, 0, 1);
 
         const id = allGates.size.toString();
         const gate = new PowerGate(id, data, this.updateFunction);
@@ -285,12 +292,12 @@ export class SevenSegmentPool extends GatePool {
         this.instance = new SevenSegmentPool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate() : Gate {
-        const data = createGameData(this.type, 5, 0);
+        const data = createGateData(this.type, 5, 0);
         data["value"] = 0;
 
         const id = allGates.size.toString();
@@ -307,76 +314,82 @@ export class BufferGatePool extends GatePool {
         this.instance = new BufferGatePool(createFunction, updateFunction);
     }
 
-    private constructor(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        super(createFunction, updateFunction);
+    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
     }
 
     protected initGate() : Gate {
-        const data = createGameData(this.type, 1, 0);
+        const data = createGateData(this.type, 1, 1);
         return new BufferGate(allGates.size.toString(), data, this.updateFunction);
+    }
+}
+
+class PrefabPool extends GatePool {
+    protected readonly type: GateType;
+    protected readonly nodeType: GateNodeType = "prefab";
+
+    public constructor(public readonly prefabData: PrefabData, createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
+        super(createFunction);
+        this.type = prefabData.name;
+    }
+
+    protected initGate(): Gate {
+        const data = createPrefabGateData(this.prefabData);
+        const gate = new PrefabGate(allGates.size.toString(), data, this.updateFunction);
+
+        instantiatePrefabInternals(this.prefabData, gate).then();
+        return gate;
     }
 }
 
 export class PrefabManager {
     public static instance: PrefabManager;
-
-    public static initInstance(updateFunction: UpdateGateSignature) {
-        this.instance = new PrefabManager(updateFunction);
+    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
+        this.instance = new PrefabManager(createFunction, updateFunction);
     }
 
-    private readonly prefabs = new Map<string, PrefabData>();
+    private readonly pools = new Map<string, PrefabPool>();
+    private readonly bufferMap = new Map<string, PrefabGate>();
 
-    private constructor(private readonly updateFunction: UpdateGateSignature) { }
+    private constructor(private readonly createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) { }
+
+    public hasPrefab(prefabId: string) : boolean {
+        return this.pools.has(prefabId);
+    }
+
     public setPrefab(prefabData: PrefabData): void {
-        this.prefabs.set(prefabData.name, prefabData);
+        this.pools.set(prefabData.name, new PrefabPool(prefabData, this.createFunction, this.updateFunction));
     }
 
-    public async initPrefab(prefabId: string): Promise<Gate> {
-        const prefab = this.prefabs.get(prefabId)!;
-        const data = prefab.circuitData;
+    public checkEdit(prefab: GateType) : boolean {
+        for(const prefab of this.pools)
+            if(prefab[1].prefabData.resolveDependency(prefab[0]))
+                return false;
 
-        const gateData: GateData = { }
-        const prefabGate = new PrefabGate(allGates.size.toString(), gateData, this.updateFunction);
-
-        const gates = new Map<string, Gate>();
-        for(const pair of data.gates)
-            gates.set(pair[0], await this.createGate(pair[1]).then());
-
-        for(const connection of data.connections) {
-            const source = gates.get(connection.source)!;
-            const target = gates.get(connection.target)!;
-
-            const id = edgeId(source.id, target.id, connection.sourceHandle, connection.targetHandle);
-            await EdgePool.instance.createEdgeConnection(id, source.getNode(connection.sourceHandle)!, target.getNode(connection.targetHandle)!);
-        }
-
-        return prefabGate;
+        return true;
     }
 
-    private async createGate(gateData: CircuitGateData) : Promise<Gate> {
-        switch (gateData.type) {
-            case "not":
-                return NotGatePool.instance.createGate(false);
-            case "and":
-                return AndGatePool.instance.createGate(false);
-            case "nand":
-                return NAndGatePool.instance.createGate(false);
-            case "or":
-                return OrGatePool.instance.createGate(false);
-            case "nor":
-                return NOrGatePool.instance.createGate(false);
-            case "xor":
-                return XorGatePool.instance.createGate(false);
-            case "xnor":
-                return XNorGatePool.instance.createGate(false);
-            case "power":
-            case "clock":
-            case "bulb":
-                return BufferGatePool.instance.createGate(false);
-            case "display":
-                return SevenSegmentPool.instance.createGate(false);
-            default:
-                return await this.initPrefab(gateData.type);
-        }
+    public async instantiatePrefabGate(prefab: string, render: boolean): Promise<Gate> {
+        return this.pools.get(prefab)!.createGate(render);
+    }
+
+    public async deletePrefabGate(gateId: string, prefab: string) : Promise<void> {
+        await this.pools.get(prefab)!.deleteGate(gateId);
+    }
+
+    public registerBuffer(bufferId: string, prefabGate: PrefabGate) : void {
+        this.bufferMap.set(bufferId, prefabGate);
+    }
+
+    public unregisterBuffer(bufferId: string) : void {
+        this.bufferMap.delete(bufferId);
+    }
+
+    public syncBufferUpdate(bufferId: string, gateData: GateData) : void {
+        const prefabGate = PrefabManager.instance.bufferMap.get(bufferId);
+        if(!prefabGate)
+            return;
+
+        prefabGate.syncGateHandle(bufferId, gateData);
     }
 }

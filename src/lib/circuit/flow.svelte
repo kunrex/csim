@@ -159,9 +159,9 @@
 
     function isValidConnection(connection: Connection | Edge) : boolean {
         const targetNode = gateMap.get(connection.target);
-        if(targetNode) {
+        if(targetNode && connection.targetHandle) {
             const data = targetNode.data;
-            return !data[`${connection.targetHandle}-connected`];
+            return !data["connections"][connection.targetHandle];
         }
 
         return false;

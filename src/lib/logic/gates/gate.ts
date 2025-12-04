@@ -33,7 +33,7 @@ export abstract class Gate {
     protected abstract onSyncGateData(): void;
 
     public setInputConnected(id: string, state: boolean) : void {
-        this.gateData[`${id}-connected`] = state;
+        this.gateData["connections"][id] = state;
         this.syncGateData();
     }
 }
