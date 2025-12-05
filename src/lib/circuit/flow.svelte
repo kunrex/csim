@@ -3,6 +3,8 @@
     import { createEventDispatcher } from "svelte";
     import { SvelteFlow, Controls, Background, MiniMap, ConnectionMode, BackgroundVariant, type Edge, useSvelteFlow, type Viewport, type Connection, addEdge, type NodeTypes } from '@xyflow/svelte';
 
+    import ELK from 'elkjs/lib/elk.bundled.js';
+
     import { Gate, type GateData } from "$lib/logic";
 
     import { createEdge, layerGates } from "$lib/circuit/utils";
@@ -60,6 +62,13 @@
         updateNode(id, (properties: any) => ({
             ...properties,
             data: gateData
+        }));
+    }
+
+    function updateGatePosition(id: string, x: number, y: number) : void {
+        updateNode(id, (properties: any) => ({
+            ...properties,
+            position: { x, y }
         }));
     }
     
@@ -128,6 +137,50 @@
 
         layerGates(gateData, connectionData)
         return new CircuitData(gateData, connectionData);
+    }
+
+    const elk = new ELK();
+    const elkOptions = {
+        'elk.algorithm': 'layered',
+        'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+        'elk.spacing.nodeNode': '80',
+    };
+
+    export async function layout() : Promise<void> {
+        const graph = {
+            id: 'root',
+            layoutOptions: elkOptions,
+            children: gates.map((node) => ({
+                id: node.id,
+                x: node.position.x,
+                y: node.position.y,
+                width: node.width ?? 30,
+                height: node.height ?? 30,
+            })),
+            edges: connections.map((connection) => ({
+                id: connection.id,
+                sources: [connection.source],
+                targets: [connection.target],
+            })),
+        };
+
+        console.log(graph);
+
+        const layout = await elk
+            .layout(graph)
+            .then((layoutGraph) => ({
+                gates: layoutGraph.children!.map((node) => ({
+                    id: node.id,
+                    position: { x: node.x, y: node.y },
+                }))
+            }));
+
+        console.log(layout);
+
+        for(const optimal of layout.gates)
+            updateGatePosition(optimal.id, optimal.position.x, optimal.position.y);
+
+        await fitView();
     }
 
     function onConnection(connection: Connection) : void {

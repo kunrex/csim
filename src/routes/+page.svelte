@@ -4,7 +4,7 @@
     import {
         fa8,
         faClock,
-        faCube, faExpand,
+        faCube, faExpand, faLayerGroup,
         faLightbulb, faMagnifyingGlassMinus, faMagnifyingGlassPlus,
         faMinus,
         faPlus,
@@ -126,7 +126,7 @@
     }
 
     function editGate(gateId: string) {
-        console.log("editing " + gateId)
+
     }
 
     function maximiseGate(gateId: string) {
@@ -143,6 +143,7 @@
 <div class="flex md:flex-row flex-col items-center max-w-1/4 fixed bottom-0 left-0 mb-8 ml-8 gap-y-4 md:gap-x-4 z-40">
     <UtilityButton action="Prefab" fabIcon={faCube} onClick={createPrefab}></UtilityButton>
     <UtilityButton action="Assistant" fabIcon={faRobot} onClick={() => { }}></UtilityButton>
+    <UtilityButton action="Rearrange" fabIcon={faLayerGroup} onClick={() => { flow.layout().then(); }}></UtilityButton>
     <UtilityButton action="Fit" fabIcon={faExpand} onClick={() => { flow.flowFitView(); }}></UtilityButton>
     <UtilityButton action="Clear" fabIcon={faTrashCan} onClick={() => { flow.clearCircuit(); }}></UtilityButton>
 </div>
