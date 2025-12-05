@@ -80,7 +80,7 @@
     height: var(--display-height);
 }
 
-.insert-button {
+.instantiate-gate-button {
     min-width: var(--insert-button-width);
     min-height: var(--insert-button-height);
 }
@@ -106,12 +106,16 @@
         @apply p-3;
     }
 
-    .insert-button {
+    .instantiate-gate-button {
         @apply flex flex-col items-center justify-center text-xl border rounded-sm border-solid border-slate-600 text-white;
     }
 
-    .insert-button:hover {
+    .instantiate-gate-button:hover {
         @apply cursor-pointer opacity-80;
+    }
+
+    .instantiate-gate-button:disabled {
+        @apply cursor-not-allowed text-gray-400;
     }
 
     .vertical {
@@ -140,8 +144,8 @@
         @apply absolute hidden group-hover:block min-w-10 max-w-40 bg-gray-950 text-center font-extralight text-white text-xs p-1 rounded z-20
     }
 
-    .ui-element {
-        @apply border-2 border-gray-300 rounded-xl p-3 backdrop-blur-sm z-40;
+    .panel-background {
+        @apply border-2 border-gray-300 rounded-xl p-3 backdrop-blur-sm;
     }
 
     .input-clean {
@@ -157,6 +161,10 @@
     .input-clean:focus {
         outline: none !important;
         box-shadow: none !important;
+    }
+
+    .input-clean:disabled {
+        @apply bg-gray-900;
     }
 
     .inspector-element, .input-clean, .inspector-utility-button {

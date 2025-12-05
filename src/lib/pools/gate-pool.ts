@@ -1,4 +1,4 @@
-import {type CreateGateSignature, edgeId, type GateNodeType, type UpdateGateSignature} from "$lib/circuit";
+import {type CreateGateSignature, edgeId, type GateNodeType, type UpdateGateSignature} from "../flow";
 import {
     Gate,
     AndGate,
@@ -15,20 +15,21 @@ import {
     SevenSegmentDisplay,
     type GateType,
     PrefabData, type GateData
-} from "$lib/logic";
+} from "../core";
 
 import {createGateData, createPrefabGateData, instantiatePrefabInternals} from "$lib/pools/utils";
-import {PrefabGate} from "$lib/logic/gates/gates";
-import {CircuitGateData} from "$lib/circuit/types";
+import {PrefabGate} from "$lib/core/gates/gates";
+import {CircuitGateData} from "$lib/flow/types";
 import {EdgePool} from "$lib";
 
 const allGates = new Map<string, Gate>();
-
 export function getGate(id: string) : Gate | undefined {
     return allGates.get(id);
 }
 
 abstract class GatePool {
+    protected readonly allGates = new Map<string, Gate>();
+
     protected readonly gates: Gate[] = [];
     protected readonly gatePool: Gate[] = [];
 
@@ -335,7 +336,7 @@ class PrefabPool extends GatePool {
 
     protected initGate(): Gate {
         const data = createPrefabGateData(this.prefabData);
-        const gate = new PrefabGate(allGates.size.toString(), data, this.updateFunction);
+        const gate = new PrefabGate(allGates.size.toString(), data, this.type, this.updateFunction);
 
         instantiatePrefabInternals(this.prefabData, gate).then();
         return gate;

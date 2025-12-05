@@ -38,8 +38,8 @@
 
 
     import { deleteGate } from "$lib/pools/utils";
-    import { masterTick} from "$lib/logic/cycles/clock";
-    import {PrefabData} from "$lib/logic";
+    import { masterTick} from "$lib/core/cycles/clock";
+    import {PrefabData} from "../lib/core";
     import {BufferGatePool} from "$lib/pools";
 
     let inspector: any;
@@ -84,11 +84,6 @@
         flow.createGate(type, gate);
         gate.gateData["name"] = `Gate ${gate.id}`;
         inspector.addGate(gate);
-    }
-
-    function onCreatePrefab(result: boolean, value: string): void {
-        if(!result)
-            return;
     }
 
     let assets: any;

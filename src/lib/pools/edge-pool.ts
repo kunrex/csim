@@ -1,5 +1,5 @@
-import { EdgeConnection, Handle } from "$lib/logic";
-import type { UpdateConnectionSignature } from "$lib/circuit";
+import { EdgeConnection, Handle } from "$lib/core";
+import type { UpdateConnectionSignature } from "$lib/flow";
 
 export class EdgePool {
     private readonly edges: EdgeConnection[] = [];

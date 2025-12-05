@@ -1,5 +1,5 @@
-import {type CircuitData, CoreGateData, edgeId,} from "$lib/circuit";
-import {Gate, type GateData, type GateType, HandleWrapper, PrefabData} from "$lib/logic";
+import {type CircuitData, CoreGateData, edgeId,} from "../flow";
+import {Gate, type GateData, type GateType, HandleWrapper, PrefabData} from "../core";
 
 import {
     AndGatePool,
@@ -16,54 +16,8 @@ import {
     XNorGatePool,
     XorGatePool
 } from "$lib/pools/gate-pool";
-import type {PrefabGate} from "$lib/logic/gates/gates";
+import type {PrefabGate} from "$lib/core/gates/gates";
 import {EdgePool} from "$lib/pools/edge-pool";
-
-export async function deleteGate(node: CoreGateData) : Promise<void> {
-    const id = node.id;
-
-    switch (node.type) {
-        case "not":
-            await NotGatePool.instance.deleteGate(id);
-            break;
-        case "or":
-            await OrGatePool.instance.deleteGate(id);
-            break;
-        case "nor":
-            await NOrGatePool.instance.deleteGate(id);
-            break;
-        case "and":
-            await AndGatePool.instance.deleteGate(id);
-            break;
-        case "nand":
-            await NAndGatePool.instance.deleteGate(id);
-            break;
-        case "xor":
-            await XorGatePool.instance.deleteGate(id);
-            break;
-        case "xnor":
-            await XNorGatePool.instance.deleteGate(id);
-            break;
-        case "bulb":
-            await BulbGatePool.instance.deleteGate(id);
-            break;
-        case "clock":
-            await ClockGatePool.instance.deleteGate(id);
-            break;
-        case "power":
-            await PowerGatePool.instance.deleteGate(id);
-            break;
-        case "display":
-            await SevenSegmentPool.instance.deleteGate(id);
-            break;
-        case "buffer":
-            await BufferGatePool.instance.deleteGate(id);
-            break;
-        default:
-            await PrefabManager.instance.deletePrefabGate(id, node.type);
-            break;
-    }
-}
 
 export function createGateData(type: GateType, inCount: number, outCount: number) : GateData {
     let data: GateData = { };
