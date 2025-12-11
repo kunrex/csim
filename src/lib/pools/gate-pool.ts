@@ -237,17 +237,21 @@ export class MasterGatePool {
         this.pools.set("display", new GatePool(() => this.createDisplayGate()));
     }
 
+    public hasType(type: GateType) : boolean {
+        return this.pools.has(type.toLowerCase());
+    }
+
     public getGate(gateId: string) : Gate | undefined {
         return this.gates.get(gateId);
     }
 
     public addGateType(gateType: GateType, blueprint: CircuitBlueprint) {
         const pool = new PrefabGatePool(blueprint, () => this.createPrefabGate(gateType));
-        this.pools.set(gateType, pool);
+        this.pools.set(gateType.toLowerCase(), pool);
     }
 
     public async createGate(gateType: GateType) : Promise<GateWrapper | null> {
-        const pool = this.pools.get(gateType);
+        const pool = this.pools.get(gateType.toLowerCase());
         if(!pool)
             return null;
 

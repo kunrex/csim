@@ -1,7 +1,23 @@
 <script lang="ts">
     import { SvelteFlowProvider } from "@xyflow/svelte";
 
-    import { DragDrop, Flow, ConnectionData, type CoreConnectionData, MasterGatePool, WirePool, type CircuitBlueprint, promptPrefabModal, PromptPrefabModal, masterTick, Pin, CreateGateData, CreateGateCallback, WireWrapper } from "$lib";
+    import {
+        DragDrop,
+        Flow,
+        ConnectionData,
+        type CoreConnectionData,
+        MasterGatePool,
+        WirePool,
+        type CircuitBlueprint,
+        promptPrefabModal,
+        PromptPrefabModal,
+        masterTick,
+        Pin,
+        CreateGateData,
+        CreateGateCallback,
+        WireWrapper,
+        type GateType
+    } from "$lib";
 
     let flow: Flow;
 
@@ -61,16 +77,24 @@
         flow.addPrefabOption(result.value);
     }
 
-    $: if (flow) {
-        requestAnimationFrame(masterTick);
-
-        WirePool.initInstance(flow.updateWireData);
-        MasterGatePool.initInstance(flow.updateGateData);
+    function duplicatePrefabCheck(type: GateType) : boolean {
+        return MasterGatePool.instance.hasType(type);
     }
+
+    let initialised = false;
+    $effect(() => {
+        if (!initialised && flow) {
+            initialised = true;
+            requestAnimationFrame(masterTick);
+
+            WirePool.initInstance(flow.updateWireData);
+            MasterGatePool.initInstance(flow.updateGateData);
+        }
+    });
 </script>
 <SvelteFlowProvider>
     <DragDrop>
         <Flow bind:this={flow} connectionCallback={onConnection} disconnectionCallback={onDisconnection} createGateCallback={onCreateGate} destroyGateCallback={onDeleteGate} prefabCreationCallback={onCreatePrefab}/>
     </DragDrop>
 </SvelteFlowProvider>
-<PromptPrefabModal></PromptPrefabModal>
+<PromptPrefabModal duplicateCheck={duplicatePrefabCheck}></PromptPrefabModal>
