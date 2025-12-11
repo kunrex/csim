@@ -18,4 +18,6 @@ export const sevenSegmentBits: Record<number, number> = {
 
 import type { GateType } from "$lib/core";
 export const nonIconGateTypes = ["not", "and", "nand", "or", "nor", "xor", "xnor"];
-export const iconGateTypes: [GateType, IconDefinition][] = [["power", faPowerOff], ["clock", faClock], ["bulb", faLightbulb], ["display", fa8]];
+export const iconGateTypes: [GateType, IconDefinition][] = [["power", faPowerOff], ["clock", faClock], ["probe", faLightbulb], ["display", fa8]];
+
+export const prefabHandleGap = 20;

@@ -1,26 +1,10 @@
-import type { Connection, Node, Edge } from "@xyflow/svelte";
+import type {ElkExtendedEdge, ElkNode, LayoutOptions} from "elkjs";
 
+import type { GateNode, WireEdge } from "$lib/flow/types";
 import { sevenSegmentBits, segments } from "$lib/flow/constants";
-import { type CircuitGateData, CoreConnectionData } from "$lib/flow/types";
 
 export function capitalise(word: string) : string {
     return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-export function edgeId(source: string, target: string, sourceHandle: string, targetHandle: string) {
-    return `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`;
-}
-
-export function createEdge(connection: Connection) : Edge {
-    return {
-        id: edgeId(connection.source, connection.target, connection.sourceHandle!, connection.targetHandle!),
-        type: "bezier",
-        animated: false,
-        source: connection.source,
-        target: connection.target,
-        sourceHandle: connection.sourceHandle,
-        targetHandle: connection.targetHandle,
-    };
 }
 
 export function isSegmentOn(digit: number, segment: string) : boolean {
@@ -28,4 +12,56 @@ export function isSegmentOn(digit: number, segment: string) : boolean {
         return false;
 
     return !!((sevenSegmentBits[digit] >> segments.indexOf(segment)) & 1);
+}
+
+export function constructElkGraph(gates: GateNode[]) : ElkNode[] {
+    const nodeMap = new Map<string, ElkNode>();
+
+    const baseNodes: ElkNode[] = [];
+    for(const gate of gates) {
+        if(gate.hidden)
+            continue;
+
+        const node: ElkNode = {
+            id: gate.id,
+            children: [],
+            x: gate.position.x,
+            y: gate.position.y,
+            layoutOptions: undefined,
+            width: gate.measured?.width ?? 30,
+            height: gate.measured?.height ?? 30,
+        };
+
+        if(gate.parentId) {
+            const parent = nodeMap.get(gate.parentId);
+            if (!parent)
+                continue;
+
+            parent.children!.push(node);
+            if (!parent.layoutOptions)
+                parent.layoutOptions = {
+                    "elk.nodeSize.constraints": "CHILDREN",
+                    "elk.padding": "[left=20, right=20, top=20, bottom=20]"
+                }
+        } else
+            baseNodes.push(node);
+
+        nodeMap.set(gate.id, node);
+    }
+
+    return baseNodes;
+}
+
+export function convertElkConnections(wires: WireEdge[]) : ElkExtendedEdge[] {
+    const edges: ElkExtendedEdge[] = [];
+    for(const wire of wires) {
+        if(!wire.hidden)
+            edges.push({
+                id: wire.id,
+                sources: [wire.source],
+                targets: [wire.target]
+            });
+    }
+
+    return edges;
 }

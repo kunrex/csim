@@ -1,10 +1,9 @@
-import {type CreateGateSignature, edgeId, type GateNodeType, type UpdateGateSignature} from "../flow";
 import {
-    Gate,
+    type Gate,
     AndGate,
-    BulbGate,
-    NAndGate,
-    NOrGate,
+    ProbeGate,
+    NandGate,
+    NorGate,
     NotGate,
     OrGate,
     XNorGate,
@@ -14,383 +13,334 @@ import {
     BufferGate,
     SevenSegmentDisplay,
     type GateType,
-    PrefabData, type GateData
-} from "../core";
+    type PrefabGateData, type UnaryGateData
+} from "$lib/core";
 
-import {createGateData, createPrefabGateData, instantiatePrefabInternals} from "$lib/pools/utils";
-import {PrefabGate} from "$lib/core/gates/gates";
-import {CircuitGateData} from "$lib/flow/types";
-import {EdgePool} from "$lib";
+import { PrefabGate } from "$lib/core/gates/gates";
+import type { UpdateGateSignature } from "$lib/core/types";
+import {type CircuitBlueprint, ConnectionData, WirePool} from "$lib";
+import {GateWrapper, WireWrapper} from "$lib/flow/types";
+import {fa8, faClock, faCodeBranch, faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
 
-const allGates = new Map<string, Gate>();
-export function getGate(id: string) : Gate | undefined {
-    return allGates.get(id);
-}
-
-abstract class GatePool {
-    protected readonly allGates = new Map<string, Gate>();
-
-    protected readonly gates: Gate[] = [];
+class GatePool {
     protected readonly gatePool: Gate[] = [];
+    protected readonly gates = new Map<string, Gate>();
 
-    protected abstract readonly type: GateType;
-    protected abstract readonly nodeType: GateNodeType;
+    public constructor(private readonly instantiateFunction: () => Gate) { }
 
-    protected constructor(protected readonly createFunction: CreateGateSignature) { }
-
-    protected abstract initGate() : Gate;
-
-    public createGate(render: boolean) : Gate {
-        return this.tryReuseGate(render) ?? this.instantiateGate(render);
+    public async createGate() : Promise<GateWrapper> {
+        const gate = (await this.tryReuseGate()) ?? await this.instantiateGate();
+        return Promise.resolve(new GateWrapper(gate.id, gate.nodeType, gate.gateData));
     }
 
-    public async deleteGate(id: string) : Promise<void> {
-        let i = 0;
-        for(const gate of this.gates) {
-            if(gate.id == id) {
-                await gate.resetState();
-                this.gates.splice(i, 1);
-                this.gatePool.push(gate);
-                break;
-            }
-
-            i++;
-        }
-    }
-
-    private tryReuseGate(render: boolean) : Gate | null {
-        if(this.gatePool.length > 0) {
-            const gate = this.gatePool.pop()!;
-            this.gates.push(gate);
-
-            if(render)
-                this.createFunction(this.nodeType, gate);
-
-            gate.sync = render;
-            return gate;
-        }
-
-        return null;
-    }
-
-    private instantiateGate(render: boolean) : Gate {
-        const gate = this.initGate();
-        allGates.set(gate.id, gate);
-        this.gates.push(gate);
-
-        if(render)
-            this.createFunction(this.nodeType, gate);
-
-        gate.sync = render;
-        return gate;
-    }
-}
-
-export class NotGatePool extends GatePool {
-    public static instance: NotGatePool;
-    protected readonly type: GateType = "not";
-    protected readonly nodeType: GateNodeType = "unary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        NotGatePool.instance = new NotGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 1, 1);
-        return new NotGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class OrGatePool extends GatePool {
-    public static instance: OrGatePool;
-    protected readonly type: GateType = "or";
-    protected readonly nodeType: GateNodeType = "binary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        OrGatePool.instance = new OrGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 2, 1);
-        return new OrGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class NOrGatePool extends GatePool {
-    public static instance: NOrGatePool;
-    protected readonly type: GateType = "nor"
-    protected readonly nodeType: GateNodeType = "binary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        NOrGatePool.instance = new NOrGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 2, 1);
-        return new NOrGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class AndGatePool extends GatePool {
-    public static instance: AndGatePool;
-    protected readonly type: GateType = "and";
-    protected readonly nodeType: GateNodeType = "binary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        AndGatePool.instance = new AndGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 2, 1);
-        return new AndGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class NAndGatePool extends GatePool {
-    public static instance: NAndGatePool;
-    protected readonly type: GateType = "nand";
-    protected readonly nodeType: GateNodeType = "binary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        NAndGatePool.instance = new NAndGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 2, 1);
-        return new NAndGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class XorGatePool extends GatePool {
-    public static instance: XorGatePool;
-    protected readonly type: GateType = "xor";
-    protected readonly nodeType: GateNodeType = "binary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        XorGatePool.instance = new XorGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 2, 1);
-        return new XorGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class XNorGatePool extends GatePool {
-    public static instance: XNorGatePool;
-    protected readonly type: GateType = "nor";
-    protected readonly nodeType: GateNodeType = "binary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        XNorGatePool.instance = new XNorGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 2, 1);
-        return new XNorGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class BulbGatePool extends GatePool {
-    public static instance: BulbGatePool;
-    protected readonly type: GateType = "bulb";
-    protected readonly nodeType: GateNodeType = "s-input";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        BulbGatePool.instance = new BulbGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 1, 0);
-        return new BulbGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-export class ClockGatePool extends GatePool {
-    public static instance: ClockGatePool;
-    protected readonly type: GateType = "clock";
-    protected readonly nodeType: GateNodeType = "s-output";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        ClockGatePool.instance = new ClockGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 0, 1);
-
-        const id = allGates.size.toString();
-        const gate = new ClockGate(id, data, this.updateFunction);
-        data["toggle"] = () => gate.toggleClock();
-        return gate;
-    }
-}
-
-export class PowerGatePool extends GatePool {
-    public static instance: PowerGatePool;
-    protected readonly type: GateType = "power";
-    protected readonly nodeType: GateNodeType = "s-output";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) : void {
-        PowerGatePool.instance = new PowerGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate(): Gate {
-        const data = createGateData(this.type, 0, 1);
-
-        const id = allGates.size.toString();
-        const gate = new PowerGate(id, data, this.updateFunction);
-        data["toggle"] = () => gate.calculateState();
-        return gate;
-    }
-}
-
-export class SevenSegmentPool extends GatePool {
-    public static instance: SevenSegmentPool;
-    protected readonly type: GateType = "display";
-    protected readonly nodeType: GateNodeType = "display";
-    
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        this.instance = new SevenSegmentPool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate() : Gate {
-        const data = createGateData(this.type, 5, 0);
-        data["value"] = 0;
-
-        const id = allGates.size.toString();
-        return new SevenSegmentDisplay(id, data, this.updateFunction);
-    }
-}
-
-export class BufferGatePool extends GatePool {
-    public static instance: BufferGatePool;
-    protected readonly type: GateType = "buffer";
-    protected readonly nodeType: GateNodeType = "unary";
-
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        this.instance = new BufferGatePool(createFunction, updateFunction);
-    }
-
-    private constructor(createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-    }
-
-    protected initGate() : Gate {
-        const data = createGateData(this.type, 1, 1);
-        return new BufferGate(allGates.size.toString(), data, this.updateFunction);
-    }
-}
-
-class PrefabPool extends GatePool {
-    protected readonly type: GateType;
-    protected readonly nodeType: GateNodeType = "prefab";
-
-    public constructor(public readonly prefabData: PrefabData, createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) {
-        super(createFunction);
-        this.type = prefabData.name;
-    }
-
-    protected initGate(): Gate {
-        const data = createPrefabGateData(this.prefabData);
-        const gate = new PrefabGate(allGates.size.toString(), data, this.type, this.updateFunction);
-
-        instantiatePrefabInternals(this.prefabData, gate).then();
-        return gate;
-    }
-}
-
-export class PrefabManager {
-    public static instance: PrefabManager;
-    public static initInstance(createFunction: CreateGateSignature, updateFunction: UpdateGateSignature) {
-        this.instance = new PrefabManager(createFunction, updateFunction);
-    }
-
-    private readonly pools = new Map<string, PrefabPool>();
-    private readonly bufferMap = new Map<string, PrefabGate>();
-
-    private constructor(private readonly createFunction: CreateGateSignature, private readonly updateFunction: UpdateGateSignature) { }
-
-    public hasPrefab(prefabId: string) : boolean {
-        return this.pools.has(prefabId);
-    }
-
-    public setPrefab(prefabData: PrefabData): void {
-        this.pools.set(prefabData.name, new PrefabPool(prefabData, this.createFunction, this.updateFunction));
-    }
-
-    public checkEdit(prefab: GateType) : boolean {
-        for(const prefab of this.pools)
-            if(prefab[1].prefabData.resolveDependency(prefab[0]))
-                return false;
-
-        return true;
-    }
-
-    public async instantiatePrefabGate(prefab: string, render: boolean): Promise<Gate> {
-        return this.pools.get(prefab)!.createGate(render);
-    }
-
-    public async deletePrefabGate(gateId: string, prefab: string) : Promise<void> {
-        await this.pools.get(prefab)!.deleteGate(gateId);
-    }
-
-    public registerBuffer(bufferId: string, prefabGate: PrefabGate) : void {
-        this.bufferMap.set(bufferId, prefabGate);
-    }
-
-    public unregisterBuffer(bufferId: string) : void {
-        this.bufferMap.delete(bufferId);
-    }
-
-    public syncBufferUpdate(bufferId: string, gateData: GateData) : void {
-        const prefabGate = PrefabManager.instance.bufferMap.get(bufferId);
-        if(!prefabGate)
+    public async deleteGate(gateId: string) : Promise<void> {
+        const gate = this.gates.get(gateId);
+        if(!gate)
             return;
 
-        prefabGate.syncGateHandle(bufferId, gateData);
+        await gate.resetState();
+
+        this.gatePool.push(gate);
+        this.gates.delete(gateId);
+    }
+
+    private tryReuseGate() : Promise<Gate | null> {
+        if(this.gatePool.length > 0) {
+            const gate = this.gatePool.pop()!;
+
+            this.gates.set(gate.id, gate);
+            return Promise.resolve(gate);
+        }
+
+        return Promise.resolve(null);
+    }
+
+    private instantiateGate() : Promise<Gate> {
+        const gate = this.instantiateFunction();
+        this.gates.set(gate.id, gate);
+        return Promise.resolve(gate);
+    }
+}
+
+class PrefabGatePool extends GatePool {
+    public constructor(private readonly blueprint: CircuitBlueprint, instantiateFunction: () => Gate) {
+        super(instantiateFunction);
+    }
+    
+    public async createGate(): Promise<GateWrapper> {
+        const base = await super.createGate();
+        const data = base.gateData as PrefabGateData;
+        
+        const localGateMap = await this.createChildGates(base, data);
+        await this.createChildConnections(base, localGateMap);
+
+        return base;
+    }
+
+    private async createChildGates(base: GateWrapper, data: PrefabGateData) : Promise<Map<string, GateWrapper>> {
+        base.children = [];
+        const localGateMap = new Map<string, GateWrapper>();
+
+        for(const pair of this.blueprint.gates) {
+            const type = pair[1].type;
+
+            let gate: GateWrapper | null;
+            switch (type) {
+                case "power": {
+                    gate = await MasterGatePool.instance.createGate("buffer");
+                    if(gate) {
+                        const gateData = gate.gateData as UnaryGateData;
+
+                        gateData.icon = faPowerOff;
+                        gateData.hideInput = true;
+                        gateData.hideOutput = false;
+
+                        data.powerCount++;
+                        data.bufferTypeMap.set(gate.id, "power");
+                    }
+
+                    break;
+                }
+                case "clock": {
+                    gate = await MasterGatePool.instance.createGate("buffer");
+                    if(gate) {
+                        const gateData = gate.gateData as UnaryGateData;
+
+                        gateData.icon = faClock;
+                        gateData.hideInput = true;
+                        gateData.hideOutput = false;
+
+                        data.clockCount++;
+                        data.bufferTypeMap.set(gate.id, "power");
+                    }
+
+                    break;
+                }
+                case "probe": {
+                    gate = await MasterGatePool.instance.createGate("buffer");
+                    if(gate) {
+                        const gateData = gate.gateData as UnaryGateData;
+
+                        gateData.icon = faLightbulb;
+                        gateData.hideOutput = true;
+                        gateData.hideInput = false;
+
+                        data.probeCount++;
+                        data.bufferTypeMap.set(gate.id, type);
+                    }
+
+                    break;
+                }
+                case "display": {
+                    gate = await MasterGatePool.instance.createGate("display");
+                    if(!gate)
+                        break;
+
+                    for(let i = 1; i <= 5; i++) {
+                        const buffer = await MasterGatePool.instance.createGate("buffer");
+                        if(buffer) {
+                            const gateData = gate.gateData as UnaryGateData;
+
+                            gateData.icon = fa8;
+                            gateData.hideInput = false;
+                            gateData.hideOutput = true;
+
+                            data.displayCount++;
+                            data.bufferTypeMap.set(buffer.id, type);
+                            localGateMap.set(`${pair[0]}-in-${i}`, buffer);
+                        }
+                    }
+
+                    break;
+                }
+                default:
+                    gate = await MasterGatePool.instance.createGate(type);
+                    break;
+            }
+
+            if(gate) {
+                gate.gateData.name = pair[1].name;
+
+                base.children.push(gate);
+                localGateMap.set(pair[0], gate);
+            }
+        }
+
+        return localGateMap;
+    }
+
+    private async createChildConnections(base: GateWrapper, localGateMap: Map<string, GateWrapper>) : Promise<void> {
+        base.connections = [];
+        for(const connection of this.blueprint.connections) {
+            const source = localGateMap.get(connection.source);
+            const target = localGateMap.get(connection.target);
+
+            if(!source || !target)
+                continue;
+
+            const sourceGate = MasterGatePool.instance.getGate(source.id);
+            const targetGate = MasterGatePool.instance.getGate(target.id);
+
+            if(!sourceGate || !targetGate)
+                continue;
+
+            const sourcePin = sourceGate.getPin(connection.sourceHandle);
+            const targetPin = targetGate.getPin(connection.targetHandle);
+
+            if(!sourcePin || !targetPin)
+                continue;
+
+            const wire = await WirePool.instance.createWire(sourcePin, targetPin);
+            base.connections.push(new WireWrapper(new ConnectionData(wire.id, sourceGate.id, targetGate.id, connection.sourceHandle, connection.targetHandle), wire.wireData));
+
+            if(targetGate.gateType == "display") {
+                const targetBuffer = localGateMap.get(`${connection.source}-${connection.sourceHandle}`);
+                if(!targetBuffer)
+                    return;
+
+                const targetBufferGate = MasterGatePool.instance.getGate(targetBuffer.id);
+                if(!targetBufferGate)
+                    return;
+
+                const bufferWire = await WirePool.instance.createWire(sourcePin, targetBufferGate.getPin("in-1")!);
+                base.connections.push(new WireWrapper(new ConnectionData(bufferWire.id, sourceGate.id, targetBufferGate.id, connection.sourceHandle, "in-1"), wire.wireData));
+            }
+        }
+    }
+}
+
+export class MasterGatePool {
+    public static instance: MasterGatePool;
+    public static initInstance(updateGateFunction: UpdateGateSignature) : void {
+        MasterGatePool.instance = new MasterGatePool(updateGateFunction);
+    }
+
+    private gates = new Map<string, Gate>();
+    private pools = new Map<GateType, GatePool>();
+
+    private constructor(private readonly updateGateFunction: UpdateGateSignature) {
+        this.pools.set("not", new GatePool(() => this.createNotGate()));
+
+        this.pools.set("or", new GatePool(() => this.createOrGate()));
+        this.pools.set("nor", new GatePool(() => this.createNorGate()));
+
+        this.pools.set("and", new GatePool(() => this.createAndGate()));
+        this.pools.set("nand", new GatePool(() => this.createNandGate()));
+
+        this.pools.set("xor", new GatePool(() => this.createXorGate()));
+        this.pools.set("xnor", new GatePool(() => this.createXnorGate()));
+
+        this.pools.set("probe", new GatePool(() => this.createProbeGate()));
+        this.pools.set("power", new GatePool(() => this.createPowerGate()));
+        this.pools.set("clock", new GatePool(() => this.createClockGate()));
+        this.pools.set("buffer", new GatePool(() => this.createBufferGate()));
+        this.pools.set("display", new GatePool(() => this.createDisplayGate()));
+    }
+
+    public getGate(gateId: string) : Gate | undefined {
+        return this.gates.get(gateId);
+    }
+
+    public addGateType(gateType: GateType, blueprint: CircuitBlueprint) {
+        const pool = new PrefabGatePool(blueprint, () => this.createPrefabGate(gateType));
+        this.pools.set(gateType, pool);
+    }
+
+    public async createGate(gateType: GateType) : Promise<GateWrapper | null> {
+        const pool = this.pools.get(gateType);
+        if(!pool)
+            return null;
+
+        return await pool.createGate();
+    }
+
+    public async deleteGate(gateId: string) : Promise<void> {
+        const gate = this.gates.get(gateId);
+        if(!gate)
+            return;
+
+        const pool = this.pools.get(gate.gateType);
+        if(!pool)
+            return;
+
+        await pool.deleteGate(gateId);
+    }
+
+    private createNotGate() : Gate {
+        const gate = new NotGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createOrGate() : Gate {
+        const gate = new OrGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createNorGate() : Gate {
+        const gate = new NorGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createAndGate() : Gate {
+        const gate = new AndGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createNandGate() : Gate {
+        const gate = new NandGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createXorGate() : Gate {
+        const gate = new XorGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createXnorGate() : Gate {
+        const gate = new XNorGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createProbeGate() : Gate {
+        const gate = new ProbeGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createPowerGate() : Gate {
+        const gate = new PowerGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createClockGate() : Gate {
+        const gate = new ClockGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createBufferGate() : Gate {
+        const gate = new BufferGate(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createDisplayGate() : Gate {
+        const gate = new SevenSegmentDisplay(this.gates.size.toString(), this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
+    }
+
+    private createPrefabGate(gateType: GateType) : PrefabGate {
+        const gate = new PrefabGate(this.gates.size.toString(), gateType, this.updateGateFunction);
+        this.gates.set(gate.id, gate);
+        return gate;
     }
 }

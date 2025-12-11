@@ -1,28 +1,35 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
-
     import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
     import type { GateType } from "$lib/core";
 
     import { capitalise } from "$lib/flow/utils.js";
+    import { useDragDrop}  from "$lib/flow/drag-drop";
 
-    const clickCallback = createEventDispatcher<{ create: GateType }>();
-    function callback() : void {
-        clickCallback("create", type);
+    interface InstantiateGateButtonProps {
+        color: string,
+        type: GateType,
+        disabled: boolean,
+        fabIcon?: IconDefinition
     }
 
-    export let color: string = "";
-    export let type: GateType = "";
-    export let disabled: boolean = false;
-    export let fabIcon: IconDefinition | undefined = undefined;
+    let { color, type, disabled, fabIcon } : InstantiateGateButtonProps = $props();
+
+    const dragDropType = useDragDrop();
+    function onDragStart(event: DragEvent) : void {
+        if(!event.dataTransfer || disabled)
+            return;
+
+        dragDropType.current = type;
+        event.dataTransfer.effectAllowed = 'move';
+    }
 </script>
 
-<button on:click={callback} disabled={disabled} class={`${color} instantiate-gate-button`}>
+<div class={`${color} instantiate-gate-button`} role="img" draggable={true} ondragstart={onDragStart} class:disabled>
     {#if fabIcon}
         <FontAwesomeIcon icon={fabIcon}/>
     {:else}
         <b>{ capitalise(type) }</b>
     {/if}
-</button>
+</div>

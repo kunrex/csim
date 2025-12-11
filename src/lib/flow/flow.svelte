@@ -1,101 +1,412 @@
 <script lang="ts">
     import '@xyflow/svelte/dist/style.css'
-    import { createEventDispatcher } from "svelte";
-    import { SvelteFlow, Controls, Background, MiniMap, ConnectionMode, BackgroundVariant, type Edge, useSvelteFlow, type Viewport, type Connection, addEdge, type NodeTypes } from '@xyflow/svelte';
-
-    import ELK from 'elkjs/lib/elk.bundled.js';
-
-    import {Gate, type GateData, type GateType} from "../core";
-
-    import { createEdge, layerGates } from "$lib/flow/utils";
     import {
-        InputGate,
-        OutputGate,
-        UnaryCoreGate,
-        BinaryCoreGate,
-        PrefabGate,
-        SevenSegment
-    } from "$lib/flow/gates";
-    import { ConnectionData, CoreGateData, type GateNodeType, CircuitData, CoreConnectionData, CircuitGateData, type GateNode } from "$lib/flow/types";
-    import {Assets} from "$lib/flow/panels/assets/index.js";
+        SvelteFlow,
+        MiniMap,
+        Background,
+        ConnectionMode,
+        BackgroundVariant,
+        useSvelteFlow,
+        type Connection,
+        addEdge,
+        type NodeTypes,
+        type EdgeTypes,
+        Panel,
+        getConnectedEdges,
+        useNodesInitialized, useUpdateNodeInternals
+    } from '@xyflow/svelte';
 
-    export const onCreateGateHandler = createEventDispatcher<{ type: GateType }>();
-    export const onDestroyGateCallback = createEventDispatcher<{ destroy: CoreGateData }>();
+    import { faCode, faCube, faExpand, faLayerGroup, faRobot, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
-    export const onConnectionCallback = createEventDispatcher<{ connection: ConnectionData }>();
-    export const onDisconnectionCallback = createEventDispatcher<{ disconnection: ConnectionData }>();
+    import type {ElkLayoutOptionDescription, ElkNode} from "elkjs";
+    import ELK from 'elkjs/lib/elk.bundled.js';
+    import type { LayoutOptions } from 'elkjs';
 
-    let x = 0, y = 0, zoom = 1;
-    function onMove(e: MouseEvent | TouchEvent | null, viewport: Viewport) {
-        x = viewport.x;
-        y = viewport.y;
-        zoom = viewport.zoom;
+    import {type GateData, type GateType, type PrefabGateData, type WireData} from "$lib/core";
+
+    import { Wire, InternalWire } from "$lib/flow/wires";
+    import { useDragDrop } from "$lib/flow/drag-drop";
+    import { Assets, Control, Inspector } from "$lib/flow/panels";
+    import { constructElkGraph, convertElkConnections } from "$lib/flow/utils";
+    import { InputGate, OutputGate, UnaryCoreGate, BinaryCoreGate, PrefabGate, SevenSegment } from "$lib/flow/gates";
+    import { ConnectionData, CoreConnectionData, type GateNode, type WireEdge, CreateGateData, CreateGateCallback, WireWrapper, CircuitBlueprint, CircuitGateData, GateWrapper } from "$lib/flow/types";
+    import {tick} from "svelte";
+    import {options} from "__SERVER__/internal";
+    import {prefabHandleGap} from "$lib/flow/constants";
+
+    interface FlowProps {
+        destroyGateCallback: (gateId: string) => void;
+        createGateCallback: (createGateData: CreateGateData) => void;
+
+        connectionCallback: (connectionData: CoreConnectionData) => void;
+        disconnectionCallback: (disconnectionData: ConnectionData) => void;
+
+        prefabCreationCallback: (circuit: CircuitBlueprint) => void;
     }
 
+    let { destroyGateCallback, createGateCallback, connectionCallback, disconnectionCallback, prefabCreationCallback } : FlowProps = $props();
+
     const nodeTypes: NodeTypes = {
+        "prefab": PrefabGate,
+
         "s-input": InputGate,
         "s-output": OutputGate,
-        "prefab": PrefabGate,
-        "unary": UnaryCoreGate,
+
         "display": SevenSegment,
+
+        "unary": UnaryCoreGate,
         "binary": BinaryCoreGate,
     };
 
+    const edgeTypes: EdgeTypes = {
+        "wire": Wire,
+        "internal": InternalWire
+    }
+
+    let assets: Assets;
+    let inspector: Inspector;
+
+    let focused = $state(false);
+
+    let wires: WireEdge[] = $state([]);
     let gates: GateNode[] = $state([]);
-    let connections: Edge[] = $state([]);
 
-    let gateMap = new Map<string, GateNode>();
+    const gateMap = new Map<string, GateNode>();
 
-    export function createGate(type: GateNodeType, gate: Gate) : void {
+    const elk = new ELK();
+    const elkOptions: LayoutOptions = {
+        'elk.algorithm': 'layered',
+        'elk.spacing.nodeNode': '100',
+        'elk.layered.spacing.nodeNodeBetweenLayers': '120',
+    };
+
+    const { fitView, setCenter, screenToFlowPosition } = useSvelteFlow();
+
+    const type = useDragDrop();
+    function onDragOver(event: DragEvent) : void {
+        event.preventDefault();
+
+        if (event.dataTransfer)
+            event.dataTransfer.dropEffect = 'move';
+    }
+
+    function onDrop(event: DragEvent) : void {
+        event.preventDefault();
+
+        if (!type.current)
+            return;
+
+        const position = screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+        });
+
+        createGateCallback(new CreateGateData(type.current, position.x, position.y));
+        type.current = null;
+    }
+
+    function addNode(node: GateNode) : void {
+        gateMap.set(node.id, node);
+        gates = [...gates, node];
+
+        inspector.addGate(node);
+    }
+
+    function instantiateInternalConnections(wrapper: GateWrapper) {
+        if(!wrapper.connections)
+            return;
+
+        for(const connection of wrapper.connections) {
+            const wire: WireEdge = {
+                id: connection.connectionData.id,
+                type: "internal",
+                data: connection.wireData,
+                animated: connection.wireData.state,
+
+                hidden: true,
+                deletable: false,
+                selectable: true,
+
+                source: connection.connectionData.source,
+                target: connection.connectionData.target,
+                sourceHandle: connection.connectionData.sourceHandle,
+                targetHandle: connection.connectionData.targetHandle
+            };
+
+            wires = addEdge(wire, wires);
+        }
+    }
+
+    function instantiateChildGates(wrapper: GateWrapper) {
+        if(!wrapper.children)
+            return;
+
+        for(const child of wrapper.children) {
+            const childNode: GateNode = {
+                id: child.id,
+                type: child.nodeType,
+                data: child.gateData,
+
+                extent: undefined,
+                parentId: wrapper.id,
+                position: { x: 0, y: 0 },
+
+                hidden: true,
+                deletable: false,
+                selectable: true
+            };
+
+            if(childNode.type == "prefab") {
+                const data = wrapper.gateData as PrefabGateData;
+                childNode.width = prefabHandleGap * (Math.max(data.clockCount, data.displayCount) + 2);
+                childNode.height = prefabHandleGap * (Math.max(data.powerCount, data.probeCount) + 2);
+            }
+
+            addNode(childNode);
+
+            if(childNode.type == "prefab")
+                instantiatePrefabInternals(child);
+        }
+    }
+
+    function instantiatePrefabInternals(wrapper: GateWrapper) {
+        instantiateChildGates(wrapper);
+        instantiateInternalConnections(wrapper);
+    }
+
+    export function instantiateGateCallback(createCallback: CreateGateCallback) : void {
         const node: GateNode = {
-            id: gate.id,
-            type: type,
-            data: gate.gateData,
-            position: { x: (-x + window.innerWidth / 2) / zoom, y: (-y + window.innerHeight / 2) / zoom },
+            id: createCallback.gate.id,
+            type: createCallback.gate.nodeType,
+            data: createCallback.gate.gateData,
+
+            extent: undefined,
+            parentId: undefined,
+            position: { x: createCallback.creation.x, y: createCallback.creation.y },
+
+            hidden: false,
+            deletable: true,
+            selectable: true
         };
 
-        gateMap.set(gate.id, node);
-        gates = [...gates, node];
-        fitView();
+        if(node.type == "prefab") {
+            const data = createCallback.gate.gateData as PrefabGateData;
+            node.width = prefabHandleGap * (Math.max(data.clockCount, data.displayCount) + 2);
+            node.height = prefabHandleGap * (Math.max(data.powerCount, data.probeCount) + 2);
+        }
+
+        addNode(node);
+
+        if(node.type == "prefab")
+            instantiatePrefabInternals(createCallback.gate);
     }
 
-    const { updateNode, updateEdge, fitView, setCenter } = useSvelteFlow();
+    export function instantiateWireCallback(createCallback: WireWrapper) : void {
+        const wire: WireEdge = {
+            id: createCallback.connectionData.id,
+            type: "wire",
+            data: createCallback.wireData,
+            animated: createCallback.wireData.state,
 
-    export function updateGate(id: string, gateData: GateData) : void {
-        updateNode(id, (properties: any) => ({
-            ...properties,
-            data: gateData
+            hidden: false,
+            deletable: true,
+            selectable: true,
+
+            source: createCallback.connectionData.source,
+            target: createCallback.connectionData.target,
+            sourceHandle: createCallback.connectionData.sourceHandle,
+            targetHandle: createCallback.connectionData.targetHandle
+        };
+
+        wires = addEdge(wire, wires);
+    }
+
+    export function updateGateData(id: string, gateData: GateData) : void {
+        const gate = gateMap.get(id);
+        if(!gate)
+            return;
+
+        gates = gates.map((node: GateNode) => {
+            if(id != node.id)
+                return node;
+
+            const newNode = {
+                ...node,
+                data: gateData
+            };
+
+            gateMap.set(id, newNode);
+            return newNode;
+        });
+    }
+
+    export function updateWireData(id: string, wireData: WireData) : void {
+        wires = wires.map((wire: WireEdge) => wire.id == id ? {
+                ...wire,
+                data: wireData,
+                animated: wireData.state
+            } : wire
+        );
+    }
+
+    export function addPrefabOption(type: GateType) : void {
+        assets.addPrefabOption(type);
+    }
+
+    function layoutGate(elkNode: ElkNode, rearrangedGates: GateNode[]) {
+        const gate = gateMap.get(elkNode.id)
+        if(!gate)
+            return;
+
+        const newNode = {  ...gate };
+        newNode.position = { x: elkNode.x!, y: elkNode.y! };
+        if(gate.type == "prefab" && (gate.data as PrefabGateData).expanded) {
+            newNode.width = elkNode.width;
+            newNode.height = elkNode.height;
+        }
+
+        if(gate.parentId)
+            gate.extent = 'parent';
+
+        gateMap.set(gate.id, newNode);
+        rearrangedGates.push(newNode);
+
+        for(const child of elkNode.children!)
+            layoutGate(child, rearrangedGates);
+    }
+
+    async function waitForNodeDimensions() : Promise<boolean> {
+        for (let i = 0; i < 10; i++) {
+            await new Promise(r => requestAnimationFrame(r));
+
+            let flag = false;
+            for(const gate of gates)
+                if(!gate.measured) {
+                    flag = true;
+                    break;
+                }
+
+            if(!flag)
+                return true;
+        }
+
+        return false;
+    }
+
+    async function rearrangeLayout() : Promise<void> {
+        const graph = {
+            id: 'root',
+            layoutOptions: elkOptions,
+            children: constructElkGraph(gates),
+            edges: convertElkConnections(wires)
+        };
+
+        const layout = await elk.layout(graph).then((layoutGraph) => ({
+            gates: layoutGraph.children!
         }));
+
+        const rearrangedGates: GateNode[] = [];
+        for(const gate of layout.gates)
+            layoutGate(gate, rearrangedGates);
+
+        gates = rearrangedGates;
+        await fitView();
     }
 
-    function updateGatePosition(id: string, x: number, y: number) : void {
-        updateNode(id, (properties: any) => ({
-            ...properties,
-            position: { x, y }
-        }));
-    }
-    
-    export function updateConnection(id: string, state: boolean) : void {
-        updateEdge(id, (edge: any) => ({
-            ...edge,
-            animated: state
-        }));
-    }
+    function manageWires() : void {
+        wires = wires.map((wire: WireEdge) => {
+            const source = gateMap.get(wire.source);
+            const target = gateMap.get(wire.target);
 
-    export function flowFitView() : void {
-        fitView();
+            let hidden = !source || !target || source.hidden || target.hidden;
+            return wire.hidden == hidden ? wire : {
+                ...wire,
+                hidden: hidden,
+            };
+        });
     }
 
-    export function clearCircuit() : void {
-        for(const gate of gates)
-            onDestroyGateCallback("destroy", new CoreGateData(gate.id, gate.data.type));
+    async function enlargeGate(gateId: string) : Promise<void> {
+        const target = gateMap.get(gateId);
+        if(!target || target.type != "prefab")
+            return;
 
-        gates = [];
-        connections = [];
-        gateMap.clear();
+        const data = target.data as PrefabGateData;
+        data.expanded = true;
+
+        gates = gates.map((node: GateNode) => {
+            if(node.parentId == gateId)
+            {
+                const newNode = {
+                    ...node,
+                    hidden: false
+                }
+
+                gateMap.set(node.id, newNode);
+                return newNode;
+            }
+
+            return node;
+        });
+
+        await tick();
+        const proceed = await waitForNodeDimensions();
+
+        if(proceed) {
+            manageWires();
+            await rearrangeLayout();
+        } else
+            await resetGates();
     }
 
-    export function flowFitGate(gateId: string) : void {
+    async function resetGates() : Promise<void> {
+        gates = gates.map((node: GateNode) => {
+            if(node.hidden)
+                return node;
+
+            const newNode = { ...node };
+            if(node.type == "prefab") {
+                const data = newNode.data as PrefabGateData;
+
+                data.expanded = false;
+                newNode.width = prefabHandleGap * (Math.max(data.clockCount, data.displayCount) + 2);
+                newNode.height = prefabHandleGap * (Math.max(data.powerCount, data.probeCount) + 2);
+            }
+
+            if(newNode.parentId) {
+                newNode.hidden = true;
+                newNode.extent = undefined;
+                newNode.position = { x: 0, y: 0 };
+            }
+
+            gateMap.set(node.id, newNode);
+            return newNode;
+        });
+
+        await tick();
+        await waitForNodeDimensions();
+
+        manageWires();
+        //await rearrangeLayout();
+    }
+
+    function refocusHandler() {
+        assets.enableOptions();
+
+        resetGates();
+        focused = false;
+    }
+
+    function expandGateHandler(gateId: string) {
+        assets.disableOptions();
+
+        enlargeGate(gateId);
+        inspector.focusGate(gateId);
+
+        focused = true;
+    }
+
+    function maximiseGateHandler(gateId: string) {
         const node = gateMap.get(gateId);
         if(!node)
             return;
@@ -103,16 +414,28 @@
         setCenter(node.position.x, node.position.y);
     }
 
+    function clearCircuitHandler() : void {
+        for(const gate of gates)
+            destroyGateCallback(gate.id);
+
+        gates = [];
+        wires = [];
+        gateMap.clear();
+    }
+
     let localGateMap = new Map<string, string>();
-    export function getCircuit() : CircuitData | null {
+    function generateCircuitDataHandler() : void {
         localGateMap.clear();
 
         const gateData = new Map<string, CircuitGateData>();
         const connectionData: CoreConnectionData[] = [];
 
-        const edgeCount = connections.length;
+        const edgeCount = wires.length;
         for(let i = 0; i < edgeCount; i++) {
-            const connection = connections[i];
+            const connection = wires[i];
+            if(connection.type == "internal")
+                continue;
+
             const sourceId = connection.source;
             const targetId = connection.target;
 
@@ -123,7 +446,7 @@
 
                 const gate = gateMap.get(sourceId);
                 if(gate)
-                    gateData.set(relativeSource, new CircuitGateData(gate.data["type"], gate.data["name"]));
+                    gateData.set(relativeSource, new CircuitGateData(gate.data.type, gate.data.name));
             }
 
             if(relativeTarget == undefined) {
@@ -132,69 +455,30 @@
 
                 const gate = gateMap.get(targetId);
                 if(gate)
-                    gateData.set(relativeTarget, new CircuitGateData(gate.data["type"], gate.data["name"]));
+                    gateData.set(relativeTarget, new CircuitGateData(gate.data.type, gate.data.name));
             }
 
             connectionData.push(new CoreConnectionData(relativeSource, relativeTarget, connection.sourceHandle!, connection.targetHandle!));
         }
 
-        layerGates(gateData, connectionData)
-        return new CircuitData(gateData, connectionData);
+        prefabCreationCallback(new CircuitBlueprint(gateData, connectionData));
     }
 
-    const elk = new ELK();
-    const elkOptions = {
-        'elk.algorithm': 'layered',
-        'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-        'elk.spacing.nodeNode': '80',
-    };
+    function onConnection(connection: Connection) : false {
+        if(connection.sourceHandle && connection.targetHandle)
+            connectionCallback(new CoreConnectionData(connection.source, connection.target, connection.sourceHandle, connection.targetHandle));
 
-    export async function layout() : Promise<void> {
-        const graph = {
-            id: 'root',
-            layoutOptions: elkOptions,
-            children: gates.map((node) => ({
-                id: node.id,
-                x: node.position.x,
-                y: node.position.y,
-                width: node.width ?? 30,
-                height: node.height ?? 30,
-            })),
-            edges: connections.map((connection) => ({
-                id: connection.id,
-                sources: [connection.source],
-                targets: [connection.target],
-            })),
-        };
-
-        console.log(graph);
-
-        const layout = await elk
-            .layout(graph)
-            .then((layoutGraph) => ({
-                gates: layoutGraph.children!.map((node) => ({
-                    id: node.id,
-                    position: { x: node.x, y: node.y },
-                }))
-            }));
-
-        console.log(layout);
-
-        for(const optimal of layout.gates)
-            updateGatePosition(optimal.id, optimal.position.x, optimal.position.y);
-
-        await fitView();
+        return false;
     }
 
-    function onConnection(connection: Connection) : void {
-        if(connection.sourceHandle && connection.targetHandle) {
-            const edge = createEdge(connection);
-            connections = addEdge(edge, connections);
-            onConnectionCallback("connection", new ConnectionData(edge.id, connection.source, connection.target, connection.sourceHandle, connection.targetHandle));
+    function onReconnection(oldWire: WireEdge, newWire: Connection) : void {
+        if(oldWire.sourceHandle && oldWire.targetHandle) {
+            disconnectionCallback(new ConnectionData(oldWire.id, oldWire.source, oldWire.target, oldWire.sourceHandle, oldWire.targetHandle));
+            onConnection(newWire);
         }
     }
 
-    function onDelete(details: { nodes: GateNode[]; edges: Edge[]; }) : void {
+    function onDelete(details: { nodes: GateNode[]; edges: WireEdge[]; }) : void {
         const edges = details.edges;
         const nodes = details.nodes;
 
@@ -202,25 +486,17 @@
         for(let i = 0; i < edgeCount; i++) {
             const edge = edges[i];
             if(edge.sourceHandle && edge.targetHandle)
-                onDisconnectionCallback("disconnection", new ConnectionData(edge.id, edge.source, edge.target, edge.sourceHandle, edge.targetHandle));
+                disconnectionCallback(new ConnectionData(edge.id, edge.source, edge.target, edge.sourceHandle, edge.targetHandle));
         }
 
         const nodeCount = nodes.length;
         for(let i = 0; i < nodeCount; i++) {
             const node = nodes[i]
             gateMap.delete(node.id);
-            onDestroyGateCallback("destroy", new CoreGateData(node.id, node.data.type));
-        }
-    }
+            inspector.removeGate(node.id);
 
-    function isValidConnection(connection: Connection | Edge) : boolean {
-        const targetNode = gateMap.get(connection.target);
-        if(targetNode && connection.targetHandle) {
-            const data = targetNode.data;
-            return !data["connections"][connection.targetHandle];
+            destroyGateCallback(node.id);
         }
-
-        return false;
     }
 </script>
 
@@ -257,9 +533,19 @@
     }
 </style>
 
-<div class="w-screen h-screen">
-    <SvelteFlow onmove={onMove} onconnect={onConnection} ondelete={onDelete} isValidConnection={isValidConnection} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={connections} {nodeTypes} fitView>
+<div class="w-screen h-screen z-0">
+    <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} {nodeTypes} {edgeTypes} fitView>
+        <Assets bind:this={assets}></Assets>
         <MiniMap bgColor="#1e1e1e" position="top-right"/>
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
+        <Panel class="flex md:flex-row flex-col items-center max-w-1/4 gap-y-4 md:gap-x-4" position="bottom-left">
+            <Control action="Fit" fabIcon={faExpand} onclick={() => fitView().then()}></Control>
+            <Control action="Program" fabIcon={faCode} disabled={true} onclick={() => { }}></Control>
+            <Control action="Assistant" fabIcon={faRobot} disabled={true} onclick={() => { }}></Control>
+            <Control action="Clear" fabIcon={faTrashCan} onclick={() => clearCircuitHandler()}></Control>
+            <Control action="Prefab" fabIcon={faCube} disabled={focused} onclick={() => generateCircuitDataHandler()}></Control>
+            <Control action="Rearrange" fabIcon={faLayerGroup} onclick={() => rearrangeLayout()}></Control>
+        </Panel>
+        <Inspector title="Scene" bind:this={inspector} refocusCallback={refocusHandler} expandCallback={expandGateHandler} maximiseCallback={maximiseGateHandler} />
     </SvelteFlow>
 </div>

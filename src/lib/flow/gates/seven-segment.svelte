@@ -1,19 +1,20 @@
 <script lang="ts">
-    import type { GateData } from "$lib/core";
+    import type { SevenSegmentGateData } from "$lib/core";
 
-    import { InputHandle } from "$lib/flow/gates/handles";
+    import { InputPin } from "$lib/flow/gates/pins";
+    import type { GateProps } from "$lib/flow/types";
     import { SevenSegmentDisplay } from "$lib/flow/gates/display";
 
-    export let data: GateData;
-    export let dragging = false;
-    export let selected = false;
+    let { data, dragging, selected, parentId } : GateProps<SevenSegmentGateData> = $props();
+
+    const connectable = !(!!parentId);
 </script>
 
 <div class="seven-segment-display color-display" class:dragging class:selected>
-    <InputHandle id="in-1" style="top: 16%;" enabled={data["in-1"]} connected={data["in-1-connected"]}/>
-    <InputHandle id="in-2" style="top: 32%;" enabled={data["in-2"]} connected={data["in-2-connected"]}/>
-    <InputHandle id="in-3" style="top: 48%;" enabled={data["in-3"]} connected={data["in-3-connected"]}/>
-    <InputHandle id="in-4" style="top: 64%;" enabled={data["in-4"]} connected={data["in-4-connected"]}/>
-    <InputHandle id="in-5" style="top: 80%;" enabled={data["in-5"]} connected={data["in-5-connected"]}/>
-    <SevenSegmentDisplay value={data["value"]} decimal={data["in-5"]}/>
+    <InputPin id="in-1" label="in-1" style="top: 16%;" connectable={connectable} enabled={data.in1} />
+    <InputPin id="in-2" label="in-2" style="top: 32%;" connectable={connectable} enabled={data.in2} />
+    <InputPin id="in-3" label="in-3" style="top: 48%;" connectable={connectable} enabled={data.in3} />
+    <InputPin id="in-4" label="in-4" style="top: 64%;" connectable={connectable} enabled={data.in4} />
+    <InputPin id="in-5" label="in-5" style="top: 80%;" connectable={connectable} enabled={data.in5} />
+    <SevenSegmentDisplay value={data.value} decimal={data.in5} />
 </div>

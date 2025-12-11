@@ -1,9 +1,8 @@
-import type { GateType, GateData } from "$lib/core/types/gate-data";
-export type { GateType, GateData };
+import  { type GateType, type GateData, type InputGateData, type OutputGateData, type UnaryGateData, type BinaryGateData, type SevenSegmentGateData, type PrefabGateData, type UpdateGateSignature } from "$lib/core/types/gate-data";
+export  { type GateType, type GateData, type InputGateData, type OutputGateData, type UnaryGateData, type BinaryGateData, type SevenSegmentGateData, type PrefabGateData, type UpdateGateSignature };
 
-import { PrefabData } from "$lib/core/types/prefab-data";
-export { PrefabData };
+import type { WireData, UpdateWireSignature } from "$lib/core/types/wire-data";
+export type { WireData, UpdateWireSignature };
 
-export class HandleWrapper {
-    constructor(public handleId: string, public gateType: GateType) { }
-}
+import { PrefabBlueprint } from "$lib/core/types/prefab-blueprint";
+export { PrefabBlueprint };

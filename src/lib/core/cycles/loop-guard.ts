@@ -1,4 +1,4 @@
-import { Gate } from "$lib/core/gates";
+import { type Gate } from "$lib/core/gates";
 
 export const minToggleLimit = 10, maxToggleLimit = 100;
 export const minDeltaLimit = 1000, maxDeltaLimit = 10000;

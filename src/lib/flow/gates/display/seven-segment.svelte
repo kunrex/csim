@@ -4,8 +4,12 @@
     import HorizontalDisplay from "$lib/flow/gates/display/horizontal-display.svelte";
     import { a as A, b as B, c as C, d as D, e as E, f as F, g as G } from "$lib/flow/constants";
 
-    export let value = 0;
-    export let decimal = false;
+    interface SevenSegmentProps {
+        value: number,
+        decimal: boolean
+    }
+
+    let { value, decimal } : SevenSegmentProps = $props();
 </script>
 
 <div class="flex flex-col relative">

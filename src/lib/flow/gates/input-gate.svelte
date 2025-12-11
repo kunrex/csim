@@ -1,22 +1,20 @@
 <script lang="ts">
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
-    import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
-    import type { GateData } from "$lib/core";
+    import type { InputGateData } from "$lib/core";
 
-    import { InputHandle } from "$lib/flow/gates/handles";
+    import { InputPin } from "$lib/flow/gates/pins";
+    import type { GateProps } from "$lib/flow/types";
 
-    export let data: GateData;
-    export let dragging = false;
-    export let selected = false;
+    let { data, dragging, selected, parentId } : GateProps<InputGateData> = $props();
 
-    let color = data["color"] as string;
-    let icon = data["icon"] as IconDefinition;
+    let icon = data.icon!;
+    const connectable = !(!!parentId);
 </script>
 
-<div class={`icon-core-gate ${color}`} style={color} class:dragging class:selected>
-    <InputHandle id="in-1" enabled={data["in-1"]}/>
+<div class={`icon-core-gate color-${data.type}`} class:dragging class:selected>
+    <InputPin id="in-1" label="in-1" enabled={data.in1} connectable={connectable} />
     <div>
-        <b><FontAwesomeIcon icon={icon}/></b>
+        <b><FontAwesomeIcon icon={icon} /></b>
     </div>
 </div>

@@ -1,5 +1,5 @@
 import { ClockGate } from "$lib/core/gates";
-import {LoopGuard} from "$lib/core/cycles/loop-guard";
+import { LoopGuard } from "$lib/core/cycles/loop-guard";
 
 const frameRate = 0.5;
 const clocks: ClockGate[] = [];

@@ -1,5 +1,7 @@
 <script lang="ts">
-    export let enabled = false;
+    import type { SegmentProps } from "$lib/flow/types/props";
+
+    let { enabled } : SegmentProps= $props();
 </script>
 
-<div class="horizontal" class:enabled></div>
+<div class="horizontal-segment" class:enabled></div>

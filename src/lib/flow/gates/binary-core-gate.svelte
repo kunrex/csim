@@ -1,21 +1,21 @@
 <script lang="ts">
-    import type { GateData } from "$lib/core";
+    import type { BinaryGateData } from "$lib/core";
 
-    import { InputHandle, OutputHandle } from "$lib/flow/gates/handles";
+    import { capitalise } from "$lib/flow/utils";
+    import type { GateProps } from "$lib/flow/types";
+    import { InputPin, OutputPin } from "$lib/flow/gates/pins";
 
-    export let data: GateData;
-    export let dragging = false;
-    export let selected = false;
+    let { data, dragging, selected, parentId } : GateProps<BinaryGateData> = $props();
 
-    const gate = data["gate"] as string;
-    const color = data["color"] as string;
+    const type = data.type;
+    const connectable = !(!!parentId);
 </script>
 
-<div class={`core-gate ${color}`} class:dragging class:selected>
-    <InputHandle id="in-1" style="top: calc(var(--core-gate-height) / 2 - var(--handle-radius) * 1.5);" enabled={data["in-1"]}/>
-    <InputHandle id="in-2" style="top: calc(var(--core-gate-height) / 2 + var(--handle-radius) * 1.5);" enabled={data["in-2"]} />
+<div class={`core-gate color-${type}`} class:dragging class:selected>
+    <InputPin id="in-1" label="in-1" enabled={data.in1} connectable={connectable} style="top: calc(var(--core-gate-height) / 2 - var(--handle-radius) * 1.5);" />
+    <InputPin id="in-2" label="in-2" enabled={data.in2} connectable={connectable} style="top: calc(var(--core-gate-height) / 2 + var(--handle-radius) * 1.5);"  />
     <div>
-        <b>{ gate }</b>
+        <b>{ capitalise(type) }</b>
     </div>
-    <OutputHandle id="out-1" enabled={data['out-1']}/>
+    <OutputPin id="out-1" label="out-1" connectable={connectable} enabled={data.out1} />
 </div>

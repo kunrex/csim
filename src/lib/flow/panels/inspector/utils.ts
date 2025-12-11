@@ -1,26 +1,9 @@
-import { fa8, faClock, faLightbulb, faMicrochip, faPowerOff, faTablet } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { fa8, faClock, faLightbulb, faMicrochip, faPowerOff, faTablet } from "@fortawesome/free-solid-svg-icons";
 
-export function isPrefab(key: string) : boolean {
-    switch (key) {
-        case "not":
-        case "and":
-        case "nand":
-        case "or":
-        case "nor":
-        case "xor":
-        case "xnor":
-        case "display":
-        case "power":
-        case "clock":
-        case "bulb":
-            return true;
-        default:
-            return false;
-    }
-}
+import type { GateType } from "$lib/core";
 
-export function iconMap(key: string): IconDefinition {
+export function iconMap(key: GateType): IconDefinition {
     switch (key) {
         case "not":
         case "and":
@@ -36,7 +19,7 @@ export function iconMap(key: string): IconDefinition {
             return faPowerOff;
         case "clock":
             return faClock;
-        case "bulb":
+        case "probe":
             return faLightbulb;
         default:
             return faMicrochip;

@@ -6,6 +6,6 @@ export class CircuitGateData {
     public constructor(public readonly type: GateType, public readonly name: string) { }
 }
 
-export class CircuitData {
+export class CircuitBlueprint {
     public constructor(public readonly gates: Map<string, CircuitGateData>, public readonly connections: CoreConnectionData[]) { }
 }

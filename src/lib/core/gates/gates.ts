@@ -1,22 +1,20 @@
 import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
-import { deleteGate } from "$lib/pools";
+import { type GateNodeType } from "$lib/flow";
 
-import {CoreGateData, type GateNodeType, type UpdateGateSignature} from "../../flow";
-
-import { Handle, InHandle } from "$lib/core/handle";
-import {type GateData, type GateType, HandleWrapper} from "$lib/core/types";
+import { Pin, InputPin } from "$lib/core/pin";
+import type { GateType, UpdateGateSignature } from "$lib/core/types";
 import { LoopGuard, masterState, registerClock } from "$lib/core/cycles";
-import { BinaryGate, Gate, InputGate, OutputGate, UnaryGate } from "$lib/core/gates/gate";
+import type { PrefabGateData, SevenSegmentGateData } from "$lib/core/types/gate-data";
+import { BaseGate, BinaryGate, InputGate, OutputGate, UnaryGate } from "$lib/core/gates/gate";
+import {MasterGatePool} from "$lib";
 
 export class NotGate extends UnaryGate {
     public readonly gateType: GateType = "not";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "Not";
-        gateData["color"] = "color-not";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -34,11 +32,9 @@ export class NotGate extends UnaryGate {
 export class AndGate extends BinaryGate {
     public readonly gateType: GateType = "and";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "And";
-        gateData["color"] = "color-and";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -53,14 +49,12 @@ export class AndGate extends BinaryGate {
     }
 }
 
-export class NAndGate extends BinaryGate {
+export class NandGate extends BinaryGate {
     public readonly gateType: GateType = "nand";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "Nand";
-        gateData["color"] = "color-nand";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -78,11 +72,9 @@ export class NAndGate extends BinaryGate {
 export class OrGate extends BinaryGate {
     public readonly gateType: GateType = "or";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "Or";
-        gateData["color"] = "color-or";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -97,14 +89,12 @@ export class OrGate extends BinaryGate {
     }
 }
 
-export class NOrGate extends BinaryGate {
+export class NorGate extends BinaryGate {
     public readonly gateType: GateType = "nor";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "Nor";
-        gateData["color"] = "color-nor";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -122,11 +112,9 @@ export class NOrGate extends BinaryGate {
 export class XorGate extends BinaryGate {
     public readonly gateType: GateType = "xor";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "Xor";
-        gateData["color"] = "color-xor";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -144,11 +132,9 @@ export class XorGate extends BinaryGate {
 export class XNorGate extends BinaryGate {
     public readonly gateType: GateType = "xnor";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["gate"] = "Xnor";
-        gateData["color"] = "color-xnor";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -166,11 +152,11 @@ export class XNorGate extends BinaryGate {
 export class PowerGate extends OutputGate {
     public readonly gateType: GateType = "power";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["icon"] = faPowerOff;
-        gateData["color"] = "color-power";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.icon = faPowerOff;
+        this.gateData.type = this.gateType;
+        this.gateData.toggle = () => this.calculateState();
     }
 
     public async onCalculateState(): Promise<void> {
@@ -192,19 +178,18 @@ export class PowerGate extends OutputGate {
         else
             await this.out.disable();
 
-        this.gateData["out-1"] = this.out.enabled();
+        this.gateData.out1 = this.out.enabled();
         this.syncGateData();
     }
 }
 
-export class BulbGate extends InputGate {
-    public readonly gateType: GateType = "bulb";
+export class ProbeGate extends InputGate {
+    public readonly gateType: GateType = "probe";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["icon"] = faLightbulb;
-        gateData["color"] = "color-power";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.icon = faLightbulb;
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -222,11 +207,11 @@ export class ClockGate extends OutputGate {
 
     public readonly gateType: GateType = "clock";
 
-    public constructor(id: string, gateData: GateData, onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData, onUpdateFunction);
-
-        gateData["icon"] = faClock;
-        gateData["color"] = "color-clock";
+    public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
+        super(id, onUpdateFunction);
+        this.gateData.icon = faClock;
+        this.gateData.type = this.gateType;
+        this.gateData.toggle = () => this.toggleClock();
 
         registerClock(this);
     }
@@ -247,6 +232,7 @@ export class ClockGate extends OutputGate {
         if(this.enabled) {
             this.next = false;
             this.enabled = false;
+            await this.onPropagateSyncState();
         } else {
             this.next = masterState();
             this.enabled = true;
@@ -254,49 +240,59 @@ export class ClockGate extends OutputGate {
     }
 }
 
-export class SevenSegmentDisplay extends Gate {
+export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
     public readonly gateType: GateType = "display";
+    public readonly nodeType: GateNodeType = "display";
 
-    private readonly in1 = new InHandle("in-1", this);
-    private readonly in2 = new InHandle("in-2", this);
-    private readonly in3 = new InHandle("in-3", this);
-    private readonly in4 = new InHandle("in-4", this);
-    private readonly in5 = new InHandle("in-5", this);
+    private readonly in1 = new InputPin("in-1", this);
+    private readonly in2 = new InputPin("in-2", this);
+    private readonly in3 = new InputPin("in-3", this);
+    private readonly in4 = new InputPin("in-4", this);
+    private readonly in5 = new InputPin("in-5", this);
 
-    constructor(id: string, gateData: GateData, private readonly onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData);
+    constructor(id: string, private readonly onUpdateFunction: UpdateGateSignature) {
+        super(id, {
+            name: "",
+            type: "",
+            icon: undefined,
+
+            in1: false,
+            in2: false,
+            in3: false,
+            in4: false,
+            in5: false,
+
+            value: 0
+        });
+        this.gateData.type = this.gateType;
     }
 
     protected onSyncGateData(): void {
         this.onUpdateFunction(this.id, this.gateData);
     }
 
-    public async resetState(): Promise<void> {
+    protected async onResetState(): Promise<void> {
         await this.in1.reset();
         await this.in2.reset();
         await this.in3.reset();
         await this.in4.reset();
         await this.in5.reset();
-        this.gateData["in-1"] = false;
-        this.gateData["in-2"] = false;
-        this.gateData["in-3"] = false;
-        this.gateData["in-4"] = false;
-        this.gateData["in-5"] = false;
-        this.gateData["in-1-connected"] = false;
-        this.gateData["in-2-connected"] = false;
-        this.gateData["in-3-connected"] = false;
-        this.gateData["in-4-connected"] = false;
-        this.gateData["in-5-connected"] = false;
+        this.gateData.in1 = false;
+        this.gateData.in2 = false;
+        this.gateData.in3 = false;
+        this.gateData.in4 = false;
+        this.gateData.in5 = false;
     }
 
     public async onCalculateState(): Promise<void> {
-        this.gateData["in-1"] = this.in1.enabled();
-        this.gateData["in-2"] = this.in2.enabled();
-        this.gateData["in-3"] = this.in3.enabled();
-        this.gateData["in-4"] = this.in4.enabled();
-        this.gateData["in-5"] = this.in5.enabled();
+        this.gateData.in1 = this.in1.enabled();
+        this.gateData.in2 = this.in2.enabled();
+        this.gateData.in3 = this.in3.enabled();
+        this.gateData.in4 = this.in4.enabled();
+        this.gateData.in5 = this.in5.enabled();
 
         this.gateData["value"] =  +this.in1.enabled() + (+this.in2.enabled() << 1) + (+this.in3.enabled() << 2) + (+this.in4.enabled() << 3);
+
         this.syncGateData();
         return Promise.resolve();
     }
@@ -305,7 +301,7 @@ export class SevenSegmentDisplay extends Gate {
         return Promise.resolve();
     }
 
-    public getNode(id: string): Handle | null {
+    public getPin(id: string): Pin | null {
         switch(id) {
             case this.in1.id:
                 return this.in1;
@@ -326,8 +322,9 @@ export class SevenSegmentDisplay extends Gate {
 export class BufferGate extends UnaryGate {
     public readonly gateType: GateType = "buffer";
 
-    public constructor(id: string, gateData: GateData, updateFunction: UpdateGateSignature) {
-        super(id, gateData, updateFunction);
+    public constructor(id: string, updateFunction: UpdateGateSignature) {
+        super(id, updateFunction);
+        this.gateData.type = this.gateType;
     }
 
     public async onCalculateState(): Promise<void> {
@@ -342,63 +339,62 @@ export class BufferGate extends UnaryGate {
     }
 }
 
-export class PrefabGate extends Gate {
+export class PrefabGate extends BaseGate<PrefabGateData> {
     public readonly gateType: GateType;
+    public readonly nodeType: GateNodeType = "prefab";
 
-    public readonly gates: Gate[] = [];
-    public readonly handleMap = new Map<string, Handle>();
-    public readonly bufferMap = new Map<string, HandleWrapper>();
+    public constructor(id: string, gateType: GateType, private readonly onUpdateFunction: UpdateGateSignature) {
+        super(id, {
+            name: "",
+            type: "",
+            icon: undefined,
 
-    public constructor(id: string, gateData: GateData, gateType: GateType, private readonly onUpdateFunction: UpdateGateSignature) {
-        super(id, gateData);
-        this.gateType = gateType;
+            powerCount: 0,
+            probeCount: 0,
+            clockCount: 0,
+            displayCount: 0,
+
+            expanded: false,
+            bufferTypeMap: new Map<string, "power" | "clock" | "probe" | "display">()
+        });
+        this.gateType = this.gateData.type = gateType;
     }
 
-    protected onSyncGateData(): void {
+    protected onSyncGateData() : void {
         this.onUpdateFunction(this.id, this.gateData);
     }
 
-    protected onCalculateState(): Promise<void> {
+    protected onCalculateState() : Promise<void> {
         this.syncGateData();
         return Promise.resolve();
     }
 
-    protected propagateState(): Promise<void> {
+    protected propagateState() : Promise<void> {
         return Promise.resolve();
     }
 
-    public async resetState(): Promise<void> {
-        for(const gate of this.gates)
-            await deleteGate(new CoreGateData(gate.id, gate.gateType));
+    protected async onResetState() : Promise<void> {
+        this.gateData.expanded = false;
+        this.gateData.bufferTypeMap.clear();
 
-        this.bufferMap.clear();
-        this.gates.splice(0, this.gates.length);
+        this.gateData.powerCount = this.gateData.probeCount = this.gateData.clockCount = this.gateData.displayCount = 0;
     }
 
-    public getNode(handleId: string): Handle | null {
-        return this.handleMap.get(handleId) ?? null;
-    }
+    public getPin(bufferId: string) : Pin | null {
+        const gate = MasterGatePool.instance.getGate(bufferId);
+        const gateType = this.gateData.bufferTypeMap.get(bufferId);
+        if(!gateType || !gate)
+            return null;
 
-    public syncGateHandle(bufferId: string, gateData: GateData) : void {
-        const wrapper = this.bufferMap.get(bufferId);
-        if(!wrapper)
-            return;
-
-        const handleId = wrapper.handleId;
-        switch (wrapper.gateType) {
+        switch (gateType) {
+            case "power":
             case "clock":
-            case "power": {
-                    this.gateData[handleId] = gateData["in-1"];
-                    this.gateData["connections"][handleId] = gateData["connections"]["in-1"];
-                }
-                break;
-            case "bulb":
+                return gate.getPin("in-1");
+            case "probe":
             case "display":
-                this.gateData[handleId] = gateData["out-1"];
-                break;
+                return gate.getPin("out-1");
+            default:
+                return null;
         }
-
-
-        this.syncGateData();
     }
 }

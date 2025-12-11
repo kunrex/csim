@@ -1,41 +1,42 @@
 <script lang="ts">
-    import type { GateData } from "$lib/core";
+    import { Position, useNodesData } from "@xyflow/svelte";
 
-    import { InputHandle, ClockHandle, OutputHandle, DisplayHandle } from "$lib/flow/gates/handles";
+    import type { PrefabGateData, UnaryGateData } from "$lib/core";
 
-    export let data: GateData;
-    export let dragging = false;
-    export let selected = false;
+    import { capitalise } from "$lib/flow/utils.js";
+    import type { GateProps } from "$lib/flow/types";
+    import { InputPin, OutputPin } from "$lib/flow/gates/pins";
 
-    const gate = data["type"] as string;
+    let { data, dragging, selected, parentId } : GateProps<PrefabGateData> = $props();
 
-    const ins = data["in"] as string[];
-    const outs = data["out"] as string[];
-    const clocks = data["clock"] as string[];
-    const displays = data["display"] as string[];
+    const bufferNodes = useNodesData(data.bufferTypeMap.keys().toArray());
+    const buffers = $derived(bufferNodes.current.map((node) => ({
+        id: node.id,
+        data: node.data as UnaryGateData
+    })));
 
-    function max(a: number, b: number): number {
-        return a > b ? a : b;
-    }
+    const powerBuffers = $derived(buffers.filter((node) => data.bufferTypeMap.get(node.id) == "power"));
+    const clockBuffers = $derived(buffers.filter((node) => data.bufferTypeMap.get(node.id) == "clock"));
+    const probeBuffers = $derived(buffers.filter((node) => data.bufferTypeMap.get(node.id) == "probe"));
+    const displayBuffers = $derived(buffers.filter((node) => data.bufferTypeMap.get(node.id) == "display"));
 
-    const height = `min-height: calc(var(--prefab-handle-gap) * ${max(ins.length, outs.length) + 2})`;
-    const width = `min-width: calc(var(--prefab-handle-gap) * ${max(clocks.length, displays.length) + 2})`;
+    const connectable = !(!!parentId);
 </script>
 
-<div class="prefab-gate color-prefab" class:dragging class:selected style={`${height}; ${width};`}>
-    {#each ins as input, i}
-        <InputHandle id={input} style={`top: ${(100 / (ins.length + 1)) * (i + 1)}%;`} enabled={data[input]}></InputHandle>
-    {/each}
-    {#each clocks as clock, i}
-        <ClockHandle id={clock} style={`left: ${(100 / (clocks.length + 1)) * (i + 1)}%;`} enabled={data[clock]}></ClockHandle>
-    {/each}
-    <div class="p-1 overflow-x-scroll overflow-hidden">
-        <b>{ gate }</b>
+<div class="prefab-gate color-prefab h-full w-full" class:dragging class:selected class:expanded={data.expanded}>
+    <div>
+        <b>{ capitalise(data.type) }</b>
     </div>
-    {#each outs as output, i}
-        <OutputHandle id={output} style={`top: ${(100 / (outs.length + 1)) * (i + 1)}%;`} enabled={data[output]}></OutputHandle>
+    {#each powerBuffers as power, i}
+        <InputPin id={power.id} label={power.data.name} enabled={power.data.in1} connectable={connectable} style={`top: ${(100 / (powerBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
-    {#each displays as display, i}
-        <DisplayHandle id={display} style={`left: ${(100 / ((displays.length * 5) + 1)) * (i + 1)}%;`} enabled={data[display]}></DisplayHandle>
+    {#each clockBuffers as clock, i}
+        <InputPin id={clock.id} label={clock.data.name} enabled={clock.data.in1} position={Position.Top} connectable={connectable} style={`left: ${(100 / (clockBuffers.length + 1)) * (i + 1)}%;`} />
+    {/each}
+    {#each probeBuffers as probe, i}
+        <OutputPin id={probe.id} label={probe.data.name} enabled={probe.data.out1} connectable={connectable} style={`top: ${(100 / (probeBuffers.length + 1)) * (i + 1)}%;`} />
+    {/each}
+    {#each displayBuffers as display, i}
+        <OutputPin id={display.id} label={display.data.name} enabled={display.data.out1} position={Position.Bottom} connectable={connectable} style={`left: ${(100 / (displayBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
 </div>

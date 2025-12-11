@@ -1,9 +1,13 @@
 <script lang="ts">
-    export let title: string;
-    export let onClick: () => void;
-    export let selected: boolean = false;
+    interface AssetWindowProps {
+        title: string,
+        selected: boolean,
+        onclick: () => void
+    }
+
+    let { title, selected, onclick } : AssetWindowProps = $props();
 </script>
 
-<button class="asset-button" on:click={onClick} class:selected>
+<button class="asset-button" onclick={onclick} class:selected>
     { title }
 </button>

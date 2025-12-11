@@ -17,8 +17,6 @@
 
         --insert-button-width: 84px;
         --insert-button-height: 64px;
-
-        --prefab-handle-gap: 20px;
     }
 }
 
@@ -54,7 +52,7 @@
     @apply bg-cyan-400;
 }
 
-.color-bulb {
+.color-probe {
     @apply bg-orange-600;
 }
 
@@ -68,6 +66,10 @@
 
 .color-display {
     @apply bg-gray-800;
+}
+
+.color-buffer {
+    @apply bg-transparent;
 }
 
 .core-gate, .icon-core-gate {
@@ -106,6 +108,10 @@
         @apply p-3;
     }
 
+    .prefab-gate.expanded {
+        @apply opacity-30 text-opacity-30;
+    }
+
     .instantiate-gate-button {
         @apply flex flex-col items-center justify-center text-xl border rounded-sm border-solid border-slate-600 text-white;
     }
@@ -118,21 +124,21 @@
         @apply cursor-not-allowed text-gray-400;
     }
 
-    .vertical {
+    .vertical-segment {
         width: var(--segment-height);
         height: var(--segment-width);
     }
 
-    .horizontal {
+    .horizontal-segment {
         width: var(--segment-width);
         height: var(--segment-height);
     }
 
-    .vertical, .horizontal {
+    .vertical-segment, .horizontal-segment {
         @apply rounded-sm bg-neutral-50
     }
 
-    .vertical.enabled, .horizontal.enabled {
+    .vertical-segment.enabled, .horizontal-segment.enabled {
         @apply bg-rose-600
     }
 
