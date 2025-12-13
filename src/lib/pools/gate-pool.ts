@@ -1,27 +1,9 @@
-import {
-    type Gate,
-    AndGate,
-    ProbeGate,
-    NandGate,
-    NorGate,
-    NotGate,
-    OrGate,
-    XNorGate,
-    XorGate,
-    ClockGate,
-    PowerGate,
-    BufferGate,
-    SevenSegmentDisplay,
-    type GateType,
-    type PrefabGateData, type UnaryGateData
-} from "$lib/core";
-
 import { fa8, faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
-import { PrefabGate } from "$lib/core/gates/gates";
-import type { UpdateGateSignature } from "$lib/core/types";
-import {type CircuitBlueprint, ConnectionData, WirePool} from "$lib";
-import {GateWrapper, WireWrapper} from "$lib/flow/types";
+import { ConnectionData, type CircuitBlueprint, GateWrapper, WireWrapper } from "$lib/flow";
+import { type Gate, NotGate, OrGate, NorGate, AndGate, NandGate, XorGate, XNorGate, PowerGate, ClockGate, ProbeGate, SevenSegmentDisplay, BufferGate, PrefabGate, type GateType, type UnaryGateData, type PrefabGateData, type UpdateGateSignature } from "$lib/core";
+
+import { WirePool } from "$lib/pools/wire-pool";
 
 class GatePool {
     protected readonly gatePool: Gate[] = [];

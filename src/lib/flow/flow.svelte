@@ -43,6 +43,11 @@
         prefabCreationCallback: (circuit: CircuitBlueprint) => void;
     }
 
+    interface OnDeleteParams {
+        nodes: GateNode[];
+        edges: WireEdge[];
+    }
+
     let { destroyGateCallback, createGateCallback, connectionCallback, disconnectionCallback, prefabCreationCallback } : FlowProps = $props();
 
     const nodeTypes: NodeTypes = {
@@ -503,20 +508,48 @@
         }
     }
 
-    function onDelete(details: { nodes: GateNode[]; edges: WireEdge[]; }) : void {
-        const edges = details.edges;
-        const nodes = details.nodes;
+    function onBeforeDelete(params: OnDeleteParams) : Promise<boolean | OnDeleteParams> {
+        const nodes = [...params.nodes];
+        const edges = [...params.edges];
 
-        const edgeCount = edges.length;
-        for(let i = 0; i < edgeCount; i++) {
-            const edge = edges[i];
+        for(const gate of gates) {
+            if(nodes.some((node) => node.id == gate.id) || !gate.parentId)
+                continue;
+
+            if(nodes.some((node) => node.id == gate.parentId))
+                nodes.push(gate);
+        }
+
+        for(const wire of wires) {
+            if(edges.some((edge) => edge.id == wire.id))
+                continue;
+
+            const source = gateMap.get(wire.source);
+            const target = gateMap.get(wire.target);
+
+            if(!source || !target) {
+                edges.push(wire)
+                continue;
+            }
+
+            if(nodes.some((node) => node.id == source.id || node.id == target.id))
+                edges.push(wire)
+        }
+
+        return Promise.resolve({ nodes: nodes, edges: edges });
+    }
+
+    function onDelete(params: OnDeleteParams) : void {
+        const edges = params.edges;
+        const nodes = params.nodes;
+
+        for(const edge of edges) {
             if(edge.sourceHandle && edge.targetHandle)
                 disconnectionCallback(new ConnectionData(edge.id, edge.source, edge.target, edge.sourceHandle, edge.targetHandle));
         }
 
-        const nodeCount = nodes.length;
-        for(let i = 0; i < nodeCount; i++)
-            deleteGateHandler(nodes[i].id);
+        for(const node of nodes)
+            deleteGateHandler(node.id);
     }
 </script>
 
@@ -554,7 +587,7 @@
 </style>
 
 <div class="w-screen h-screen z-0">
-    <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} connectionLineType={ConnectionLineType.Bezier} {nodeTypes} {edgeTypes} fitView>
+    <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} onbeforedelete={onBeforeDelete} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} connectionLineType={ConnectionLineType.Bezier} {nodeTypes} {edgeTypes} fitView>
         <Assets bind:this={assets}></Assets>
         <MiniMap bgColor="#1e1e1e" position="top-right"/>
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
