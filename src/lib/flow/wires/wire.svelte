@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BaseEdge, EdgeReconnectAnchor, getBezierPath, type EdgeProps } from '@xyflow/svelte';
+    import { BaseEdge, getBezierPath, EdgeReconnectAnchor, type EdgeProps } from '@xyflow/svelte';
 
     let { sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, selected }: EdgeProps = $props();
 

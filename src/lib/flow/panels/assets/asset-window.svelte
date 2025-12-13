@@ -8,11 +8,10 @@
     import AssetWindow from "./asset-window-button.svelte";
     import InstantiateGate from "./instantiate-gate-button.svelte";
 
-    let showCore = true;
-    let disabled = false;
+    let showCore = $state(true);
 
     const allPrefabTypes: string[] = [];
-    let displayedPrefabTypes: string[] = [];
+    let displayedPrefabTypes: string[] = $state([]);
 
     export function addPrefabOption(prefab: GateType): void {
         allPrefabTypes.push(prefab);
@@ -21,14 +20,6 @@
 
     export function resetPrefabOptions(): void {
         displayedPrefabTypes = [...allPrefabTypes];
-    }
-
-    export function enableOptions() : void {
-        disabled = false;
-    }
-
-    export function disableOptions() : void {
-        disabled = true;
     }
 
     export function disablePrefabOption(name: GateType): void {
@@ -44,15 +35,15 @@
     <div class="flex flex-row items-center min-h-16 w-full overflow-x-auto gap-x-4">
         {#if showCore }
             {#each nonIconGateTypes as type}
-                <InstantiateGate type={type} disabled={disabled} color={`color-${type}`}></InstantiateGate>
+                <InstantiateGate type={type} color={`color-${type}`}></InstantiateGate>
             {/each}
             {#each iconGateTypes as type}
-                <InstantiateGate type={type[0]} disabled={disabled} fabIcon={type[1]} color={`color-${type[0]}`}></InstantiateGate>
+                <InstantiateGate type={type[0]} fabIcon={type[1]} color={`color-${type[0]}`}></InstantiateGate>
             {/each}
         {:else}
             {#if displayedPrefabTypes.length > 0 }
                 {#each displayedPrefabTypes as prefabType}
-                    <InstantiateGate type={prefabType} disabled={disabled} color="color-prefab"></InstantiateGate>
+                    <InstantiateGate type={prefabType} color="color-prefab"></InstantiateGate>
                 {/each}
             {:else}
                 <div class="w-full text-white text-2xl text-center">

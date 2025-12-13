@@ -355,6 +355,7 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
             displayCount: 0,
 
             expanded: false,
+            bufferPinMap: new Map<string, string>(),
             bufferTypeMap: new Map<string, "power" | "clock" | "probe" | "display">()
         });
         this.gateType = this.gateData.type = gateType;
@@ -375,26 +376,36 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
 
     protected async onResetState() : Promise<void> {
         this.gateData.expanded = false;
+
+        this.gateData.bufferPinMap.clear();
         this.gateData.bufferTypeMap.clear();
 
         this.gateData.powerCount = this.gateData.probeCount = this.gateData.clockCount = this.gateData.displayCount = 0;
     }
 
-    public getPin(bufferId: string) : Pin | null {
-        const gate = MasterGatePool.instance.getGate(bufferId);
-        const gateType = this.gateData.bufferTypeMap.get(bufferId);
-        if(!gateType || !gate)
-            return null;
+    public getPin(pinId: string) : Pin | null {
+        for(const pair of this.gateData.bufferPinMap) {
+            if(pinId == pair[1]) {
+                const gate = MasterGatePool.instance.getGate(pair[0]);
+                const gateType = this.gateData.bufferTypeMap.get(pair[0]);
 
-        switch (gateType) {
-            case "power":
-            case "clock":
-                return gate.getPin("in-1");
-            case "probe":
-            case "display":
-                return gate.getPin("out-1");
-            default:
-                return null;
+                if(!gateType || !gate)
+                    return null;
+
+                console.log(pinId);
+                switch (gateType) {
+                    case "power":
+                    case "clock":
+                        return gate.getPin("in-1");
+                    case "probe":
+                    case "display":
+                        return gate.getPin("out-1");
+                    default:
+                        return null;
+                }
+            }
         }
+
+        return null;
     }
 }

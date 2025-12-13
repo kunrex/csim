@@ -3,12 +3,12 @@ import { Wire, Pin, type UpdateWireSignature } from "$lib/core";
 export class WirePool {
     public static instance: WirePool;
     public static initInstance(updateWireFunction: UpdateWireSignature) : void {
-        WirePool.instance = new WirePool(updateWireFunction);
+        WirePool.instance = WirePool.instance ?? new WirePool(updateWireFunction);
     }
 
-    private edgeCount: number = 0;
-    private readonly wires: Wire[] = [];
+    private wireCount: number = 0;
     private readonly wirePool: Wire[] = [];
+    private readonly wires = new Map<string, Wire>();
 
     private constructor(private readonly updateFunction: UpdateWireSignature) { }
 
@@ -18,38 +18,33 @@ export class WirePool {
         await source.pushConnection(wire);
         await target.pushConnection(wire);
 
-        this.wires.push(wire);
+        this.wires.set(wire.id, wire);
         return wire;
     }
 
     public async deleteWire(id: string, source: Pin, target: Pin): Promise<void> {
-        const count = this.wires.length;
-        for(let i = 0; i < count; i++) {
-            const wire = this.wires[i];
+        const wire = this.wires.get(id);
+        if(!wire)
+            return;
 
-            if(wire.id == id) {
-                wire.reset();
+        wire.reset();
 
-                this.wires.splice(i, 1);
-                this.wirePool.push(wire);
+        this.wires.delete(id);
+        this.wirePool.push(wire);
 
-                await source.popConnection(wire);
-                await target.popConnection(wire);
-                break;
-            }
-        }
+        await source.popConnection(wire);
+        await target.popConnection(wire);
     }
 
     private async tryReuseWire(source: Pin, target: Pin) : Promise<Wire | null> {
         if(this.wirePool.length > 0) {
-            const edge = this.wirePool.pop();
+            const wire = this.wirePool.pop();
 
-            if (edge) {
-                edge.source = source;
-                edge.target = target;
+            if (wire) {
+                wire.source = source;
+                wire.target = target;
 
-                this.wires.push(edge);
-                return edge;
+                return wire;
             }
         }
 
@@ -57,6 +52,6 @@ export class WirePool {
     }
 
     private instantiateWire(source: Pin, target: Pin) : Promise<Wire> {
-        return Promise.resolve(new Wire((this.edgeCount++).toString(), source, target, this.updateFunction));
+        return Promise.resolve(new Wire((this.wireCount++).toString(), source, target, this.updateFunction));
     }
 }

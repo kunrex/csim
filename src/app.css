@@ -69,7 +69,7 @@
 }
 
 .color-buffer {
-    @apply bg-transparent;
+    @apply bg-slate-400;
 }
 
 .core-gate, .icon-core-gate {
@@ -97,7 +97,7 @@
     }
 
     .core-gate.dragging, .icon-core-gate.dragging, .prefab-gate.dragging, .seven-segment-display.dragging {
-        @apply opacity-80;
+        @apply opacity-60;
     }
 
     .icon-core-gate {
@@ -109,7 +109,7 @@
     }
 
     .prefab-gate.expanded {
-        @apply opacity-30 text-opacity-30;
+        @apply opacity-30 text-opacity-50;
     }
 
     .instantiate-gate-button {
@@ -118,10 +118,6 @@
 
     .instantiate-gate-button:hover {
         @apply cursor-pointer opacity-80;
-    }
-
-    .instantiate-gate-button:disabled {
-        @apply cursor-not-allowed text-gray-400;
     }
 
     .vertical-segment {
@@ -186,7 +182,7 @@
     }
 
     .inspector-utility-button:disabled {
-        @apply text-gray-700;
+        @apply text-gray-700 cursor-not-allowed;
     }
 
     .utility-button {
@@ -225,7 +221,11 @@
         @apply text-gray-600;
     }
 
-    .overlay-background {
-        @apply flex flex-row w-full h-full justify-center items-center z-50;
+    .overlay {
+        @apply z-50
+    }
+
+    .overlay-backdrop {
+        @apply absolute inset-0 backdrop-blur-sm;
     }
 }

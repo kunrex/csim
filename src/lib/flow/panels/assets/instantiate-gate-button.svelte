@@ -10,15 +10,14 @@
     interface InstantiateGateButtonProps {
         color: string,
         type: GateType,
-        disabled: boolean,
         fabIcon?: IconDefinition
     }
 
-    let { color, type, disabled, fabIcon } : InstantiateGateButtonProps = $props();
+    let { color, type, fabIcon } : InstantiateGateButtonProps = $props();
 
     const dragDropType = useDragDrop();
     function onDragStart(event: DragEvent) : void {
-        if(!event.dataTransfer || disabled)
+        if(!event.dataTransfer)
             return;
 
         dragDropType.current = type;
@@ -26,7 +25,7 @@
     }
 </script>
 
-<div class={`${color} instantiate-gate-button`} role="img" draggable={true} ondragstart={onDragStart} class:disabled>
+<div class={`${color} instantiate-gate-button`} role="img" draggable={true} ondragstart={onDragStart}>
     {#if fabIcon}
         <FontAwesomeIcon icon={fabIcon}/>
     {:else}

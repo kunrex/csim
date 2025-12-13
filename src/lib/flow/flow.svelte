@@ -13,7 +13,7 @@
         type EdgeTypes,
         Panel,
         getConnectedEdges,
-        useNodesInitialized, useUpdateNodeInternals
+        useNodesInitialized, useUpdateNodeInternals, type FitViewOptions, ConnectionLineType
     } from '@xyflow/svelte';
 
     import { faCode, faCube, faExpand, faLayerGroup, faRobot, faTrashCan } from "@fortawesome/free-solid-svg-icons";
@@ -31,7 +31,6 @@
     import { InputGate, OutputGate, UnaryCoreGate, BinaryCoreGate, PrefabGate, SevenSegment } from "$lib/flow/gates";
     import { ConnectionData, CoreConnectionData, type GateNode, type WireEdge, CreateGateData, CreateGateCallback, WireWrapper, CircuitBlueprint, CircuitGateData, GateWrapper } from "$lib/flow/types";
     import {tick} from "svelte";
-    import {options} from "__SERVER__/internal";
     import {prefabHandleGap} from "$lib/flow/constants";
 
     interface FlowProps {
@@ -81,6 +80,12 @@
     };
 
     const { fitView, setCenter, screenToFlowPosition } = useSvelteFlow();
+
+    const fitOptions: FitViewOptions = {
+        padding: 0.2,
+        duration: 300,
+        interpolate: "smooth"
+    };
 
     const type = useDragDrop();
     function onDragOver(event: DragEvent) : void {
@@ -153,7 +158,9 @@
 
                 hidden: true,
                 deletable: false,
-                selectable: true
+                selectable: true,
+
+                measured: undefined
             };
 
             if(childNode.type == "prefab") {
@@ -186,7 +193,9 @@
 
             hidden: false,
             deletable: true,
-            selectable: true
+            selectable: true,
+
+            measured: undefined
         };
 
         if(node.type == "prefab") {
@@ -253,7 +262,7 @@
         assets.addPrefabOption(type);
     }
 
-    function layoutGate(elkNode: ElkNode, rearrangedGates: GateNode[]) {
+    function layoutGate(elkNode: ElkNode, rearrangedGates: Map<string, GateNode>) {
         const gate = gateMap.get(elkNode.id)
         if(!gate)
             return;
@@ -265,11 +274,8 @@
             newNode.height = elkNode.height;
         }
 
-        if(gate.parentId)
-            gate.extent = 'parent';
-
         gateMap.set(gate.id, newNode);
-        rearrangedGates.push(newNode);
+        rearrangedGates.set(gate.id, newNode);
 
         for(const child of elkNode.children!)
             layoutGate(child, rearrangedGates);
@@ -281,7 +287,7 @@
 
             let flag = false;
             for(const gate of gates)
-                if(!gate.measured) {
+                if(!gate.hidden && !gate.measured) {
                     flag = true;
                     break;
                 }
@@ -293,7 +299,10 @@
         return false;
     }
 
+    const rearrangedGates = new Map<string, GateNode>();
     async function rearrangeLayout() : Promise<void> {
+        rearrangedGates.clear();
+
         const graph = {
             id: 'root',
             layoutOptions: elkOptions,
@@ -305,11 +314,14 @@
             gates: layoutGraph.children!
         }));
 
-        const rearrangedGates: GateNode[] = [];
         for(const gate of layout.gates)
             layoutGate(gate, rearrangedGates);
 
-        gates = rearrangedGates;
+        gates = gates.map((node: GateNode) => {
+            const rearranged = rearrangedGates.get(node.id);
+            return rearranged ?? node;
+        });
+
         await fitView();
     }
 
@@ -326,21 +338,27 @@
         });
     }
 
-    async function enlargeGate(gateId: string) : Promise<void> {
+    async function expandGate(gateId: string) : Promise<void> {
         const target = gateMap.get(gateId);
         if(!target || target.type != "prefab")
             return;
 
         const data = target.data as PrefabGateData;
+        if(data.expanded)
+            return;
+
         data.expanded = true;
 
         gates = gates.map((node: GateNode) => {
             if(node.parentId == gateId)
             {
-                const newNode = {
+                const newNode: GateNode = {
                     ...node,
-                    hidden: false
+                    hidden: false,
+                    extent: 'parent',
                 }
+
+                console.log(node);
 
                 gateMap.set(node.id, newNode);
                 return newNode;
@@ -355,8 +373,9 @@
         if(proceed) {
             manageWires();
             await rearrangeLayout();
-        } else
+        } else {
             await resetGates();
+        }
     }
 
     async function resetGates() : Promise<void> {
@@ -387,23 +406,14 @@
         await waitForNodeDimensions();
 
         manageWires();
-        //await rearrangeLayout();
     }
 
-    function refocusHandler() {
-        assets.enableOptions();
-
-        resetGates();
-        focused = false;
+    async function refocusHandler() : Promise<void> {
+        await resetGates();
     }
 
-    function expandGateHandler(gateId: string) {
-        assets.disableOptions();
-
-        enlargeGate(gateId);
-        inspector.focusGate(gateId);
-
-        focused = true;
+    async function expandGateHandler(gateId: string) : Promise<void> {
+        await expandGate(gateId);
     }
 
     function maximiseGateHandler(gateId: string) {
@@ -414,9 +424,24 @@
         setCenter(node.position.x, node.position.y);
     }
 
+    function deleteGateHandler(gateId: string) : void {
+        const node = gateMap.get(gateId);
+        if(!node)
+            return;
+
+        gates = gates.map((node: GateNode) => {
+
+        });
+
+        gateMap.delete(node.id);
+        inspector.removeGate(node.id);
+
+        destroyGateCallback(node.id);
+    }
+
     function clearCircuitHandler() : void {
         for(const gate of gates)
-            destroyGateCallback(gate.id);
+            deleteGateHandler(gate.id);
 
         gates = [];
         wires = [];
@@ -490,13 +515,8 @@
         }
 
         const nodeCount = nodes.length;
-        for(let i = 0; i < nodeCount; i++) {
-            const node = nodes[i]
-            gateMap.delete(node.id);
-            inspector.removeGate(node.id);
-
-            destroyGateCallback(node.id);
-        }
+        for(let i = 0; i < nodeCount; i++)
+            deleteGateHandler(nodes[i].id);
     }
 </script>
 
@@ -534,17 +554,17 @@
 </style>
 
 <div class="w-screen h-screen z-0">
-    <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} {nodeTypes} {edgeTypes} fitView>
+    <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} connectionLineType={ConnectionLineType.Bezier} {nodeTypes} {edgeTypes} fitView>
         <Assets bind:this={assets}></Assets>
         <MiniMap bgColor="#1e1e1e" position="top-right"/>
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
         <Panel class="flex md:flex-row flex-col items-center max-w-1/4 gap-y-4 md:gap-x-4" position="bottom-left">
-            <Control action="Fit" fabIcon={faExpand} onclick={() => fitView().then()}></Control>
             <Control action="Program" fabIcon={faCode} disabled={true} onclick={() => { }}></Control>
             <Control action="Assistant" fabIcon={faRobot} disabled={true} onclick={() => { }}></Control>
             <Control action="Clear" fabIcon={faTrashCan} onclick={() => clearCircuitHandler()}></Control>
-            <Control action="Prefab" fabIcon={faCube} disabled={focused} onclick={() => generateCircuitDataHandler()}></Control>
             <Control action="Rearrange" fabIcon={faLayerGroup} onclick={() => rearrangeLayout()}></Control>
+            <Control action="Prefab" fabIcon={faCube} disabled={focused} onclick={() => generateCircuitDataHandler()}></Control>
+            <Control action="Fit" fabIcon={faExpand} onclick={() => fitView(fitOptions).then()}></Control>
         </Panel>
         <Inspector title="Scene" bind:this={inspector} refocusCallback={refocusHandler} expandCallback={expandGateHandler} maximiseCallback={maximiseGateHandler} />
     </SvelteFlow>

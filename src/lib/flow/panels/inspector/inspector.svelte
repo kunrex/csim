@@ -1,13 +1,12 @@
 <script lang="ts">
-    import {Panel, useNodesInitialized} from "@xyflow/svelte";
+    import { Panel } from "@xyflow/svelte";
 
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
     import { faCircleChevronLeft } from "@fortawesome/free-solid-svg-icons";
 
-    import {type GateNode, GateWrapper} from "$lib/flow/types";
+    import { type GateNode } from "$lib/flow/types";
     import { iconMap } from "$lib/flow/panels/inspector/utils";
-    import { InspectorData } from "$lib/flow/panels/inspector/inspector-data";
-    import InspectorElement from "$lib/flow/panels/inspector/inspector-element.svelte";
+    import InspectorElement, { type InspectorData } from "$lib/flow/panels/inspector/inspector-element.svelte";
 
     interface InspectorProps {
         title: string,
@@ -21,36 +20,37 @@
     let focused = $state(false);
     let gates: InspectorData[] = $state([]);
 
-    export function refocus() {
-        for(const data of gates)
-            data.focused = data.depth == 0;
-
-        focused = false;
-        refocusCallback();
-    }
-
     export function addGate(gate: GateNode) : void {
         if(gate.parentId) {
             const i = gates.findIndex(data => data.gate.id == gate.parentId);
             if(i >= 0) {
                 const copy = [...gates];
-                copy.splice(i + 1, 0, new InspectorData(gate, iconMap(gate.data.type), gates[i].depth + 1, false));
+                copy.splice(i + 1, 0, { gate: gate, fabIcon: iconMap(gate.data.type), depth: gates[i].depth + 1, maximizable: false });
                 gates = copy;
             }
         }
         else
-            gates = [...gates, new InspectorData(gate, iconMap(gate.data.type), 0, true)];
-    }
-
-    export function focusGate(gateId : string) : void {
-        for(const data of gates)
-            data.focused = data.gate.parentId === gateId;
-
-        focused = true;
+            gates = [...gates, { gate: gate, fabIcon: iconMap(gate.data.type), depth: 0, maximizable: true }];
     }
 
     export function removeGate(gateId : string) : void {
         gates = gates.filter(data => data.gate.id != gateId);
+    }
+
+    function refocus() {
+        for(const data of gates)
+            data.maximizable = data.depth == 0;
+
+        focused = false;
+        refocusCallback();
+    }
+
+    function expandGate(gateId : string) : void {
+        for(const data of gates)
+            data.maximizable = data.maximizable || (data.gate.parentId === gateId);
+
+        focused = true;
+        expandCallback(gateId);
     }
 </script>
 
@@ -65,7 +65,7 @@
     </div>
     <div class="flex flex-col min-h-72 w-full h-1/4 overflow-y-scroll overflow-x-scroll gap-y-1 pl-2">
         {#each gates as data}
-            <InspectorElement expandCallback={expandCallback} maximiseCallback={maximiseCallback} data={data} />
+            <InspectorElement expandCallback={expandGate} maximiseCallback={maximiseCallback} data={data} />
         {/each}
     </div>
 </Panel>

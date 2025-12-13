@@ -16,11 +16,12 @@ import {
     type PrefabGateData, type UnaryGateData
 } from "$lib/core";
 
+import { fa8, faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
+
 import { PrefabGate } from "$lib/core/gates/gates";
 import type { UpdateGateSignature } from "$lib/core/types";
 import {type CircuitBlueprint, ConnectionData, WirePool} from "$lib";
 import {GateWrapper, WireWrapper} from "$lib/flow/types";
-import {fa8, faClock, faCodeBranch, faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
 
 class GatePool {
     protected readonly gatePool: Gate[] = [];
@@ -95,8 +96,8 @@ class PrefabGatePool extends GatePool {
                         gateData.hideInput = true;
                         gateData.hideOutput = false;
 
-                        data.powerCount++;
                         data.bufferTypeMap.set(gate.id, "power");
+                        data.bufferPinMap.set(gate.id, `in-${++data.powerCount}`)
                     }
 
                     break;
@@ -110,8 +111,8 @@ class PrefabGatePool extends GatePool {
                         gateData.hideInput = true;
                         gateData.hideOutput = false;
 
-                        data.clockCount++;
-                        data.bufferTypeMap.set(gate.id, "power");
+                        data.bufferTypeMap.set(gate.id, "clock");
+                        data.bufferPinMap.set(gate.id, `clock-${++data.clockCount}`)
                     }
 
                     break;
@@ -125,8 +126,8 @@ class PrefabGatePool extends GatePool {
                         gateData.hideOutput = true;
                         gateData.hideInput = false;
 
-                        data.probeCount++;
-                        data.bufferTypeMap.set(gate.id, type);
+                        data.bufferTypeMap.set(gate.id, "probe");
+                        data.bufferPinMap.set(gate.id, `out-${++data.probeCount}`)
                     }
 
                     break;
@@ -145,8 +146,9 @@ class PrefabGatePool extends GatePool {
                             gateData.hideInput = false;
                             gateData.hideOutput = true;
 
-                            data.displayCount++;
-                            data.bufferTypeMap.set(buffer.id, type);
+                            data.bufferTypeMap.set(buffer.id, "display");
+                            data.bufferPinMap.set(buffer.id, `display-${++data.displayCount}`);
+
                             localGateMap.set(`${pair[0]}-in-${i}`, buffer);
                         }
                     }

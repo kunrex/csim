@@ -1,5 +1,7 @@
 <script lang="ts">
-    import {ModalData, promptPrefabModal} from "$lib/overlays/modals/modal";
+    import { fade } from 'svelte/transition';
+
+    import { promptPrefabModal } from "$lib/overlays/modals/modal";
     import { PromptPrefabResult } from "$lib/overlays/modals/results";
 
     interface PromptPrefabProps {
@@ -35,9 +37,9 @@
 </script>
 
 {#if modalState }
-    <div class="flex flex-row w-full h-full justify-center items-center z-50">
-        <div class="absolute inset-0 backdrop-blur-sm"></div>
-        <div class="min-w-96 w-1/3 fixed right-1/2 top-1/2 translate-x-1/2 -translate-y-1/2 py-4 text-white panel-background bg-black/40">
+    <div class="overlay">
+        <div class="overlay-backdrop" transition:fade={{ duration: 150 }}></div>
+        <div class="fixed right-1/2 top-1/2 translate-x-1/2 -translate-y-1/2 min-w-96 w-1/3 text-white panel-background bg-black/40" transition:fade={{ duration: 200 }}>
             <form class="flex flex-col gap-y-4 justify-center items-center p-4" onsubmit={submit}>
                 <div class="text-3xl text-center">
                     <b>Name Your Prefab!</b>
@@ -49,7 +51,7 @@
                     </button>
                     <div class="w-full text-lg font-extralight text-center">
                         {#if value.length === 0 }
-                            <div class="text-red-700">name cannot be empty</div>
+                            <div class="text-red-700">*name cannot be empty</div>
                         {:else if duplicateCheck(value)}
                             <div class="text-red-700">*gate already exists</div>
                         {:else}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Position, useNodesData } from "@xyflow/svelte";
+    import {Position, useNodesData, useUpdateNodeInternals} from "@xyflow/svelte";
 
     import type { PrefabGateData, UnaryGateData } from "$lib/core";
 
@@ -28,15 +28,15 @@
         <b>{ capitalise(data.type) }</b>
     </div>
     {#each powerBuffers as power, i}
-        <InputPin id={power.id} label={power.data.name} enabled={power.data.in1} connectable={connectable} style={`top: ${(100 / (powerBuffers.length + 1)) * (i + 1)}%;`} />
+        <InputPin id={data.bufferPinMap.get(power.id) ?? `in-${i + 1}`} label={power.data.name} enabled={power.data.in1} connectable={connectable} style={`top: ${(100 / (powerBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
     {#each clockBuffers as clock, i}
-        <InputPin id={clock.id} label={clock.data.name} enabled={clock.data.in1} position={Position.Top} connectable={connectable} style={`left: ${(100 / (clockBuffers.length + 1)) * (i + 1)}%;`} />
+        <InputPin id={data.bufferPinMap.get(clock.id) ?? `clock-${i + 1}`} label={clock.data.name} enabled={clock.data.in1} position={Position.Top} connectable={connectable} style={`left: ${(100 / (clockBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
     {#each probeBuffers as probe, i}
-        <OutputPin id={probe.id} label={probe.data.name} enabled={probe.data.out1} connectable={connectable} style={`top: ${(100 / (probeBuffers.length + 1)) * (i + 1)}%;`} />
+        <OutputPin id={data.bufferPinMap.get(probe.id) ?? `out-${i + 1}`} label={probe.data.name} enabled={probe.data.out1} connectable={connectable} style={`top: ${(100 / (probeBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
     {#each displayBuffers as display, i}
-        <OutputPin id={display.id} label={display.data.name} enabled={display.data.out1} position={Position.Bottom} connectable={connectable} style={`left: ${(100 / (displayBuffers.length + 1)) * (i + 1)}%;`} />
+        <OutputPin id={data.bufferPinMap.get(display.id) ?? `display-${i + 1}`} label={display.data.name} enabled={display.data.out1} position={Position.Bottom} connectable={connectable} style={`left: ${(100 / (displayBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
 </div>
