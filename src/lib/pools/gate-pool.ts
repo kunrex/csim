@@ -78,8 +78,7 @@ class PrefabGatePool extends GatePool {
                         gateData.hideInput = true;
                         gateData.hideOutput = false;
 
-                        data.bufferTypeMap.set(gate.id, "power");
-                        data.bufferPinMap.set(gate.id, `in-${++data.powerCount}`)
+                        data.bufferMap.set(gate.id, { type: "power", pin: `in-${++data.powerCount}`});
                     }
 
                     break;
@@ -93,8 +92,7 @@ class PrefabGatePool extends GatePool {
                         gateData.hideInput = true;
                         gateData.hideOutput = false;
 
-                        data.bufferTypeMap.set(gate.id, "clock");
-                        data.bufferPinMap.set(gate.id, `clock-${++data.clockCount}`)
+                        data.bufferMap.set(gate.id, { type: "clock", pin: `clock-${++data.clockCount}`});
                     }
 
                     break;
@@ -108,8 +106,7 @@ class PrefabGatePool extends GatePool {
                         gateData.hideOutput = true;
                         gateData.hideInput = false;
 
-                        data.bufferTypeMap.set(gate.id, "probe");
-                        data.bufferPinMap.set(gate.id, `out-${++data.probeCount}`)
+                        data.bufferMap.set(gate.id, { type: "probe", pin: `out-${++data.probeCount}`});
                     }
 
                     break;
@@ -128,9 +125,9 @@ class PrefabGatePool extends GatePool {
                             gateData.hideInput = false;
                             gateData.hideOutput = true;
 
-                            data.bufferTypeMap.set(buffer.id, "display");
-                            data.bufferPinMap.set(buffer.id, `display-${++data.displayCount}`);
+                            data.bufferMap.set(buffer.id, { type: "display", pin: `display-${++data.displayCount}`});
 
+                            base.children.push(buffer);
                             localGateMap.set(`${pair[0]}-in-${i}`, buffer);
                         }
                     }
@@ -178,7 +175,7 @@ class PrefabGatePool extends GatePool {
             base.connections.push(new WireWrapper(new ConnectionData(wire.id, sourceGate.id, targetGate.id, connection.sourceHandle, connection.targetHandle), wire.wireData));
 
             if(targetGate.gateType == "display") {
-                const targetBuffer = localGateMap.get(`${connection.source}-${connection.sourceHandle}`);
+                const targetBuffer = localGateMap.get(`${connection.target}-${connection.targetHandle}`);
                 if(!targetBuffer)
                     return;
 
@@ -187,7 +184,7 @@ class PrefabGatePool extends GatePool {
                     return;
 
                 const bufferWire = await WirePool.instance.createWire(sourcePin, targetBufferGate.getPin("in-1")!);
-                base.connections.push(new WireWrapper(new ConnectionData(bufferWire.id, sourceGate.id, targetBufferGate.id, connection.sourceHandle, "in-1"), wire.wireData));
+                base.connections.push(new WireWrapper(new ConnectionData(bufferWire.id, sourceGate.id, targetBufferGate.id, connection.sourceHandle, "in-1"), bufferWire.wireData));
             }
         }
     }

@@ -3,10 +3,15 @@
     import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
     import { faExpand, faMaximize } from "@fortawesome/free-solid-svg-icons";
 
-    import type { GateNode } from "$lib/flow/types";
-
     export interface InspectorData {
-        gate: GateNode,
+        id: string,
+        parentId?: string,
+
+        isPrefab: boolean,
+        initialName: string,
+
+        selected: boolean,
+
         depth: number,
         maximizable: boolean,
         fabIcon: IconDefinition
@@ -15,21 +20,28 @@
     interface InspectorElementProps {
         data: InspectorData,
         expandCallback: (gateId: string) => void,
-        maximiseCallback: (gateId: string) => void
+        maximiseCallback: (gateId: string) => void,
+        renameGateCallback: (gateId: string, name: string) => void
     }
 
-    let { data, expandCallback, maximiseCallback } : InspectorElementProps = $props();
+    let { data, expandCallback, maximiseCallback, renameGateCallback } : InspectorElementProps = $props();
 
-    let value = $state(data.gate.data.name);
+    let value = $state(data.initialName);
+
+    function rename() : void {
+        renameGateCallback(data.id, value);
+    }
 </script>
 
-<div class="flex flex-row items-center gap-2" style={`margin-left: ${data.depth * 25}px;`}>
-    <FontAwesomeIcon icon={data.fabIcon} />
-    <input class="input-clean w-full" type="text" size="16" minlength="0" maxlength="16" bind:value={value}>
-    <button class="inspector-utility-button" onclick={() => expandCallback(data.gate.id)} disabled={!data.maximizable || data.gate.type !== "prefab"}>
-        <FontAwesomeIcon icon={faExpand} />
-    </button>
-    <button class="inspector-utility-button" onclick={() => maximiseCallback(data.gate.id)} disabled={!data.maximizable}>
-        <FontAwesomeIcon icon={faMaximize} />
-    </button>
-</div>
+{#if data.maximizable }
+    <div class="inspector-element" style={`margin-left: ${data.depth * 25}px;`} class:selected={data.selected}>
+        <FontAwesomeIcon icon={data.fabIcon} />
+        <input class="input-clean w-full" type="text" size="16" minlength="0" maxlength="16" bind:value={value} onchange={rename}>
+        <button class="inspector-utility-button" onclick={() => expandCallback(data.id)} disabled={!data.maximizable || !data.isPrefab}>
+            <FontAwesomeIcon icon={faExpand} />
+        </button>
+        <button class="inspector-utility-button" onclick={() => maximiseCallback(data.id)} disabled={!data.maximizable}>
+            <FontAwesomeIcon icon={faMaximize} />
+        </button>
+    </div>
+{/if}

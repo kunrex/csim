@@ -1,8 +1,7 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { promptPrefabModal } from "$lib/overlays/modals/modal";
-    import { PromptPrefabResult } from "$lib/overlays/modals/results";
+    import { prefabOverlay } from "$lib/overlays/states";
 
     interface PromptPrefabProps {
         duplicateCheck: (value: string) => boolean;
@@ -10,7 +9,7 @@
 
     let { duplicateCheck }: PromptPrefabProps = $props();
 
-    const writableState = promptPrefabModal.state;
+    const writableState = prefabOverlay.state;
     const modalState = $derived($writableState);
 
     let value = $state("");
@@ -21,8 +20,8 @@
         if(!modalState || disabled)
             return;
 
-        modalState.resolve(new PromptPrefabResult(true, value));
-        promptPrefabModal.close();
+        modalState.resolve({ result: true, value: value });
+        prefabOverlay.close();
         value = "";
     }
 
@@ -30,8 +29,8 @@
         if(!modalState)
             return;
 
-        modalState.resolve(new PromptPrefabResult(false, value));
-        promptPrefabModal.close();
+        modalState.resolve({ result: false, value: value });
+        prefabOverlay.close();
         value = "";
     }
 </script>

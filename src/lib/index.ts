@@ -10,5 +10,5 @@ export type { GateData };
 import { WirePool, MasterGatePool } from "$lib/pools";
 export { WirePool, MasterGatePool };
 
-import { promptPrefabModal, PromptPrefabModal } from "$lib/overlays";
-export { promptPrefabModal, PromptPrefabModal };
+import { loadingOverlay, LoadingOverlay, loopGuardOverlay, LoopGuardOverlay, messageOverlay, MessageOverlay, prefabOverlay, PrefabNameOverlay } from "$lib/overlays";
+export { loadingOverlay, LoadingOverlay, loopGuardOverlay, LoopGuardOverlay, messageOverlay, MessageOverlay, prefabOverlay, PrefabNameOverlay };

@@ -63,6 +63,8 @@ export interface PrefabGateData extends GateData {
     clockCount: number,
     displayCount: number,
 
-    bufferPinMap: Map<string, string>,
-    bufferTypeMap: Map<string, "power" | "clock" | "probe" | "display">,
+    minimumWidth?: number,
+    minimumHeight?: number,
+
+    bufferMap: Map<string, { type: "power" | "clock" | "probe" | "display", pin: string }>
 }

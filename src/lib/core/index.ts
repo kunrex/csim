@@ -4,8 +4,8 @@ export { Pin };
 import { Wire } from "$lib/core/wire";
 export { Wire };
 
-import { masterTick } from "$lib/core/cycles";
-export { masterTick };
+import { masterTick, minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, LoopGuard } from "$lib/core/cycles";
+export { masterTick, minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, LoopGuard };
 
 import { type Gate, NotGate, OrGate, NorGate, AndGate, NandGate, XorGate, XNorGate, PowerGate, ClockGate, ProbeGate, SevenSegmentDisplay, BufferGate, PrefabGate } from "$lib/core/gates";
 export { type Gate, NotGate, OrGate, NorGate, AndGate, NandGate, XorGate, XNorGate, PowerGate, ClockGate, ProbeGate, SevenSegmentDisplay, BufferGate, PrefabGate };

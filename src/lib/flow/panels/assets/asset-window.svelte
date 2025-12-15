@@ -13,7 +13,7 @@
     const allPrefabTypes: string[] = [];
     let displayedPrefabTypes: string[] = $state([]);
 
-    export function addPrefabOption(prefab: GateType): void {
+    export function addPrefabType(prefab: GateType): void {
         allPrefabTypes.push(prefab);
         displayedPrefabTypes = [...displayedPrefabTypes, prefab];
     }

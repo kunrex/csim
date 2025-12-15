@@ -92,12 +92,8 @@
         @apply flex items-center justify-center border rounded-md border-solid border-slate-600 text-white;
     }
 
-    .core-gate.selected, .icon-core-gate.selected, .prefab-gate.selected, .seven-segment-display.selected {
-        @apply border-2 rounded-md;
-    }
-
-    .core-gate.dragging, .icon-core-gate.dragging, .prefab-gate.dragging, .seven-segment-display.dragging {
-        @apply opacity-60;
+    .core-gate:active, .icon-core-gate:active, .prefab-gate:active, .seven-segment-display:active {
+        @apply cursor-move opacity-60;
     }
 
     .icon-core-gate {
@@ -117,7 +113,11 @@
     }
 
     .instantiate-gate-button:hover {
-        @apply cursor-pointer opacity-80;
+        @apply cursor-grab opacity-80;
+    }
+
+    .instantiate-gate-button:active {
+        @apply cursor-move;
     }
 
     .vertical-segment {
@@ -169,11 +169,19 @@
         @apply bg-gray-900;
     }
 
-    .inspector-element, .input-clean, .inspector-utility-button {
+    .inspector-element {
+        @apply flex flex-row items-center gap-2 p-0.5 pl-1;
+    }
+
+    .inspector-element.selected {
+        @apply bg-gray-700 rounded-md;
+    }
+
+    .input-clean, .inspector-utility-button {
         @apply text-gray-400 font-extralight;
     }
 
-    .inspector-element:hover, .input-clean:hover, .inspector-utility-button:hover {
+    .input-clean:hover, .inspector-utility-button:hover {
         @apply text-gray-500;
     }
 
@@ -182,7 +190,7 @@
     }
 
     .inspector-utility-button:disabled {
-        @apply text-gray-700 cursor-not-allowed;
+        @apply text-gray-600 cursor-not-allowed;
     }
 
     .utility-button {
@@ -207,6 +215,10 @@
 
     .asset-button:hover {
         @apply bg-slate-600;
+    }
+
+    .asset-button:active {
+        @apply bg-slate-300;
     }
 
     .asset-button.selected {

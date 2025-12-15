@@ -1,4 +1,5 @@
 import { type Gate } from "$lib/core/gates";
+import {loopGuardOverlay, messageOverlay} from "$lib";
 
 export const minToggleLimit = 10, maxToggleLimit = 100;
 export const minDeltaLimit = 1000, maxDeltaLimit = 10000;
@@ -13,7 +14,7 @@ export class LoopGuard {
     private static deltaLimit: number = minDeltaLimit;
     private static toggleLimit: number = minToggleLimit;
 
-    public static getDeltaLimit(limit: number): number {
+    public static getDeltaLimit(): number {
         return this.deltaLimit;
     }
 
@@ -21,7 +22,7 @@ export class LoopGuard {
         LoopGuard.deltaLimit = clamp(limit, minDeltaLimit, maxDeltaLimit);
     }
 
-    public static getToggleLimit(limit: number): number {
+    public static getToggleLimit(): number {
         return this.toggleLimit;
     }
 
@@ -42,6 +43,7 @@ export class LoopGuard {
     public logGateUpdate(gate: Gate): boolean {
         if(++this.delta >= LoopGuard.deltaLimit) {
             this.resetCycle();
+            messageOverlay.open({ title: "Delta Limit Crossed", message: `Delta limit crossed while calculating the state for the current cycle... possible combinational circuit detected.`});
             return false;
         }
 
@@ -53,6 +55,7 @@ export class LoopGuard {
 
         if(count + 1 >= LoopGuard.toggleLimit) {
             this.resetCycle();
+            messageOverlay.open({ title: "Toggle Limit Crossed", message: `Toggle limit crossed while calculating the state for the current cycle... possible combinational circuit detected.`});
             return false;
         }
 

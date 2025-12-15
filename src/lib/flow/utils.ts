@@ -14,7 +14,7 @@ export function isSegmentOn(digit: number, segment: string) : boolean {
     return !!((sevenSegmentBits[digit] >> segments.indexOf(segment)) & 1);
 }
 
-export function constructElkGraph(gates: GateNode[]) : ElkNode[] {
+export function constructElkGraph(gates: GateNode[], parentOptions: LayoutOptions) : ElkNode[] {
     const nodeMap = new Map<string, ElkNode>();
 
     const baseNodes: ElkNode[] = [];
@@ -40,6 +40,7 @@ export function constructElkGraph(gates: GateNode[]) : ElkNode[] {
             parent.children!.push(node);
             if (!parent.layoutOptions)
                 parent.layoutOptions = {
+                    ...parentOptions,
                     "elk.nodeSize.constraints": "CHILDREN",
                     "elk.padding": "[left=20, right=20, top=20, bottom=20]"
                 }

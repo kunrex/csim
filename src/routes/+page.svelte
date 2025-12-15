@@ -9,15 +9,18 @@
         MasterGatePool,
         WirePool,
         type CircuitBlueprint,
-        promptPrefabModal,
-        PromptPrefabModal,
+        prefabOverlay,
+        PrefabNameOverlay,
         masterTick,
         Pin,
         CreateGateData,
         CreateGateCallback,
         WireWrapper,
-        type GateType
+        type GateType,
+        loadingOverlay,
+        LoadingOverlay, messageOverlay, LoopGuardOverlay, loopGuardOverlay, MessageOverlay
     } from "$lib";
+    import {LoopGuard, maxDeltaLimit, maxToggleLimit, minDeltaLimit, minToggleLimit} from "$lib/core/cycles";
 
     let flow: Flow;
 
@@ -69,12 +72,12 @@
     }
 
     async function onCreatePrefab(circuitData: CircuitBlueprint) : Promise<void> {
-        const result = await promptPrefabModal.open();
+        const result = await prefabOverlay.open();
         if(!result.result)
             return;
 
         MasterGatePool.instance.addGateType(result.value, circuitData);
-        flow.addPrefabOption(result.value);
+        flow.addPrefabType(result.value);
     }
 
     function duplicatePrefabCheck(type: GateType) : boolean {
@@ -82,13 +85,19 @@
     }
 
     let initialised = false;
+    loadingOverlay.open("Initialising Engine...");
+
     $effect(() => {
         if (!initialised && flow) {
-            initialised = true;
-            requestAnimationFrame(masterTick);
+            new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+                initialised = true;
+                requestAnimationFrame(masterTick);
 
-            WirePool.initInstance(flow.updateWireData);
-            MasterGatePool.initInstance(flow.updateGateData);
+                WirePool.initInstance(flow.updateWireData);
+                MasterGatePool.initInstance(flow.updateGateData);
+
+                loadingOverlay.close();
+            });
         }
     });
 </script>
@@ -97,4 +106,7 @@
         <Flow bind:this={flow} connectionCallback={onConnection} disconnectionCallback={onDisconnection} createGateCallback={onCreateGate} destroyGateCallback={onDeleteGate} prefabCreationCallback={onCreatePrefab}/>
     </DragDrop>
 </SvelteFlowProvider>
-<PromptPrefabModal duplicateCheck={duplicatePrefabCheck}></PromptPrefabModal>
+<PrefabNameOverlay duplicateCheck={duplicatePrefabCheck}></PrefabNameOverlay>
+<LoopGuardOverlay></LoopGuardOverlay>
+<MessageOverlay></MessageOverlay>
+<LoadingOverlay></LoadingOverlay>
