@@ -13,7 +13,7 @@
     const connectable = !(!!parentId);
 </script>
 
-<button onclick={toggle} class={`icon-core-gate color-${data.type}`} class:dragging class:selected>
+<button onclick={toggle} class={`icon-core-gate color-${data.type.name}`} class:dragging class:selected class:output={true}>
     <b><FontAwesomeIcon icon={icon} /></b>
     <OutputPin id="out-1" label="out-1" enabled={data.out1} connectable={connectable} />
 </button>

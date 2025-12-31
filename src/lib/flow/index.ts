@@ -1,5 +1,5 @@
-import { type GateNodeType, type CircuitBlueprint, ConnectionData, type CoreConnectionData, CreateGateData, CreateGateCallback, GateWrapper, WireWrapper } from "$lib/flow/types";
-export { type GateNodeType, type CircuitBlueprint, ConnectionData, type CoreConnectionData, CreateGateData, CreateGateCallback, GateWrapper, WireWrapper };
+import type { GateNodeType, AnonymousConnection, IdentifiedConnection, GateCreationParams, GateCreationCallbackParams, GateModel, WireModel, CircuitModel } from "$lib/flow/types";
+export type { GateNodeType, AnonymousConnection, IdentifiedConnection, GateCreationParams, GateCreationCallbackParams, GateModel, WireModel, CircuitModel };
 
 import { DragDrop } from "$lib/flow/drag-drop";
 export { DragDrop };

@@ -7,7 +7,7 @@
 
     let { data, dragging, selected, parentId } : GateProps<BinaryGateData> = $props();
 
-    const type = data.type;
+    const type = data.type.name;
     const connectable = !(!!parentId);
 </script>
 

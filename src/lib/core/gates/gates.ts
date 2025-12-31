@@ -1,16 +1,27 @@
 import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
+import { MasterGatePool } from "$lib/pools";
 import { type GateNodeType } from "$lib/flow";
 
-import { Pin, InputPin } from "$lib/core/pin";
-import type { GateType, UpdateGateSignature } from "$lib/core/types";
-import { LoopGuard, masterState, registerClock } from "$lib/core/cycles";
-import type { PrefabGateData, SevenSegmentGateData } from "$lib/core/types/gate-data";
-import { BaseGate, BinaryGate, InputGate, OutputGate, UnaryGate } from "$lib/core/gates/gate";
-import {MasterGatePool} from "$lib";
+import {InputPin, OutputPin, Pin} from "$lib/core/pins";
+import {fromBoolean, invert, propagateState, TriState} from "$lib/core/tri-state";
+
+import {
+    AndGateType, BufferGateType, ClockGateType, DisplayGateType,
+    type GateType,
+    NandGateType,
+    NorGateType,
+    NotGateType,
+    OrGateType, PowerGateType, ProbeGateType, UndefinedGateType, XnorGateType,
+    XorGateType
+} from "$lib/core/gates/types";
+import { BaseGate, type UpdateGateSignature } from "$lib/core/gates/base";
+import { CycleGuard, masterState, registerClock } from "$lib/core/runtime";
+import { BinaryGate, InputGate, OutputGate, UnaryGate } from "$lib/core/gates/core";
+import type { PrefabGateData, SevenSegmentGateData } from "$lib/core/gates/data";
 
 export class NotGate extends UnaryGate {
-    public readonly gateType: GateType = "not";
+    public readonly gateType: GateType = NotGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -19,7 +30,7 @@ export class NotGate extends UnaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = !this.in.enabled();
+        this.next = invert[this.in.getState()];
 
         return Promise.resolve();
     }
@@ -30,7 +41,7 @@ export class NotGate extends UnaryGate {
 }
 
 export class AndGate extends BinaryGate {
-    public readonly gateType: GateType = "and";
+    public readonly gateType: GateType = AndGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -39,7 +50,13 @@ export class AndGate extends BinaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = this.in1.enabled() && this.in2.enabled();
+        const in1 = this.in1.getState();
+        const in2 = this.in2.getState();
+
+        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+            this.next = TriState.Unknown;
+        else
+            this.next = fromBoolean(in1 == TriState.High && in2 == TriState.High);
 
         return Promise.resolve();
     }
@@ -50,7 +67,7 @@ export class AndGate extends BinaryGate {
 }
 
 export class NandGate extends BinaryGate {
-    public readonly gateType: GateType = "nand";
+    public readonly gateType: GateType = NandGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -59,7 +76,13 @@ export class NandGate extends BinaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = !(this.in1.enabled() && this.in2.enabled());
+        const in1 = this.in1.getState();
+        const in2 = this.in2.getState();
+
+        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+            this.next = TriState.Unknown;
+        else
+            this.next = fromBoolean(!(in1 == TriState.High && in2 == TriState.High));
 
         return Promise.resolve();
     }
@@ -70,7 +93,7 @@ export class NandGate extends BinaryGate {
 }
 
 export class OrGate extends BinaryGate {
-    public readonly gateType: GateType = "or";
+    public readonly gateType: GateType = OrGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -79,7 +102,13 @@ export class OrGate extends BinaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = this.in1.enabled() || this.in2.enabled();
+        const in1 = this.in1.getState();
+        const in2 = this.in2.getState();
+
+        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+            this.next = TriState.Unknown;
+        else
+            this.next = fromBoolean(in1 == TriState.High || in2 == TriState.High);
 
         return Promise.resolve();
     }
@@ -90,7 +119,7 @@ export class OrGate extends BinaryGate {
 }
 
 export class NorGate extends BinaryGate {
-    public readonly gateType: GateType = "nor";
+    public readonly gateType: GateType = NorGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -99,7 +128,13 @@ export class NorGate extends BinaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = !(this.in1.enabled() || this.in2.enabled());
+        const in1 = this.in1.getState();
+        const in2 = this.in2.getState();
+
+        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+            this.next = TriState.Unknown;
+        else
+            this.next = fromBoolean(!(in1 == TriState.High || in2 == TriState.High));
 
         return Promise.resolve();
     }
@@ -110,7 +145,7 @@ export class NorGate extends BinaryGate {
 }
 
 export class XorGate extends BinaryGate {
-    public readonly gateType: GateType = "xor";
+    public readonly gateType: GateType = XorGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -119,7 +154,13 @@ export class XorGate extends BinaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = this.in1.enabled() !== this.in2.enabled();
+        const in1 = this.in1.getState();
+        const in2 = this.in2.getState();
+
+        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+            this.next = TriState.Unknown;
+        else
+            this.next = fromBoolean(in1 != in2);
 
         return Promise.resolve();
     }
@@ -130,7 +171,7 @@ export class XorGate extends BinaryGate {
 }
 
 export class XNorGate extends BinaryGate {
-    public readonly gateType: GateType = "xnor";
+    public readonly gateType: GateType = XnorGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -139,7 +180,13 @@ export class XNorGate extends BinaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = this.in1.enabled() == this.in2.enabled();
+        const in1 = this.in1.getState();
+        const in2 = this.in2.getState();
+
+        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+            this.next = TriState.Unknown;
+        else
+            this.next = fromBoolean(in1 == in2);
 
         return Promise.resolve();
     }
@@ -150,18 +197,20 @@ export class XNorGate extends BinaryGate {
 }
 
 export class PowerGate extends OutputGate {
-    public readonly gateType: GateType = "power";
+    public readonly gateType: GateType = PowerGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
         this.gateData.icon = faPowerOff;
         this.gateData.type = this.gateType;
         this.gateData.toggle = () => this.calculateState();
+
+        this.state = TriState.Low;
     }
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = !this.state;
+        this.next = fromBoolean(!this.state);
 
         return Promise.resolve();
     }
@@ -170,21 +219,24 @@ export class PowerGate extends OutputGate {
         if(this.state == this.next)
             return;
 
-        LoopGuard.instance.resetCycle();
+        CycleGuard.instance.resetCycle();
         this.state = this.next;
 
-        if(this.state)
-            await this.out.enable();
-        else
-            await this.out.disable();
+        if(this.state == TriState.High) {
+            await this.out.propagateHigh();
+            this.gateData.out1 = true;
+        }
+        else {
+            await this.out.propagateLow();
+            this.gateData.out1 = false;
+        }
 
-        this.gateData.out1 = this.out.enabled();
         this.syncGateData();
     }
 }
 
 export class ProbeGate extends InputGate {
-    public readonly gateType: GateType = "probe";
+    public readonly gateType: GateType = ProbeGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -205,7 +257,7 @@ export class ProbeGate extends InputGate {
 export class ClockGate extends OutputGate {
     private enabled: boolean = false;
 
-    public readonly gateType: GateType = "clock";
+    public readonly gateType: GateType = ClockGateType;
 
     public constructor(id: string, onUpdateFunction: UpdateGateSignature) {
         super(id, onUpdateFunction);
@@ -214,11 +266,12 @@ export class ClockGate extends OutputGate {
         this.gateData.toggle = () => this.toggleClock();
 
         registerClock(this);
+        this.state = TriState.Low;
     }
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = !this.next;
+        this.next = fromBoolean(!this.next);
 
         return Promise.resolve();
     }
@@ -230,18 +283,19 @@ export class ClockGate extends OutputGate {
 
     public async toggleClock(): Promise<void> {
         if(this.enabled) {
-            this.next = false;
             this.enabled = false;
+            this.next = TriState.Low;
+
             await this.onPropagateSyncState();
         } else {
-            this.next = masterState();
+            this.next = fromBoolean(masterState());
             this.enabled = true;
         }
     }
 }
 
 export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
-    public readonly gateType: GateType = "display";
+    public readonly gateType: GateType = DisplayGateType;
     public readonly nodeType: GateNodeType = "display";
 
     private readonly in1 = new InputPin("in-1", this);
@@ -250,10 +304,16 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
     private readonly in4 = new InputPin("in-4", this);
     private readonly in5 = new InputPin("in-5", this);
 
+    private readonly out1 = new OutputPin("out-1");
+    private readonly out2 = new OutputPin("out-2");
+    private readonly out3 = new OutputPin("out-3");
+    private readonly out4 = new OutputPin("out-4");
+    private readonly out5 = new OutputPin("out-5");
+
     constructor(id: string, private readonly onUpdateFunction: UpdateGateSignature) {
         super(id, {
             name: "",
-            type: "",
+            type: UndefinedGateType,
             icon: undefined,
 
             in1: false,
@@ -285,20 +345,24 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
     }
 
     public async onCalculateState(): Promise<void> {
-        this.gateData.in1 = this.in1.enabled();
-        this.gateData.in2 = this.in2.enabled();
-        this.gateData.in3 = this.in3.enabled();
-        this.gateData.in4 = this.in4.enabled();
-        this.gateData.in5 = this.in5.enabled();
+        const in1 = this.gateData.in1 = this.in1.getState() == TriState.High;
+        const in2 = this.gateData.in2 = this.in2.getState() == TriState.High;
+        const in3 = this.gateData.in3 = this.in3.getState() == TriState.High;
+        const in4 = this.gateData.in4 = this.in4.getState() == TriState.High;
+        this.gateData.in5 = this.in5.getState() == TriState.High;
 
-        this.gateData["value"] =  +this.in1.enabled() + (+this.in2.enabled() << 1) + (+this.in3.enabled() << 2) + (+this.in4.enabled() << 3);
+        this.gateData["value"] =  +in1 + (+in2 << 1) + (+in3 << 2) + (+in4 << 3);
 
         this.syncGateData();
         return Promise.resolve();
     }
 
-    public propagateState(): Promise<void> {
-        return Promise.resolve();
+    protected async propagateState(): Promise<void> {
+        await propagateState(this.in1, this.out1);
+        await propagateState(this.in2, this.out2);
+        await propagateState(this.in3, this.out3);
+        await propagateState(this.in4, this.out4);
+        await propagateState(this.in5, this.out5);
     }
 
     public getPin(id: string): Pin | null {
@@ -320,7 +384,7 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
 }
 
 export class BufferGate extends UnaryGate {
-    public readonly gateType: GateType = "buffer";
+    public readonly gateType: GateType = BufferGateType;
 
     public constructor(id: string, updateFunction: UpdateGateSignature) {
         super(id, updateFunction);
@@ -329,7 +393,7 @@ export class BufferGate extends UnaryGate {
 
     public async onCalculateState(): Promise<void> {
         this.onCalculateSyncState();
-        this.next = this.in.enabled();
+        this.next = this.in.getState();
 
         return Promise.resolve();
     }
@@ -340,13 +404,13 @@ export class BufferGate extends UnaryGate {
 }
 
 export class PrefabGate extends BaseGate<PrefabGateData> {
-    public readonly gateType: GateType;
+    public gateType: GateType = UndefinedGateType;
     public readonly nodeType: GateNodeType = "prefab";
 
-    public constructor(id: string, gateType: GateType, private readonly onUpdateFunction: UpdateGateSignature) {
+    public constructor(id: string, private readonly onUpdateFunction: UpdateGateSignature) {
         super(id, {
             name: "",
-            type: "",
+            type: UndefinedGateType,
             icon: undefined,
 
             powerCount: 0,
@@ -357,8 +421,8 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
             expanded: false,
 
             bufferMap: new Map(),
+            displaySet: new Set()
         });
-        this.gateType = this.gateData.type = gateType;
     }
 
     protected onSyncGateData() : void {
@@ -375,9 +439,13 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
     }
 
     protected async onResetState() : Promise<void> {
+        this.gateData.type = UndefinedGateType;
+        this.gateData.icon = undefined;
+
         this.gateData.expanded = false;
 
         this.gateData.bufferMap.clear();
+        this.gateData.displaySet.clear();
         this.gateData.powerCount = this.gateData.probeCount = this.gateData.clockCount = this.gateData.displayCount = 0;
     }
 
@@ -393,7 +461,6 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
                     case "clock":
                         return gate.getPin("in-1");
                     case "probe":
-                    case "display":
                         return gate.getPin("out-1");
                     default:
                         return null;

@@ -1,21 +1,22 @@
 <script lang="ts">
-    import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
+    import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
     import type { GateType } from "$lib/core";
 
     import { capitalise } from "$lib/flow/utils.js";
-    import { useDragDrop}  from "$lib/flow/drag-drop";
+    import { dragDropProvider}  from "$lib/flow/drag-drop";
 
     interface InstantiateGateButtonProps {
-        color: string,
         type: GateType,
+
+        color: string,
         fabIcon?: IconDefinition
     }
 
-    let { color, type, fabIcon } : InstantiateGateButtonProps = $props();
+    let { type, color, fabIcon = undefined } : InstantiateGateButtonProps = $props();
 
-    const dragDropType = useDragDrop();
+    const dragDropType = dragDropProvider();
     function onDragStart(event: DragEvent) : void {
         if(!event.dataTransfer)
             return;
@@ -29,6 +30,6 @@
     {#if fabIcon}
         <FontAwesomeIcon icon={fabIcon}/>
     {:else}
-        <b>{ capitalise(type) }</b>
+        <b>{ capitalise(type.name) }</b>
     {/if}
 </div>

@@ -1,19 +1,51 @@
-import { fa8, faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
+import { PrefabCircuit } from "$lib/circuits";
+import type { GateModel } from "$lib/flow";
+import {
+    type Gate,
+    type GateType,
+    NotGate,
+    OrGate,
+    NorGate,
+    AndGate,
+    NandGate,
+    XorGate,
+    XNorGate,
+    PowerGate,
+    ClockGate,
+    ProbeGate,
+    SevenSegmentDisplay,
+    BufferGate,
+    PrefabGate,
+    type UpdateGateSignature,
+    NotGateType,
+    OrGateType,
+    NorGateType,
+    AndGateType,
+    NandGateType,
+    XorGateType,
+    XnorGateType,
+    ProbeGateType,
+    PowerGateType, ClockGateType, BufferGateType, DisplayGateType
+} from "$lib/core";
 
-import { ConnectionData, type CircuitBlueprint, GateWrapper, WireWrapper } from "$lib/flow";
-import { type Gate, NotGate, OrGate, NorGate, AndGate, NandGate, XorGate, XNorGate, PowerGate, ClockGate, ProbeGate, SevenSegmentDisplay, BufferGate, PrefabGate, type GateType, type UnaryGateData, type PrefabGateData, type UpdateGateSignature } from "$lib/core";
 
-import { WirePool } from "$lib/pools/wire-pool";
+interface IGatePool {
+    createGate() : Promise<GateModel>;
+    deleteGate(gateId: string) : Promise<void>;
+}
 
-class GatePool {
+class GatePool implements IGatePool {
     protected readonly gatePool: Gate[] = [];
     protected readonly gates = new Map<string, Gate>();
 
     public constructor(private readonly instantiateFunction: () => Gate) { }
 
-    public async createGate() : Promise<GateWrapper> {
+    public async createGate() : Promise<GateModel> {
         const gate = (await this.tryReuseGate()) ?? await this.instantiateGate();
-        return Promise.resolve(new GateWrapper(gate.id, gate.nodeType, gate.gateData));
+        return Promise.resolve({
+            id: gate.id,
+            nodeType: gate.nodeType,
+            gateData: gate.gateData } satisfies GateModel);
     }
 
     public async deleteGate(gateId: string) : Promise<void> {
@@ -45,194 +77,87 @@ class GatePool {
     }
 }
 
-class PrefabGatePool extends GatePool {
-    public constructor(private readonly blueprint: CircuitBlueprint, instantiateFunction: () => Gate) {
+class MasterPrefabGatePool extends GatePool {
+    public static instance: MasterPrefabGatePool;
+    public static initInstance(instantiateFunction: () => Gate) {
+        MasterPrefabGatePool.instance = MasterPrefabGatePool.instance ?? new MasterPrefabGatePool(instantiateFunction);
+    }
+
+    private constructor(instantiateFunction: () => Gate) {
         super(instantiateFunction);
     }
+}
+
+class PrefabGatePool implements IGatePool {
+    public constructor(public readonly circuit: PrefabCircuit) { }
     
-    public async createGate(): Promise<GateWrapper> {
-        const base = await super.createGate();
-        const data = base.gateData as PrefabGateData;
-        
-        const localGateMap = await this.createChildGates(base, data);
-        await this.createChildConnections(base, localGateMap);
+    public async createGate(): Promise<GateModel> {
+        const base = await MasterPrefabGatePool.instance.createGate();
+        const gate = MasterGatePool.instance.getGate(base.id);
+
+        if(gate && gate.nodeType == "prefab") {
+            const prefabGate = gate as PrefabGate;
+            prefabGate.gateType = base.gateData.type = this.circuit.type;
+
+            await this.circuit.instantiatePrefab(base);
+        }
 
         return base;
     }
 
-    private async createChildGates(base: GateWrapper, data: PrefabGateData) : Promise<Map<string, GateWrapper>> {
-        base.children = [];
-        const localGateMap = new Map<string, GateWrapper>();
-
-        for(const pair of this.blueprint.gates) {
-            const type = pair[1].type;
-
-            let gate: GateWrapper | null;
-            switch (type) {
-                case "power": {
-                    gate = await MasterGatePool.instance.createGate("buffer");
-                    if(gate) {
-                        const gateData = gate.gateData as UnaryGateData;
-
-                        gateData.icon = faPowerOff;
-                        gateData.hideInput = true;
-                        gateData.hideOutput = false;
-
-                        data.bufferMap.set(gate.id, { type: "power", pin: `in-${++data.powerCount}`});
-                    }
-
-                    break;
-                }
-                case "clock": {
-                    gate = await MasterGatePool.instance.createGate("buffer");
-                    if(gate) {
-                        const gateData = gate.gateData as UnaryGateData;
-
-                        gateData.icon = faClock;
-                        gateData.hideInput = true;
-                        gateData.hideOutput = false;
-
-                        data.bufferMap.set(gate.id, { type: "clock", pin: `clock-${++data.clockCount}`});
-                    }
-
-                    break;
-                }
-                case "probe": {
-                    gate = await MasterGatePool.instance.createGate("buffer");
-                    if(gate) {
-                        const gateData = gate.gateData as UnaryGateData;
-
-                        gateData.icon = faLightbulb;
-                        gateData.hideOutput = true;
-                        gateData.hideInput = false;
-
-                        data.bufferMap.set(gate.id, { type: "probe", pin: `out-${++data.probeCount}`});
-                    }
-
-                    break;
-                }
-                case "display": {
-                    gate = await MasterGatePool.instance.createGate("display");
-                    if(!gate)
-                        break;
-
-                    for(let i = 1; i <= 5; i++) {
-                        const buffer = await MasterGatePool.instance.createGate("buffer");
-                        if(buffer) {
-                            const gateData = gate.gateData as UnaryGateData;
-
-                            gateData.icon = fa8;
-                            gateData.hideInput = false;
-                            gateData.hideOutput = true;
-
-                            data.bufferMap.set(buffer.id, { type: "display", pin: `display-${++data.displayCount}`});
-
-                            base.children.push(buffer);
-                            localGateMap.set(`${pair[0]}-in-${i}`, buffer);
-                        }
-                    }
-
-                    break;
-                }
-                default:
-                    gate = await MasterGatePool.instance.createGate(type);
-                    break;
-            }
-
-            if(gate) {
-                gate.gateData.name = pair[1].name;
-
-                base.children.push(gate);
-                localGateMap.set(pair[0], gate);
-            }
-        }
-
-        return localGateMap;
-    }
-
-    private async createChildConnections(base: GateWrapper, localGateMap: Map<string, GateWrapper>) : Promise<void> {
-        base.connections = [];
-        for(const connection of this.blueprint.connections) {
-            const source = localGateMap.get(connection.source);
-            const target = localGateMap.get(connection.target);
-
-            if(!source || !target)
-                continue;
-
-            const sourceGate = MasterGatePool.instance.getGate(source.id);
-            const targetGate = MasterGatePool.instance.getGate(target.id);
-
-            if(!sourceGate || !targetGate)
-                continue;
-
-            const sourcePin = sourceGate.getPin(connection.sourceHandle);
-            const targetPin = targetGate.getPin(connection.targetHandle);
-
-            if(!sourcePin || !targetPin)
-                continue;
-
-            const wire = await WirePool.instance.createWire(sourcePin, targetPin);
-            base.connections.push(new WireWrapper(new ConnectionData(wire.id, sourceGate.id, targetGate.id, connection.sourceHandle, connection.targetHandle), wire.wireData));
-
-            if(targetGate.gateType == "display") {
-                const targetBuffer = localGateMap.get(`${connection.target}-${connection.targetHandle}`);
-                if(!targetBuffer)
-                    return;
-
-                const targetBufferGate = MasterGatePool.instance.getGate(targetBuffer.id);
-                if(!targetBufferGate)
-                    return;
-
-                const bufferWire = await WirePool.instance.createWire(sourcePin, targetBufferGate.getPin("in-1")!);
-                base.connections.push(new WireWrapper(new ConnectionData(bufferWire.id, sourceGate.id, targetBufferGate.id, connection.sourceHandle, "in-1"), bufferWire.wireData));
-            }
-        }
+    public async deleteGate(gateId: string): Promise<void> {
+        await MasterPrefabGatePool.instance.deleteGate(gateId);
     }
 }
 
 export class MasterGatePool {
     public static instance: MasterGatePool;
     public static initInstance(updateGateFunction: UpdateGateSignature) : void {
-        MasterGatePool.instance = new MasterGatePool(updateGateFunction);
+        MasterGatePool.instance = MasterGatePool.instance ?? new MasterGatePool(updateGateFunction);
     }
 
     private gates = new Map<string, Gate>();
-    private pools = new Map<GateType, GatePool>();
+    private pools = new Map<number, IGatePool>();
 
     private constructor(private readonly updateGateFunction: UpdateGateSignature) {
-        this.pools.set("not", new GatePool(() => this.createNotGate()));
+        this.pools.set(NotGateType.id, new GatePool(() => this.createNotGate()));
 
-        this.pools.set("or", new GatePool(() => this.createOrGate()));
-        this.pools.set("nor", new GatePool(() => this.createNorGate()));
+        this.pools.set(OrGateType.id, new GatePool(() => this.createOrGate()));
+        this.pools.set(NorGateType.id, new GatePool(() => this.createNorGate()));
 
-        this.pools.set("and", new GatePool(() => this.createAndGate()));
-        this.pools.set("nand", new GatePool(() => this.createNandGate()));
+        this.pools.set(AndGateType.id, new GatePool(() => this.createAndGate()));
+        this.pools.set(NandGateType.id, new GatePool(() => this.createNandGate()));
 
-        this.pools.set("xor", new GatePool(() => this.createXorGate()));
-        this.pools.set("xnor", new GatePool(() => this.createXnorGate()));
+        this.pools.set(XorGateType.id, new GatePool(() => this.createXorGate()));
+        this.pools.set(XnorGateType.id, new GatePool(() => this.createXnorGate()));
 
-        this.pools.set("probe", new GatePool(() => this.createProbeGate()));
-        this.pools.set("power", new GatePool(() => this.createPowerGate()));
-        this.pools.set("clock", new GatePool(() => this.createClockGate()));
-        this.pools.set("buffer", new GatePool(() => this.createBufferGate()));
-        this.pools.set("display", new GatePool(() => this.createDisplayGate()));
+        this.pools.set(PowerGateType.id, new GatePool(() => this.createPowerGate()));
+        this.pools.set(ProbeGateType.id, new GatePool(() => this.createProbeGate()));
+        this.pools.set(ClockGateType.id, new GatePool(() => this.createClockGate()));
+        this.pools.set(BufferGateType.id, new GatePool(() => this.createBufferGate()));
+        this.pools.set(DisplayGateType.id, new GatePool(() => this.createDisplayGate()));
+
+        MasterPrefabGatePool.initInstance(() => this.createPrefabGate());
     }
 
-    public hasType(type: GateType) : boolean {
-        return this.pools.has(type.toLowerCase());
+    public addType(gateType: GateType, circuit: PrefabCircuit) : void {
+        if(this.pools.has(gateType.id))
+            return;
+
+        const pool = new PrefabGatePool(circuit);
+        this.pools.set(gateType.id, pool);
+    }
+
+    public deleteType(gateType: GateType) : void {
+        this.pools.delete(gateType.id);
     }
 
     public getGate(gateId: string) : Gate | undefined {
         return this.gates.get(gateId);
     }
 
-    public addGateType(gateType: GateType, blueprint: CircuitBlueprint) {
-        const pool = new PrefabGatePool(blueprint, () => this.createPrefabGate(gateType));
-        this.pools.set(gateType.toLowerCase(), pool);
-    }
-
-    public async createGate(gateType: GateType) : Promise<GateWrapper | null> {
-        const pool = this.pools.get(gateType.toLowerCase());
+    public async createGate(gateType: GateType) : Promise<GateModel | null> {
+        const pool = this.pools.get(gateType.id);
         if(!pool)
             return null;
 
@@ -244,7 +169,7 @@ export class MasterGatePool {
         if(!gate)
             return;
 
-        const pool = this.pools.get(gate.gateType);
+        const pool = this.pools.get(gate.gateType.id);
         if(!pool)
             return;
 
@@ -323,8 +248,8 @@ export class MasterGatePool {
         return gate;
     }
 
-    private createPrefabGate(gateType: GateType) : PrefabGate {
-        const gate = new PrefabGate(this.gates.size.toString(), gateType, this.updateGateFunction);
+    private createPrefabGate() : PrefabGate {
+        const gate = new PrefabGate(this.gates.size.toString(), this.updateGateFunction);
         this.gates.set(gate.id, gate);
         return gate;
     }

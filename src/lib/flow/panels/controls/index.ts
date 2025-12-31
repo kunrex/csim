@@ -1,2 +1,2 @@
-import Control from "$lib/flow/panels/controls/control-button.svelte"
+import Control from "$lib/flow/panels/controls/control-button.svelte";
 export { Control };

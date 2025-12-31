@@ -1,5 +1,7 @@
 import { getContext } from 'svelte';
 
-export const useDragDrop = () => {
-    return getContext('drag-drop') as { current: string | null };
+import type { GateType } from "$lib/core";
+
+export const dragDropProvider = () => {
+    return getContext('drag-drop') as { current: GateType | null };
 };

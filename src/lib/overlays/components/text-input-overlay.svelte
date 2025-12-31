@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { prefabOverlay } from "$lib/overlays/states";
+    import { textInputController } from "$lib/overlays/controllers";
 
     interface PromptPrefabProps {
         duplicateCheck: (value: string) => boolean;
@@ -9,39 +9,42 @@
 
     let { duplicateCheck }: PromptPrefabProps = $props();
 
-    const writableState = prefabOverlay.state;
-    const modalState = $derived($writableState);
+    const controllerState = textInputController.state;
+    const resolvableState = $derived($controllerState);
 
     let value = $state("");
     let disabled = $derived(value.length == 0 || duplicateCheck(value));
 
     function submit(e: SubmitEvent) : void {
         e.preventDefault();
-        if(!modalState || disabled)
+        if(!resolvableState || disabled)
             return;
 
-        modalState.resolve({ result: true, value: value });
-        prefabOverlay.close();
+        resolvableState.resolve({ result: true, value: value });
+        textInputController.close();
         value = "";
     }
 
     function cancel() : void {
-        if(!modalState)
+        if(!resolvableState)
             return;
 
-        modalState.resolve({ result: false, value: value });
-        prefabOverlay.close();
+        resolvableState.resolve({ result: false, value: value });
+        textInputController.close();
         value = "";
     }
 </script>
 
-{#if modalState }
+{#if resolvableState }
     <div class="overlay">
         <div class="overlay-backdrop" transition:fade={{ duration: 150 }}></div>
         <div class="fixed right-1/2 top-1/2 translate-x-1/2 -translate-y-1/2 min-w-96 w-1/3 text-white panel-background bg-black/40" transition:fade={{ duration: 200 }}>
             <form class="flex flex-col gap-y-4 justify-center items-center p-4" onsubmit={submit}>
-                <div class="text-3xl text-center">
-                    <b>Name Your Prefab!</b>
+                <div class="text-3xl text-gray-300 text-center">
+                    <b> { resolvableState.params.title } </b>
+                </div>
+                <div class="text-lg text-gray-400 text-center font-extralight">
+                    { resolvableState.params.message }
                 </div>
                 <input class="input-clean text-xl text-center font-bold" type="text" minlength="1" maxlength="32" placeholder="supercoolprefab" bind:value={value}>
                 <div class="flex flex-row w-full justify-between items-center">

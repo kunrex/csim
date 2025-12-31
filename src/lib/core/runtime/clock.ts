@@ -1,5 +1,5 @@
 import { ClockGate } from "$lib/core/gates";
-import { LoopGuard } from "$lib/core/cycles/loop-guard";
+import { CycleGuard } from "$lib/core/runtime/cycle-guard";
 
 const frameRate = 0.5;
 const clocks: ClockGate[] = [];
@@ -25,7 +25,7 @@ export async function masterTick(time: number): Promise<void> {
     while (acc >= frameRate) {
         state = !state;
 
-        LoopGuard.instance.resetCycle();
+        CycleGuard.instance.resetCycle();
         for (const clock of clocks)
             await clock.calculateState();
 

@@ -12,7 +12,7 @@
     const connectable = !(!!parentId);
 </script>
 
-<div class={`icon-core-gate color-${data.type}`} class:dragging class:selected>
+<div class={`icon-core-gate color-${data.type.name}`} class:dragging class:selected class:input={true}>
     <InputPin id="in-1" label="in-1" enabled={data.in1} connectable={connectable} />
     <div>
         <b><FontAwesomeIcon icon={icon} /></b>

@@ -18,29 +18,30 @@
     }
 
     interface InspectorElementProps {
-        data: InspectorData,
-        expandCallback: (gateId: string) => void,
-        maximiseCallback: (gateId: string) => void,
+        inspectorData: InspectorData,
+
+        expandGateCallback: (gateId: string) => void,
+        maximiseGateCallback: (gateId: string) => void,
         renameGateCallback: (gateId: string, name: string) => void
     }
 
-    let { data, expandCallback, maximiseCallback, renameGateCallback } : InspectorElementProps = $props();
+    let { inspectorData, expandGateCallback, maximiseGateCallback, renameGateCallback } : InspectorElementProps = $props();
 
-    let value = $state(data.initialName);
+    let value = $state(inspectorData.initialName);
 
     function rename() : void {
-        renameGateCallback(data.id, value);
+        renameGateCallback(inspectorData.id, value);
     }
 </script>
 
-{#if data.maximizable }
-    <div class="inspector-element" style={`margin-left: ${data.depth * 25}px;`} class:selected={data.selected}>
-        <FontAwesomeIcon icon={data.fabIcon} />
+{#if inspectorData.maximizable }
+    <div class="inspector-element" style={`margin-left: ${inspectorData.depth * 25}px;`} class:selected={inspectorData.selected}>
+        <FontAwesomeIcon icon={inspectorData.fabIcon} />
         <input class="input-clean w-full" type="text" size="16" minlength="0" maxlength="16" bind:value={value} onchange={rename}>
-        <button class="inspector-utility-button" onclick={() => expandCallback(data.id)} disabled={!data.maximizable || !data.isPrefab}>
+        <button class="inspector-utility-button" onclick={() => expandGateCallback(inspectorData.id)} disabled={!inspectorData.maximizable || !inspectorData.isPrefab}>
             <FontAwesomeIcon icon={faExpand} />
         </button>
-        <button class="inspector-utility-button" onclick={() => maximiseCallback(data.id)} disabled={!data.maximizable}>
+        <button class="inspector-utility-button" onclick={() => maximiseGateCallback(inspectorData.id)} disabled={!inspectorData.maximizable}>
             <FontAwesomeIcon icon={faMaximize} />
         </button>
     </div>

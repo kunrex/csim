@@ -49,7 +49,7 @@
 }
 
 .color-prefab {
-    @apply bg-cyan-400;
+    @apply bg-cyan-600;
 }
 
 .color-probe {
@@ -72,6 +72,10 @@
     @apply bg-slate-400;
 }
 
+.color-circuit {
+    @apply bg-pink-500;
+}
+
 .core-gate, .icon-core-gate {
     width: var(--core-gate-width);
     height: var(--core-gate-height);
@@ -92,7 +96,19 @@
         @apply flex items-center justify-center border rounded-md border-solid border-slate-600 text-white;
     }
 
-    .core-gate:active, .icon-core-gate:active, .prefab-gate:active, .seven-segment-display:active {
+    .icon-core-gate:hover {
+        @apply cursor-pointer;
+    }
+
+    .core-gate:active, .prefab-gate:active, .seven-segment-display:active {
+        @apply cursor-move opacity-60;
+    }
+
+    .icon-core-gate.input:active {
+        @apply cursor-move opacity-60;
+    }
+
+    .icon-core-gate.output.dragging {
         @apply cursor-move opacity-60;
     }
 
@@ -109,7 +125,7 @@
     }
 
     .instantiate-gate-button {
-        @apply flex flex-col items-center justify-center text-xl border rounded-sm border-solid border-slate-600 text-white;
+        @apply flex flex-col items-center justify-center text-xl border rounded-sm border-solid border-slate-600 text-white px-3;
     }
 
     .instantiate-gate-button:hover {
@@ -118,6 +134,18 @@
 
     .instantiate-gate-button:active {
         @apply cursor-move;
+    }
+
+    .instantiate-gate-button.disabled {
+        @apply cursor-not-allowed opacity-60;
+    }
+
+    .instantiate-gate-utility {
+        @apply text-lg bg-slate-600 text-slate-100 rounded-sm px-0.5 rounded-l-none;
+    }
+
+    .instantiate-gate-utility.disabled {
+        @apply cursor-not-allowed opacity-60;
     }
 
     .vertical-segment {
@@ -131,7 +159,7 @@
     }
 
     .vertical-segment, .horizontal-segment {
-        @apply rounded-sm bg-neutral-50
+        @apply rounded-sm bg-neutral-500
     }
 
     .vertical-segment.enabled, .horizontal-segment.enabled {

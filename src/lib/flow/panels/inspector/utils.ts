@@ -1,25 +1,43 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { fa8, faClock, faLightbulb, faMicrochip, faPowerOff, faTablet } from "@fortawesome/free-solid-svg-icons";
 
-import type { GateType } from "$lib/core";
+import { type GateType, NotGateType, AndGateType, NandGateType, OrGateType, NorGateType, XorGateType, XnorGateType, PowerGateType, ClockGateType, ProbeGateType, DisplayGateType } from "$lib/core";
 
-export function iconMap(key: GateType): IconDefinition {
+import type { GateNode } from "$lib/flow/types";
+import type { InspectorData } from "$lib/flow/panels/inspector/inspector-element.svelte";
+
+export function initInspectorData(gateNode: GateNode, depth: number) : InspectorData {
+    return {
+        id: gateNode.id,
+        parentId: gateNode.parentId,
+        isPrefab: gateNode.type == "prefab",
+        initialName: gateNode.data.name,
+
+        selected: false,
+
+        depth: depth,
+        maximizable: depth == 0,
+        fabIcon: iconMap(gateNode.data.type)
+    } satisfies InspectorData;
+}
+
+function iconMap(key: GateType): IconDefinition {
     switch (key) {
-        case "not":
-        case "and":
-        case "nand":
-        case "or":
-        case "nor":
-        case "xor":
-        case "xnor":
+        case NotGateType:
+        case AndGateType:
+        case NandGateType:
+        case OrGateType:
+        case NorGateType:
+        case XorGateType:
+        case XnorGateType:
             return faTablet;
-        case "display":
+        case DisplayGateType:
             return fa8;
-        case "power":
+        case PowerGateType:
             return faPowerOff;
-        case "clock":
+        case ClockGateType:
             return faClock;
-        case "probe":
+        case ProbeGateType:
             return faLightbulb;
         default:
             return faMicrochip;

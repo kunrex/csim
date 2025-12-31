@@ -1,4 +1,4 @@
-import { Wire, Pin, type UpdateWireSignature } from "$lib/core";
+import { Wire, type Pin, type UpdateWireSignature } from "$lib/core";
 
 export class WirePool {
     public static instance: WirePool;

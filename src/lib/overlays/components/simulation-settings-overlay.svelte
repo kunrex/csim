@@ -1,30 +1,30 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, LoopGuard } from "$lib/core";
+    import { minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, CycleGuard } from "$lib/core";
 
-    import { loopGuardOverlay } from "$lib/overlays/states";
+    import { simulationSettingsController } from "$lib/overlays/controllers";
 
-    const writableState = loopGuardOverlay.state;
-    const modalState = $derived($writableState);
+    const writableState = simulationSettingsController.state;
+    const resolvableState = $derived($writableState);
 
-    let deltaLimit = $state(LoopGuard.getDeltaLimit());
-    let toggleLimit = $state(LoopGuard.getToggleLimit());
+    let deltaLimit = $state(CycleGuard.getDeltaLimit());
+    let toggleLimit = $state(CycleGuard.getToggleLimit());
 
     function submit(e: SubmitEvent) : void {
         e.preventDefault();
-        if(!modalState)
+        if(!resolvableState)
             return;
 
-        loopGuardOverlay.close();
+        simulationSettingsController.close();
     }
 
     function onChangeDelta() : void {
-        LoopGuard.setDeltaLimit(deltaLimit);
+        CycleGuard.setDeltaLimit(deltaLimit);
     }
 
     function onChangeToggle() : void {
-        LoopGuard.setDeltaLimit(toggleLimit);
+        CycleGuard.setToggleLimit(toggleLimit);
     }
 </script>
 
@@ -176,7 +176,7 @@
     }
 </style>
 
-{#if modalState }
+{#if resolvableState }
     <div class="overlay">
         <div class="overlay-backdrop" transition:fade={{ duration: 150 }}></div>
         <div class="fixed right-1/2 top-1/2 translate-x-1/2 -translate-y-1/2 min-w-96 w-1/3 text-white panel-background bg-black/40" transition:fade={{ duration: 200 }}>
