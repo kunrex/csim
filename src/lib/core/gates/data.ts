@@ -6,8 +6,6 @@ export interface GateData {
     name: string,
     type: GateType,
     icon?: IconDefinition
-
-    [key: string] : unknown
 }
 
 export interface UnaryOutputData extends GateData {

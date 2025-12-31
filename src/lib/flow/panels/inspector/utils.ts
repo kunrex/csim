@@ -11,13 +11,13 @@ export function initInspectorData(gateNode: GateNode, depth: number) : Inspector
         id: gateNode.id,
         parentId: gateNode.parentId,
         isPrefab: gateNode.type == "prefab",
-        initialName: gateNode.data.name,
+        initialName: gateNode.data.ref.name,
 
         selected: false,
 
         depth: depth,
         maximizable: depth == 0,
-        fabIcon: iconMap(gateNode.data.type)
+        fabIcon: iconMap(gateNode.data.ref.type)
     } satisfies InspectorData;
 }
 

@@ -49,7 +49,7 @@
         type GateModel,
         type GateNode,
         type GateNodeType,
-        type IdentifiedConnection,
+        type IdentifiedConnection, type RefGateData,
         type WireEdge,
         type WireEdgeType,
         type WireModel
@@ -278,7 +278,9 @@
         const updated = [...gates];
         updated[index] = {
             ...gate,
-            data: gateData
+            data: {
+                ref: gateData
+            } satisfies RefGateData
         };
 
         gates = updated;
@@ -293,7 +295,6 @@
         const updated = [...wires];
         updated[index] = {
             ...wire,
-            data: wireData,
             animated: wireData.state
         };
 
@@ -425,7 +426,7 @@
         if(target.type != "prefab")
             return Promise.resolve();
 
-        const prefabData = target.data as PrefabGateData;
+        const prefabData = target.data.ref as PrefabGateData;
         const params = prefabData.expanded ? {
             title: "Compression...",
             action: compressGate(gateId)
@@ -520,10 +521,10 @@
                 if(index == undefined)
                     continue;
 
-                const gate = gates[index];
+                const gateData = gates[index].data.ref;
                 gateCircuitSpec.set(relativeSource, {
-                    name: gate.data.name,
-                    type: gate.data.type,
+                    name: gateData.name,
+                    type: gateData.type,
                     localId: relativeSource
                 } satisfies GateCircuitSpec);
             }
@@ -536,10 +537,10 @@
                 if(index == undefined)
                     continue;
 
-                const gate = gates[index];
+                const gateData = gates[index].data.ref;
                 gateCircuitSpec.set(relativeTarget, {
-                    name: gate.data.name,
-                    type: gate.data.type,
+                    name: gateData.name,
+                    type: gateData.type,
                     localId: relativeTarget
                 } satisfies GateCircuitSpec);
             }

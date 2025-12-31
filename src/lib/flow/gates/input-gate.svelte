@@ -8,12 +8,13 @@
 
     let { data, dragging, selected, parentId } : GateProps<InputGateData> = $props();
 
-    let icon = data.icon!;
+    const icon = data.ref.icon!;
+    const type = data.ref.type.name;
     const connectable = !(!!parentId);
 </script>
 
-<div class={`icon-core-gate color-${data.type.name}`} class:dragging class:selected class:input={true}>
-    <InputPin id="in-1" label="in-1" enabled={data.in1} connectable={connectable} />
+<div class={`icon-core-gate color-${type}`} class:dragging class:selected class:input={true}>
+    <InputPin id="in-1" label="in-1" enabled={data.ref.in1} connectable={connectable} />
     <div>
         <b><FontAwesomeIcon icon={icon} /></b>
     </div>

@@ -1,24 +1,31 @@
-import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
+import {faClock, faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
 
-import { MasterGatePool } from "$lib/pools";
-import { type GateNodeType } from "$lib/flow";
+import {MasterGatePool} from "$lib/pools";
+import {type GateNodeType} from "$lib/flow";
 
 import {InputPin, OutputPin, Pin} from "$lib/core/pins";
 import {fromBoolean, invert, propagateState, TriState} from "$lib/core/tri-state";
 
 import {
-    AndGateType, BufferGateType, ClockGateType, DisplayGateType,
+    AndGateType,
+    BufferGateType,
+    ClockGateType,
+    DisplayGateType,
     type GateType,
     NandGateType,
     NorGateType,
     NotGateType,
-    OrGateType, PowerGateType, ProbeGateType, UndefinedGateType, XnorGateType,
+    OrGateType,
+    PowerGateType,
+    ProbeGateType,
+    UndefinedGateType,
+    XnorGateType,
     XorGateType
 } from "$lib/core/gates/types";
-import { BaseGate, type UpdateGateSignature } from "$lib/core/gates/base";
-import { CycleGuard, masterState, registerClock } from "$lib/core/runtime";
-import { BinaryGate, InputGate, OutputGate, UnaryGate } from "$lib/core/gates/core";
-import type { PrefabGateData, SevenSegmentGateData } from "$lib/core/gates/data";
+import {BaseGate, type UpdateGateSignature} from "$lib/core/gates/base";
+import {CycleGuard, masterState, registerClock} from "$lib/core/runtime";
+import {BinaryGate, InputGate, OutputGate, UnaryGate} from "$lib/core/gates/core";
+import type {PrefabGateData, SevenSegmentGateData} from "$lib/core/gates/data";
 
 export class NotGate extends UnaryGate {
     public readonly gateType: GateType = NotGateType;
@@ -53,10 +60,12 @@ export class AndGate extends BinaryGate {
         const in1 = this.in1.getState();
         const in2 = this.in2.getState();
 
-        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+        if(in1 === TriState.Low || in2 === TriState.Low)
+            this.next = TriState.Low;
+        else if (in1 === TriState.Unknown || in2 === TriState.Unknown)
             this.next = TriState.Unknown;
         else
-            this.next = fromBoolean(in1 == TriState.High && in2 == TriState.High);
+            this.next = TriState.High;
 
         return Promise.resolve();
     }
@@ -79,10 +88,12 @@ export class NandGate extends BinaryGate {
         const in1 = this.in1.getState();
         const in2 = this.in2.getState();
 
-        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+        if(in1 === TriState.Low || in2 === TriState.Low)
+            this.next = TriState.High;
+        else if (in1 === TriState.Unknown || in2 === TriState.Unknown)
             this.next = TriState.Unknown;
         else
-            this.next = fromBoolean(!(in1 == TriState.High && in2 == TriState.High));
+            this.next = TriState.Low;
 
         return Promise.resolve();
     }
@@ -105,10 +116,12 @@ export class OrGate extends BinaryGate {
         const in1 = this.in1.getState();
         const in2 = this.in2.getState();
 
-        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+        if(in1 === TriState.High || in2 === TriState.High)
+            this.next = TriState.High;
+        else if (in1 === TriState.Unknown || in2 === TriState.Unknown)
             this.next = TriState.Unknown;
         else
-            this.next = fromBoolean(in1 == TriState.High || in2 == TriState.High);
+            this.next = TriState.Low;
 
         return Promise.resolve();
     }
@@ -131,10 +144,12 @@ export class NorGate extends BinaryGate {
         const in1 = this.in1.getState();
         const in2 = this.in2.getState();
 
-        if (in1 === TriState.Unknown || in2 === TriState.Unknown)
+        if(in1 === TriState.High || in2 === TriState.High)
+            this.next = TriState.Low;
+        else if (in1 === TriState.Unknown || in2 === TriState.Unknown)
             this.next = TriState.Unknown;
         else
-            this.next = fromBoolean(!(in1 == TriState.High || in2 == TriState.High));
+            this.next = TriState.High;
 
         return Promise.resolve();
     }
@@ -413,11 +428,6 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
             type: UndefinedGateType,
             icon: undefined,
 
-            powerCount: 0,
-            probeCount: 0,
-            clockCount: 0,
-            displayCount: 0,
-
             expanded: false,
 
             bufferMap: new Map(),
@@ -446,7 +456,6 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
 
         this.gateData.bufferMap.clear();
         this.gateData.displaySet.clear();
-        this.gateData.powerCount = this.gateData.probeCount = this.gateData.clockCount = this.gateData.displayCount = 0;
     }
 
     public getPin(pinId: string) : Pin | null {

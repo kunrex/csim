@@ -3,10 +3,18 @@ import type { Node, Edge } from '@xyflow/svelte';
 import type { GateData, WireData } from "$lib/core";
 
 export type GateNodeType = "s-input" | "s-output" | "unary" | "binary" | "prefab" | "display";
-export type GateNode = Node<GateData, GateNodeType>;
-
 export type WireEdgeType = "wire" | "internal";
-export type WireEdge = Edge<WireData, WireEdgeType>;
+
+export interface RefData<T> {
+    ref: T,
+    [key: string]: unknown,
+}
+
+export type RefGateData = RefData<GateData>;
+export type RefWireData = RefData<WireData>;
+
+export type GateNode = Node<RefGateData, GateNodeType>;
+export type WireEdge = Edge<RefWireData, WireEdgeType>;
 
 import type { AnonymousConnection, IdentifiedConnection } from "$lib/flow/types/connections";
 export type { AnonymousConnection, IdentifiedConnection };

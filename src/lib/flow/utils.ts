@@ -5,7 +5,15 @@ import type { ElkExtendedEdge, ElkNode, LayoutOptions } from "elkjs";
 import type {GateData, PrefabGateData, WireData} from "$lib/core";
 
 import { sevenSegmentBits, segments } from "$lib/flow/constants";
-import type { AnonymousConnection, GateNode, GateNodeType, WireEdge, WireEdgeType}  from "$lib/flow/types";
+import type {
+    AnonymousConnection,
+    GateNode,
+    GateNodeType,
+    RefGateData,
+    RefWireData,
+    WireEdge,
+    WireEdgeType
+} from "$lib/flow/types";
 
 export function capitalise(word: string) : string {
     return word.charAt(0).toUpperCase() + word.slice(1);
@@ -21,7 +29,9 @@ export function createGateNode(id: string, type: GateNodeType, data: GateData, p
     return {
         id: id,
         type: type,
-        data: data,
+        data: {
+            ref: data
+        } satisfies RefGateData,
 
         extent: undefined,
         parentId: parentId,
@@ -40,7 +50,9 @@ export function createWireEdge(id: string, type: WireEdgeType, data: WireData, c
      return {
         id: id,
         type: type,
-        data: data,
+         data: {
+             ref: data
+         } satisfies RefWireData,
         animated: data.state,
 
         selectable: true,
@@ -62,7 +74,7 @@ export function layoutGateNode(gate: GateNode, elkNode: ElkNode) : GateNode {
     } satisfies GateNode;
 
     if(gate.type == "prefab") {
-        const prefabData = gate.data as PrefabGateData;
+        const prefabData = gate.data.ref as PrefabGateData;
 
         if(prefabData.expanded) {
             newNode.width = elkNode.width;
@@ -81,13 +93,16 @@ export function compressGateNode(gate: GateNode) : GateNode {
     if(gate.type != "prefab")
         return gate;
 
-    const prefabData = gate.data as PrefabGateData;
+    const prefabData = gate.data.ref as PrefabGateData;
     if(!prefabData.expanded)
         return gate;
 
     prefabData.expanded = false;
     const newNode = {
         ...gate,
+        data: {
+            ref: prefabData
+        } satisfies RefGateData,
         width: prefabData.minimumWidth,
         height: prefabData.minimumHeight
     } satisfies GateNode;
@@ -110,13 +125,17 @@ export function expandGateNode(gate: GateNode) : void {
     if(gate.type != "prefab")
         return;
 
-    const prefabData = gate.data as PrefabGateData;
+    const prefabData = gate.data.ref as PrefabGateData;
     if(prefabData.expanded)
         return;
 
     prefabData.expanded = true;
     prefabData.minimumWidth = gate.measured?.width;
     prefabData.minimumHeight = gate.measured?.height;
+
+    gate.data = {
+        ref: prefabData
+    };
 }
 
 export function unHideChildGateNode(gate: GateNode) : GateNode {
