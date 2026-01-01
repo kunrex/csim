@@ -20,7 +20,8 @@
     type AssetType = "core" | "prefabs" | "circuits";
 
     interface Asset {
-        assetType: AssetType
+        id: number,
+        assetType: AssetType,
         typeStore: AssetTypeStore,
     }
 
@@ -30,6 +31,8 @@
 
     let assets: Asset[] = $state.raw([]);
     let openAsset: Asset | null = $state.raw(null);
+
+    let prefabFlag: boolean = $state.raw(false);
 
     export function openAssetHandler(gateType: GateType) : AssetTypeStore | null {
         for(const asset of assets)
@@ -41,45 +44,73 @@
         return null;
     }
 
-    export function deleteAssetHandler(gateType: GateType) : void {
-        assets = assets.filter(asset => asset.typeStore.gateType != gateType);
-    }
-
-    export function addAsset(gateType: AssetGateType, assetType: AssetType) : void {
+    export function addAssetHandler(gateType: AssetGateType, assetType: AssetType) : void {
         assets = [...assets, {
+            id: gateType.id,
             assetType: assetType,
             typeStore: new AssetTypeStore(gateType)
         } satisfies Asset];
+
+        window = assetType;
+        prefabFlag = prefabFlag || assetType == "prefabs";
     }
 
-    function checkOpenAssetDependency(asset: Asset) : boolean {
+    export function deleteAssetHandler(gateType: GateType) : void {
+        assets = assets.filter(asset => asset.typeStore.gateType.id != gateType.id);
+    }
+
+    function checkOpenAssetCircuitDependency(asset: Asset) : boolean {
         if(openAsset == null)
             return false;
 
-        return asset === openAsset || asset.typeStore.gateType.dependencies.has(openAsset.typeStore.gateType.id);
+        return asset.id == openAsset.id;
+    }
+
+    function checkOpenAssetPrefabDependency(asset: Asset) : boolean {
+        if(openAsset == null)
+            return false;
+
+        return asset.id == openAsset.id || asset.typeStore.gateType.dependencies.has(openAsset.id);
     }
 </script>
 
-<Panel class="flex flex-col h-auto w-1/2 absolute panel-background" position="bottom-right">
+<Panel class="flex flex-col h-auto w-1/2 relative panel-background pt-0" position="bottom-right">
     <div class="flex flex-row justify-start absolute top-0 left-0 -translate-y-full px-2">
         <AssetWindow title="Core" onclick={() => { window = "core" }} selected={window === "core"}></AssetWindow>
         <AssetWindow title="Prefabs" onclick={() => { window = "prefabs" }} selected={window === "prefabs"}></AssetWindow>
         <AssetWindow title="Circuits" onclick={() => { window = "circuits" }} selected={window === "circuits"}></AssetWindow>
     </div>
+    <div class="flex flex-row justify-center items-center w-full font-extralight text-gray-500 p-2">
+        {#if window === "circuits"}
+            Double click to open circuits
+        {:else}
+            Drag and drop gates into the circuit
+        {/if}
+    </div>
     <div class="flex flex-row items-center min-h-16 w-full overflow-x-auto gap-x-4">
         {#if window === "core" }
-            {#each nonIconGateTypes as type}
+            {#each nonIconGateTypes as type (type.id)}
                 <InstantiateGate type={type} color={`color-${type.name}`} />
             {/each}
-            {#each iconGateTypes as type}
+            {#each iconGateTypes as type (type[0].id)}
                 <InstantiateGate type={type[0]} color={`color-${type[0].name}`} fabIcon={type[1]} />
             {/each}
-        {:else if openAsset !== null }
-            {#each assets as asset }
-                {#if window === "circuits" && asset.assetType === window}
-                    <OpenCircuit disabled={openAsset === asset} typeStore={asset.typeStore} openCircuitCallback={openAssetCallback} deleteCircuitCallback={deleteAssetCallback}/>
-                {:else if asset.assetType === window}
-                    <InstantiatePrefabGate disabled={checkOpenAssetDependency(asset)} deletable={asset !== openAsset} typeStore={asset.typeStore} openPrefabCallback={openAssetCallback} deletePrefabCallback={deleteAssetCallback} />
+        {:else if window === "prefabs"}
+            {#if prefabFlag}
+                {#each assets as asset (asset.id)}
+                    {#if asset.assetType === window}
+                        <InstantiatePrefabGate disabled={checkOpenAssetPrefabDependency(asset)} deletable={asset !== openAsset} typeStore={asset.typeStore} openPrefabCallback={openAssetCallback} deletePrefabCallback={deleteAssetCallback} />
+                    {/if}
+                {/each}
+            {:else}
+                <div class="flex flex-row justify-center items-center w-full font-bold text-2xl text-slate-300">
+                    No Prefabs
+                </div>
+            {/if}
+        {:else}
+            {#each assets as asset (asset.id)}
+                {#if asset.assetType === window}
+                    <OpenCircuit disabled={checkOpenAssetCircuitDependency(asset)} typeStore={asset.typeStore} openCircuitCallback={openAssetCallback} deleteCircuitCallback={deleteAssetCallback}/>
                 {/if}
             {/each}
         {/if}

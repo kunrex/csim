@@ -12,6 +12,7 @@ import {
     XorGateType
 } from "$lib/core";
 import type { TitleMessageParams } from "$lib/overlays/controllers";
+import type {LayoutOptions} from "elkjs";
 
 export const a = 'a', b = 'b', c = 'c', d = 'd', e = 'e', f = 'f', g = 'g';
 export const segments = [a, b, c, d, e, f, g];
@@ -35,11 +36,21 @@ export const sevenSegmentBits: Record<number, number> = {
     15: 0b1110001,
 };
 
-
 export const nonIconGateTypes = [NotGateType, AndGateType, NandGateType, OrGateType, NorGateType, XorGateType, XnorGateType];
 export const iconGateTypes: [GateType, IconDefinition][] = [[PowerGateType, faPowerOff], [ClockGateType, faClock], [ProbeGateType, faLightbulb], [DisplayGateType, fa8]];
 
 export const prefabHandleGap = 20;
+
+export const parentElkOptions: LayoutOptions = {
+    'elk.spacing.nodeNode': '70',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '80',
+};
+
+export const rootElkOptions: LayoutOptions = {
+    'elk.algorithm': 'layered',
+    'elk.spacing.nodeNode': '80',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '90',
+};
 
 export const inputNotFoundParams = {
     title: "Couldn't Generate Prefab",
@@ -60,3 +71,8 @@ export const deletionConfirmationParams = {
     title: "Deletion Confirmation",
     message: "This action cannot be undone and other circuits may be dependant on this circuit."
 } satisfies TitleMessageParams;
+
+export const actionFailureParams = {
+    title: "Action Failed",
+    message: "Something went wrong internally and the action could not be performed"
+};

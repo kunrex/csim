@@ -24,11 +24,12 @@
         TextInputOverlay,
         ConfirmationOverlay,
         SimulationSettingsOverlay,
-        prefabNameController, messageController, type TitleMessageParams
+        prefabNameController, messageController, type TitleMessageParams, notificationController
     } from "$lib/overlays";
     import type { ICircuitGraph } from "$lib/circuits/graph";
     import {Circuit, PrefabCircuit} from "$lib/circuits";
     import {textInputController} from "$lib/overlays/controllers";
+    import {NotificationOverlay} from "$lib/overlays/index.js";
 
     const renameAssetParams = {
         title: "Rename Asset",
@@ -74,7 +75,7 @@
             return;
 
         const result = await textInputController.open(renameAssetParams);
-        if(!result)
+        if(!result.result)
             return;
 
         circuit.renameType(result.value);
@@ -109,6 +110,8 @@
 
         createAsset(gateType, circuitGraph);
         flow.addPrefabHandler(gateType);
+
+        await notificationController.open("Circuit prefab successfully!");
     }
 
     async function createCircuit(circuitGraph: ICircuitGraph) : Promise<void> {
@@ -120,6 +123,8 @@
 
         createAsset(gateType, circuitGraph);
         flow.addCircuitHandler(gateType);
+
+        await notificationController.open("Circuit created successfully!");
     }
 
     async function openAsset(gateType: GateType) : Promise<void> {
@@ -240,5 +245,6 @@
 <TextInputOverlay duplicateCheck={duplicateCircuitCheck} />
 <SimulationSettingsOverlay />
 <ConfirmationOverlay />
+<NotificationOverlay />
 <MessageOverlay />
 <LoadingOverlay />

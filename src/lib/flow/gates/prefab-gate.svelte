@@ -38,18 +38,18 @@
 </script>
 
 <div class="prefab-gate flex flex-col color-prefab h-full w-full" class:dragging class:selected class:expanded={data.ref.expanded} style={`min-height: ${minimumHeight}px; min-width: ${minimumWidth}px;`}>
-    {#each powerBuffers as power, i}
+    {#each powerBuffers as power, i (power.id)}
         <InputPin id={gateData.bufferMap.get(power.id)?.pin ?? `in-${i + 1}`} label={power.data.name} enabled={power.data.in1} connectable={connectable} style={`top: ${(100 / (powerBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
-    {#each clockBuffers as clock, i}
+    {#each clockBuffers as clock, i (clock.id)}
         <InputPin id={gateData.bufferMap.get(clock.id)?.pin ?? `clock-${i + 1}`} label={clock.data.name} enabled={clock.data.in1} position={Position.Top} connectable={connectable} style={`left: ${(100 / (clockBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
-    {#each probeBuffers as probe, i}
+    {#each probeBuffers as probe, i (probe.id)}
         <OutputPin id={gateData.bufferMap.get(probe.id)?.pin ?? `out-${i + 1}`} label={probe.data.name} enabled={probe.data.out1} connectable={connectable} style={`top: ${(100 / (probeBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
     {#if !data.ref.expanded }
-        <div class="flex flex-row gap-x-4">
-            {#each displays as display, i}
+        <div class="flex flex-row gap-x-4 mb-1">
+            {#each displays as display (display.id)}
                 <div class="flex flex-col text-slate-100 px-7 py-3 rounded-md border-2 border-slate-600 color-display">
                     <SevenSegmentDisplay value={display.data.value} decimal={display.data.in5} />
                     <div class="flex flex-row justify-center items-center w-full overflow-x-scroll mt-1">
@@ -59,7 +59,7 @@
             {/each}
         </div>
     {/if}
-    <div class="flex flex-row justify-center items-center whitespace-nowrap mt-1">
+    <div class="flex flex-row justify-center items-center whitespace-nowrap">
         <b>{ capitalise(gateData.type.name) }</b>
     </div>
 </div>

@@ -7,6 +7,10 @@
     const resolvableState = $derived($controllerState);
 
     function submit() {
+        if(!resolvableState)
+            return;
+
+        resolvableState.resolve();
         messageController.close();
     }
 </script>

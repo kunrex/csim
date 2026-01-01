@@ -59,13 +59,14 @@
         confirmationController,
         loadingController,
         type LoadingControllerParams,
-        messageController,
+        messageController, notificationController,
         simulationSettingsController
     } from "$lib/overlays";
     import {
+        actionFailureParams,
         deletionConfirmationParams,
-        inputNotFoundParams,
-        outputNotFoundParams,
+        parentElkOptions,
+        rootElkOptions,
         saveConfirmationParams
     } from "$lib/flow/constants";
 
@@ -123,17 +124,6 @@
     const wireIndexMap = new Map<string, number>();
 
     const elk = new ELK();
-
-    const parentElkOptions: LayoutOptions = {
-        'elk.spacing.nodeNode': '50',
-        'elk.layered.spacing.nodeNodeBetweenLayers': '70',
-    };
-
-    const rootElkOptions: LayoutOptions = {
-        'elk.algorithm': 'layered',
-        'elk.spacing.nodeNode': '60',
-        'elk.layered.spacing.nodeNodeBetweenLayers': '80',
-    };
 
     const { fitView, setCenter, screenToFlowPosition, deleteElements } = useSvelteFlow();
 
@@ -261,11 +251,11 @@
     }
 
     export function addPrefabHandler(gateType: AssetGateType) : void {
-        assets.addAsset(gateType, "prefabs")
+        assets.addAssetHandler(gateType, "prefabs");
     }
 
     export function addCircuitHandler(gateType: AssetGateType) : void {
-        assets.addAsset(gateType, "circuits")
+        assets.addAssetHandler(gateType, "circuits");
     }
 
     export function updateGateData(id: string, gateData: GateData) : void {
@@ -413,8 +403,10 @@
             calculateWireVisibility();
             await rearrangeLayout();
         }
-        else
+        else {
+            await messageController.open(actionFailureParams);
             await compressGate(gateId);
+        }
     }
 
     function expandGateHandler(gateId: string) : Promise<void> {
@@ -487,12 +479,14 @@
             return;
 
         const gate = gates[index];
-        gate.data.name = name;
+        gate.data.ref.name = name;
 
         const updated = [...gates];
         updated[index] = {
             ...gate,
-            data: gate.data
+            data: {
+                ref: gate.data.ref
+            }
         } satisfies GateNode;
 
         gates = updated;
@@ -505,6 +499,17 @@
         const gateCircuitSpec = new Map<string, GateCircuitSpec>();
         const rootWires: AnonymousConnection[] = [];
 
+        for(const gate of gates) {
+            const circuitSpec = {
+                name: gate.data.ref.name,
+                type: gate.data.ref.type,
+                localId: gateCircuitSpec.size.toString()
+            } satisfies GateCircuitSpec;
+
+            localGateMap.set(gate.id, circuitSpec.localId);
+            gateCircuitSpec.set(circuitSpec.localId, circuitSpec);
+        }
+
         for(const wire of wires) {
             if(wire.type == "internal" || !wire.sourceHandle || !wire.targetHandle)
                 continue;
@@ -513,37 +518,8 @@
             const targetId = wire.target;
 
             let relativeSource = localGateMap.get(sourceId), relativeTarget = localGateMap.get(targetId);
-            if(!relativeSource) {
-                relativeSource = gateCircuitSpec.size.toString();
-                localGateMap.set(sourceId, relativeSource);
-
-                const index = getGateIndex(sourceId);
-                if(index == undefined)
-                    continue;
-
-                const gateData = gates[index].data.ref;
-                gateCircuitSpec.set(relativeSource, {
-                    name: gateData.name,
-                    type: gateData.type,
-                    localId: relativeSource
-                } satisfies GateCircuitSpec);
-            }
-
-            if(!relativeTarget) {
-                relativeTarget = gateCircuitSpec.size.toString();
-                localGateMap.set(targetId, relativeTarget);
-
-                const index = getGateIndex(targetId);
-                if(index == undefined)
-                    continue;
-
-                const gateData = gates[index].data.ref;
-                gateCircuitSpec.set(relativeTarget, {
-                    name: gateData.name,
-                    type: gateData.type,
-                    localId: relativeTarget
-                } satisfies GateCircuitSpec);
-            }
+            if(!relativeSource || !relativeTarget)
+                continue;
 
             rootWires.push({
                source: relativeSource,
@@ -559,18 +535,7 @@
         } satisfies ICircuitGraph;
     }
 
-    async function createPrefabHandler() : Promise<void> {
-        if(!gates.some((node: GateNode) => node.type == "s-output")) {
-            await messageController.open(inputNotFoundParams);
-            return;
-        }
-
-        if(!gates.some((node: GateNode) => node.type == "s-input" || node.type == "display"))
-        {
-            await messageController.open(outputNotFoundParams);
-            return;
-        }
-
+    function createPrefabHandler() : void {
         createPrefabCallback(generateCircuitGraph());
     }
 
@@ -581,6 +546,11 @@
     async function openAssetHandler(gateType: GateType) : Promise<void> {
         if(!openTypeStore)
             return;
+
+        if(openTypeStore.gateType.id == gateType.id) {
+            await notificationController.open("Circuit already open!");
+            return;
+        }
 
         if(await confirmationController.open(saveConfirmationParams))
             await saveAssetCallback(openTypeStore.gateType, generateCircuitGraph());

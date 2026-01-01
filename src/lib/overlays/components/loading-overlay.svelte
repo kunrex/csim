@@ -6,11 +6,19 @@
     const controllerState = loadingController.state;
     const resolvableState = $derived($controllerState);
 
+    function close() {
+        if(!resolvableState)
+            return;
+
+        resolvableState.resolve();
+        loadingController.close()
+    }
+
     $effect(() => {
         if(!resolvableState)
             return;
 
-        resolvableState.params.action.then(() => loadingController.close());
+        resolvableState.params.action.then(close);
     });
 </script>
 

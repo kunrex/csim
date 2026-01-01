@@ -70,8 +70,8 @@
         </button>
     </div>
     <div class="flex flex-col w-full overflow-y-scroll overflow-x-scroll pl-2">
-        {#each gates as data}
-            <InspectorElement inspectorData={data} renameGateCallback={renameGateCallback} expandGateCallback={expandGate} maximiseGateCallback={maximiseGateCallback} />
+        {#each gates as gate (gate.id)}
+            <InspectorElement inspectorData={gate} renameGateCallback={renameGateCallback} expandGateCallback={expandGate} maximiseGateCallback={maximiseGateCallback} />
         {/each}
     </div>
 </Panel>

@@ -17,23 +17,23 @@
 
     let { disabled, typeStore, openCircuitCallback, deleteCircuitCallback } : InstantiateGateButtonProps = $props();
 
-    let gateType: AssetGateType = $state.raw(typeStore.gateType);
+    let name: string = $state.raw("");
     typeStore.state.subscribe((state) => {
-        gateType = state;
+        name = state.name;
     });
 
     function editCircuit() {
-        openCircuitCallback(gateType);
+        openCircuitCallback(typeStore.gateType);
     }
 
     function deleteCircuit() {
-        deleteCircuitCallback(gateType);
+        deleteCircuitCallback(typeStore.gateType);
     }
 </script>
 
 <div class="flex flex-row">
     <button class="color-circuit instantiate-gate-button rounded-br-none hover:cursor-pointer" ondblclick={editCircuit}>
-        <b>{ capitalise(gateType.name) }</b>
+        <b>{ capitalise(name) }</b>
     </button>
     <div class="flex flex-col justify-end">
         <button class="instantiate-gate-utility" onclick={deleteCircuit} disabled={disabled} class:disabled>

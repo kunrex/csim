@@ -16,6 +16,7 @@
         if(!resolvableState)
             return;
 
+        resolvableState.resolve();
         simulationSettingsController.close();
     }
 
