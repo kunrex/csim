@@ -1,6 +1,6 @@
 import type { Wire } from "$lib/core/wires";
 import type { Gate } from "$lib/core/gates";
-import { TriState} from "$lib/core/tri-state";
+import { TriState } from "$lib/core/tri-state";
 import { CycleGuard } from "$lib/core/runtime";
 
 import { Pin } from "$lib/core/pins/pin";

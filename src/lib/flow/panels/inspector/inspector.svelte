@@ -5,8 +5,10 @@
     import { type Node, type Edge, Panel, useOnSelectionChange } from "@xyflow/svelte";
 
     import { type GateNode } from "$lib/flow/types";
-    import { initInspectorData } from "$lib/flow/panels/inspector/utils";
-    import InspectorElement, { type InspectorData } from "$lib/flow/panels/inspector/inspector-element.svelte";
+
+    import InspectorElement from "$lib/flow/panels/inspector/inspector-element.svelte";
+    import type { GateInspectorRefData } from "$lib/flow/panels/inspector/gate-inspector-data";
+    import { initInspectorData, toggleGateVisibility, setGateSelected } from "$lib/flow/panels/inspector/utils";
 
     interface InspectorProps {
         title: string,
@@ -20,43 +22,61 @@
 
     let { title, renameAssetCallback, expandGateCallback, maximiseGateCallback, renameGateCallback } : InspectorProps = $props();
 
-    let gates: InspectorData[] = $state([]);
+    let gates: GateInspectorRefData[] = $state.raw([]);
 
-    useOnSelectionChange(onSelectionChange);
+    const selectedNodes = new Set<string>();
+    let selectedNodesState: boolean = $state.raw(false);
 
-    export function addGate(gate: GateNode) : void {
-        if(gate.parentId) {
-            const i = gates.findIndex(data => data.id == gate.parentId);
+    useOnSelectionChange(selectionChangeCallback);
+
+    $effect(() => {
+        if(!selectedNodesState)
+            return;
+
+        selectionChangeHandler();
+        selectedNodesState = false;
+    });
+
+    export function addGate(gateNode: GateNode) : void {
+        if(gateNode.parentId) {
+            const parentId = gateNode.parentId;
+            const i = gates.findIndex(gate => gate.ref.gateId == parentId);
             if(i >= 0) {
-                const copy = [...gates];
-                copy.splice(i + 1, 0, initInspectorData(gate, gates[i].depth + 1));
-                gates = copy;
+                gates.splice(i + 1, 0, initInspectorData(gateNode, gates[i].ref.depth + 1));
+                gates = [...gates];
             }
         }
         else
-            gates = [...gates, initInspectorData(gate, 0)];
+            gates = [...gates, initInspectorData(gateNode, 0)];
     }
 
     export function removeGate(gateId : string) : void {
-        gates = gates.filter(data => data.id != gateId);
+        gates = gates.filter(gate => gate.ref.gateId != gateId);
     }
 
     function expandGate(gateId : string) : void {
-        for(const gate of gates)
-            if (gate.parentId == gateId)
-                gate.maximizable = !gate.maximizable;
+        gates = gates.map((gate: GateInspectorRefData) => {
+            if(gate.ref.parentGateId != gateId)
+                return gate;
+
+            return toggleGateVisibility(gate);
+        });
 
         expandGateCallback(gateId);
     }
 
-    const selectedNodes = new Set<string>();
-    function onSelectionChange(params: { nodes: Node[], edges: Edge[] }) : void {
+    function selectionChangeCallback(params: { nodes: Node[], edges: Edge[] }) : void {
         selectedNodes.clear();
         for(const node of params.nodes)
             selectedNodes.add(node.id);
 
-        for(const gate of gates)
-            gate.selected = selectedNodes.has(gate.id);
+        selectedNodesState = true;
+    }
+
+    function selectionChangeHandler() : void {
+        gates = gates.map((gate: GateInspectorRefData) => {
+            return setGateSelected(gate, selectedNodes.has(gate.ref.gateId));
+        });
     }
 </script>
 
@@ -69,8 +89,8 @@
             <FontAwesomeIcon icon={faPencil}></FontAwesomeIcon>
         </button>
     </div>
-    <div class="flex flex-col w-full overflow-y-scroll overflow-x-scroll pl-2">
-        {#each gates as gate (gate.id)}
+    <div class="flex flex-col w-full overflow-y-scroll overflow-x-scroll">
+        {#each gates as gate (gate.ref.gateId)}
             <InspectorElement inspectorData={gate} renameGateCallback={renameGateCallback} expandGateCallback={expandGate} maximiseGateCallback={maximiseGateCallback} />
         {/each}
     </div>

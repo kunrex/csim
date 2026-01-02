@@ -3,7 +3,7 @@
 
     import type { PrefabGateData, SevenSegmentGateData, UnaryGateData } from "$lib/core";
 
-    import { capitalise } from "$lib/flow/utils.js";
+    import { capitalise } from "$lib/flow/utils";
     import type { GateProps } from "$lib/flow/types";
     import { prefabHandleGap } from "$lib/flow/constants";
 

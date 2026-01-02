@@ -4,21 +4,45 @@ import { fa8, faClock, faLightbulb, faMicrochip, faPowerOff, faTablet } from "@f
 import { type GateType, NotGateType, AndGateType, NandGateType, OrGateType, NorGateType, XorGateType, XnorGateType, PowerGateType, ClockGateType, ProbeGateType, DisplayGateType } from "$lib/core";
 
 import type { GateNode } from "$lib/flow/types";
-import type { InspectorData } from "$lib/flow/panels/inspector/inspector-element.svelte";
+import type { GateInspectorData, GateInspectorRefData } from "$lib/flow/panels/inspector/gate-inspector-data";
 
-export function initInspectorData(gateNode: GateNode, depth: number) : InspectorData {
+export function initInspectorData(gateNode: GateNode, depth: number) : GateInspectorRefData {
     return {
-        id: gateNode.id,
-        parentId: gateNode.parentId,
-        isPrefab: gateNode.type == "prefab",
-        initialName: gateNode.data.ref.name,
+        ref: {
+            gateId: gateNode.id,
+            parentGateId: gateNode.parentId,
 
-        selected: false,
+            name: gateNode.data.ref.name,
+            expandable: gateNode.type == "prefab",
 
-        depth: depth,
-        maximizable: depth == 0,
-        fabIcon: iconMap(gateNode.data.ref.type)
-    } satisfies InspectorData;
+            depth: depth,
+            selected: false,
+            visible: depth == 0,
+
+            fabIcon: iconMap(gateNode.data.ref.type)
+        } satisfies GateInspectorData
+    } satisfies GateInspectorRefData;
+}
+
+export function toggleGateVisibility(gate: GateInspectorRefData) : GateInspectorRefData {
+    const ref = gate.ref;
+    ref.visible = !ref.visible;
+
+    return {
+        ref: ref
+    } satisfies GateInspectorRefData;
+}
+
+export function setGateSelected(gate: GateInspectorRefData, selected: boolean) : GateInspectorRefData {
+    const ref = gate.ref;
+    if(ref.selected == selected)
+        return gate;
+
+    ref.selected = selected;
+
+    return {
+        ref: ref
+    } satisfies GateInspectorRefData;
 }
 
 function iconMap(key: GateType): IconDefinition {

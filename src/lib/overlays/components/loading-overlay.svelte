@@ -1,9 +1,9 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { loadingController } from "$lib/overlays/controllers";
+    import { loadingOverlay } from "$lib/overlays/controllers";
 
-    const controllerState = loadingController.state;
+    const controllerState = loadingOverlay.state;
     const resolvableState = $derived($controllerState);
 
     function close() {
@@ -11,7 +11,7 @@
             return;
 
         resolvableState.resolve();
-        loadingController.close()
+        loadingOverlay.close()
     }
 
     $effect(() => {

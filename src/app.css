@@ -96,6 +96,10 @@
         @apply flex items-center justify-center border rounded-md border-solid border-slate-600 text-white;
     }
 
+    .core-gate.selected, .prefab-gate.selected, .seven-segment-display.selected {
+        @apply border-2;
+    }
+
     .icon-core-gate:hover {
         @apply cursor-pointer;
     }

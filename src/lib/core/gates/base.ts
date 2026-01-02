@@ -2,6 +2,7 @@ import type { GateNodeType } from "$lib/flow";
 
 import { Pin } from "$lib/core/pins";
 import { CycleGuard } from "$lib/core/runtime";
+
 import type { GateData } from "$lib/core/gates/data";
 import type { GateType } from "$lib/core/gates/types";
 

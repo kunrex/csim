@@ -1,11 +1,11 @@
 import type { GateNodeType } from "$lib/flow";
 
 import { TriState } from "$lib/core/tri-state";
+import { UndefinedGateType } from "$lib/core/runtime";
 import { InputPin, OutputPin, Pin } from "$lib/core/pins";
 
 import { BaseGate, type UpdateGateSignature } from "$lib/core/gates/base";
 import type { GateData, UnaryOutputData, UnaryGateData, BinaryGateData, InputGateData, OutputGateData } from "$lib/core/gates/data";
-import {UndefinedGateType} from "$lib/core/gates/types";
 
 abstract class CoreGate<T extends GateData> extends BaseGate<T> {
     protected constructor(id: string, gateData: T, protected readonly onUpdateFunction: UpdateGateSignature) {

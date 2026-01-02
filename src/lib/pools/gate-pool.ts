@@ -1,33 +1,6 @@
-import { PrefabCircuit } from "$lib/circuits";
 import type { GateModel } from "$lib/flow";
-import {
-    type Gate,
-    type GateType,
-    NotGate,
-    OrGate,
-    NorGate,
-    AndGate,
-    NandGate,
-    XorGate,
-    XNorGate,
-    PowerGate,
-    ClockGate,
-    ProbeGate,
-    SevenSegmentDisplay,
-    BufferGate,
-    PrefabGate,
-    type UpdateGateSignature,
-    NotGateType,
-    OrGateType,
-    NorGateType,
-    AndGateType,
-    NandGateType,
-    XorGateType,
-    XnorGateType,
-    ProbeGateType,
-    PowerGateType, ClockGateType, BufferGateType, DisplayGateType
-} from "$lib/core";
-
+import { PrefabCircuit } from "$lib/circuits";
+import { type Gate, type GateType, type UpdateGateSignature, NotGate, AndGate, NandGate, OrGate, NorGate, XorGate, XNorGate, PowerGate, ClockGate, ProbeGate, SevenSegmentDisplay, BufferGate, PrefabGate, NotGateType, AndGateType, NandGateType, OrGateType, NorGateType, XorGateType, XnorGateType, ProbeGateType, PowerGateType, ClockGateType, BufferGateType, DisplayGateType } from "$lib/core";
 
 interface IGatePool {
     createGate() : Promise<GateModel>;

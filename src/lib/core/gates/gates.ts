@@ -1,31 +1,16 @@
-import {faClock, faLightbulb, faPowerOff} from "@fortawesome/free-solid-svg-icons";
+import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
-import {MasterGatePool} from "$lib/pools";
-import {type GateNodeType} from "$lib/flow";
+import { MasterGatePool } from "$lib/pools";
+import type { GateNodeType } from "$lib/flow";
 
-import {InputPin, OutputPin, Pin} from "$lib/core/pins";
-import {fromBoolean, invert, propagateState, TriState} from "$lib/core/tri-state";
+import { InputPin, OutputPin, Pin } from "$lib/core/pins";
+import { invert, fromBoolean, propagateState, TriState } from "$lib/core/tri-state";
+import { NotGateType, AndGateType, NandGateType, OrGateType, NorGateType, XorGateType, XnorGateType, PowerGateType, ClockGateType, ProbeGateType, DisplayGateType, BufferGateType, UndefinedGateType, masterState, registerClock, CycleGuard } from "$lib/core/runtime";
 
-import {
-    AndGateType,
-    BufferGateType,
-    ClockGateType,
-    DisplayGateType,
-    type GateType,
-    NandGateType,
-    NorGateType,
-    NotGateType,
-    OrGateType,
-    PowerGateType,
-    ProbeGateType,
-    UndefinedGateType,
-    XnorGateType,
-    XorGateType
-} from "$lib/core/gates/types";
-import {BaseGate, type UpdateGateSignature} from "$lib/core/gates/base";
-import {CycleGuard, masterState, registerClock} from "$lib/core/runtime";
-import {BinaryGate, InputGate, OutputGate, UnaryGate} from "$lib/core/gates/core";
-import type {PrefabGateData, SevenSegmentGateData} from "$lib/core/gates/data";
+import type { GateType } from "$lib/core/gates/types";
+import { BaseGate, type UpdateGateSignature } from "$lib/core/gates/base";
+import type { PrefabGateData, SevenSegmentGateData } from "$lib/core/gates/data";
+import { BinaryGate, InputGate, OutputGate, UnaryGate } from "$lib/core/gates/core";
 
 export class NotGate extends UnaryGate {
     public readonly gateType: GateType = NotGateType;

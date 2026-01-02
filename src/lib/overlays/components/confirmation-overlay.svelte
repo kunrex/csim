@@ -1,9 +1,9 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { confirmationController } from "$lib/overlays/controllers";
+    import { confirmationOverlay } from "$lib/overlays/controllers";
 
-    const controllerState = confirmationController.state;
+    const controllerState = confirmationOverlay.state;
     const resolvableState = $derived($controllerState);
 
     function submit(e: SubmitEvent) : void {
@@ -12,7 +12,7 @@
             return;
 
         resolvableState.resolve(true);
-        confirmationController.close();
+        confirmationOverlay.close();
     }
 
     function cancel() : void {
@@ -20,7 +20,7 @@
             return;
 
         resolvableState.resolve(false);
-        confirmationController.close();
+        confirmationOverlay.close();
     }
 </script>
 

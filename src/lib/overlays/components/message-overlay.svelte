@@ -1,9 +1,9 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { messageController }  from "../controllers";
+    import { messageOverlay }  from "../controllers";
 
-    const controllerState = messageController.state;
+    const controllerState = messageOverlay.state;
     const resolvableState = $derived($controllerState);
 
     function submit() {
@@ -11,7 +11,7 @@
             return;
 
         resolvableState.resolve();
-        messageController.close();
+        messageOverlay.close();
     }
 </script>
 

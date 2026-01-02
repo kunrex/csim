@@ -3,9 +3,9 @@
 
     import { minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, CycleGuard } from "$lib/core";
 
-    import { simulationSettingsController } from "$lib/overlays/controllers";
+    import { settingsOverlay } from "$lib/overlays/controllers";
 
-    const writableState = simulationSettingsController.state;
+    const writableState = settingsOverlay.state;
     const resolvableState = $derived($writableState);
 
     let deltaLimit = $state(CycleGuard.getDeltaLimit());
@@ -17,7 +17,7 @@
             return;
 
         resolvableState.resolve();
-        simulationSettingsController.close();
+        settingsOverlay.close();
     }
 
     function onChangeDelta() : void {

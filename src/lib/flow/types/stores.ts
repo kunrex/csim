@@ -1,4 +1,4 @@
-import { type Writable, type Readable, writable } from "svelte/store";
+import { writable, type Writable, type Readable } from "svelte/store";
 
 import type { AssetGateType } from "$lib/core";
 

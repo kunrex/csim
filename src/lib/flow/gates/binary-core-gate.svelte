@@ -3,6 +3,7 @@
 
     import { capitalise } from "$lib/flow/utils";
     import type { GateProps } from "$lib/flow/types";
+
     import { InputPin, OutputPin } from "$lib/flow/gates/pins";
 
     let { data, dragging, selected, parentId } : GateProps<BinaryGateData> = $props();

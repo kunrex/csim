@@ -1,10 +1,12 @@
 <script lang="ts">
+    import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
+
     import type { UnaryGateData } from "$lib/core";
 
     import { capitalise } from "$lib/flow/utils.js";
     import type { GateProps } from "$lib/flow/types";
+
     import { InputPin, OutputPin } from "$lib/flow/gates/pins";
-    import {FontAwesomeIcon} from "@fortawesome/svelte-fontawesome";
 
     let { data, dragging, selected, parentId } : GateProps<UnaryGateData> = $props();
 

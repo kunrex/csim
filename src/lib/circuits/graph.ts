@@ -1,4 +1,4 @@
-import { type GateType } from "$lib/core";
+import type { GateType } from "$lib/core";
 import type { AnonymousConnection } from "$lib/flow";
 
 export interface GateCircuitSpec {

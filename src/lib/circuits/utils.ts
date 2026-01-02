@@ -1,10 +1,8 @@
 import { faClock, faLightbulb, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 
-import {BufferGateType, type UnaryGateData} from "$lib/core";
+import { WirePool, MasterGatePool } from "$lib/pools";
+import { BufferGateType, type UnaryGateData } from "$lib/core";
 import type { WireModel, GateModel, AnonymousConnection } from "$lib/flow";
-
-import { WirePool } from "$lib/pools/wire-pool";
-import { MasterGatePool } from "$lib/pools/gate-pool";
 
 import type { GateCircuitSpec } from "$lib/circuits/graph";
 

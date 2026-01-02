@@ -2,7 +2,8 @@
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
     import { faPencil, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
-    import type {AssetGateType, GateType} from "$lib/core";
+    import { playAudio } from "$lib/audio";
+    import type { GateType } from "$lib/core";
 
     import { capitalise } from "$lib/flow/utils";
     import { AssetTypeStore } from "$lib/flow/types";
@@ -19,9 +20,9 @@
 
     let { disabled, deletable, typeStore, openPrefabCallback, deletePrefabCallback } : InstantiatePrefabGateButtonProps = $props();
 
-    let gateType: AssetGateType = $state.raw(typeStore.gateType);
+    let name: string = $state.raw("");
     typeStore.state.subscribe((state) => {
-        gateType = state;
+        name = state.name;
     });
 
     const dragDropType = dragDropProvider();
@@ -29,22 +30,23 @@
         if(!event.dataTransfer || disabled)
             return;
 
-        dragDropType.current = gateType;
+        dragDropType.current = typeStore.gateType;
         event.dataTransfer.effectAllowed = 'move';
     }
 
     function editPrefab() : void {
-        openPrefabCallback(gateType);
+        playAudio("click");
+        openPrefabCallback(typeStore.gateType);
     }
 
     function deletePrefab() : void {
-        deletePrefabCallback(gateType);
+        deletePrefabCallback(typeStore.gateType);
     }
 </script>
 
 <div class="flex flex-row">
     <div class="color-prefab instantiate-gate-button rounded-r-none" role="img" draggable={true} ondragstart={onDragStart} class:disabled={disabled}>
-        <b>{ capitalise(gateType.name) }</b>
+        <b>{ capitalise(name) }</b>
     </div>
     <div class="flex flex-col justify-between">
         <button class="instantiate-gate-utility" onclick={editPrefab}>

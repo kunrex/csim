@@ -2,6 +2,7 @@
     import type { SevenSegmentGateData } from "$lib/core";
 
     import type { GateProps } from "$lib/flow/types";
+
     import { InputPin, OutputPin } from "$lib/flow/gates/pins";
     import { SevenSegmentDisplay } from "$lib/flow/gates/display";
 

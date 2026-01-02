@@ -19,7 +19,3 @@ export interface CircuitModel {
     gates: GateModel[],
     wires: WireModel[]
 }
-
-export class TypeModel {
-
-}

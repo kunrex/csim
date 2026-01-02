@@ -1,15 +1,14 @@
-import { MessageOverlay, LoadingOverlay, TextInputOverlay, NotificationOverlay, ConfirmationOverlay, SimulationSettingsOverlay } from "$lib/overlays/components";
-export { MessageOverlay, LoadingOverlay, TextInputOverlay, NotificationOverlay, ConfirmationOverlay, SimulationSettingsOverlay };
+import { PromptOverlay, LoadingOverlay, MessageOverlay, SettingsOverlay, NotificationOverlay, ConfirmationOverlay } from "$lib/overlays/components";
+export { PromptOverlay, LoadingOverlay, MessageOverlay, SettingsOverlay, NotificationOverlay, ConfirmationOverlay };
 
-import type { LoadingControllerParams, TitleMessageParams, OverlayControllerResult } from "$lib/overlays/controllers";
-import { messageController, loadingController, textInputController, simulationSettingsController, confirmationController, notificationController } from "$lib/overlays/controllers";
-import type { IOverlayController } from "$lib/overlays/controllers/controller";
+import { settingsOverlay, notificationOverlay, messageOverlay, loadingOverlay, confirmationOverlay, promptOverlay, type IOverlayController, type LoadingControllerParams, type TitleMessageParams, type OverlayControllerResult } from "$lib/overlays/controllers";
+export type { LoadingControllerParams, TitleMessageParams, OverlayControllerResult };
 
-const notificationControllerExport = notificationController as IOverlayController<string, void>;
-const messageControllerExport = messageController as IOverlayController<TitleMessageParams, void>;
-const loadingControllerExport = loadingController as IOverlayController<LoadingControllerParams, void>;
-const simulationSettingsControllerExport = simulationSettingsController as IOverlayController<null, void>;
-const confirmationControllerExport = confirmationController as IOverlayController<TitleMessageParams, boolean>;
-const prefabNameControllerExport = textInputController as IOverlayController<TitleMessageParams, OverlayControllerResult>;
+const settingsExport = settingsOverlay as IOverlayController<null, void>;
+const notificationExport = notificationOverlay as IOverlayController<string, void>;
+const messageExport = messageOverlay as IOverlayController<TitleMessageParams, void>;
+const loadingExport = loadingOverlay as IOverlayController<LoadingControllerParams, void>;
+const confirmationExport = confirmationOverlay as IOverlayController<TitleMessageParams, boolean>;
+const promptExport = promptOverlay as IOverlayController<TitleMessageParams, OverlayControllerResult>;
 
-export { messageControllerExport as messageController, loadingControllerExport as loadingController, simulationSettingsControllerExport as simulationSettingsController, prefabNameControllerExport as prefabNameController, confirmationControllerExport as confirmationController, notificationControllerExport as notificationController, type LoadingControllerParams, type TitleMessageParams };
+export { settingsExport as settingsOverlay, notificationExport as notificationOverlay, messageExport as messageOverlay, loadingExport as loadingOverlay, confirmationExport as confirmationOverlay, promptExport as promptOverlay };

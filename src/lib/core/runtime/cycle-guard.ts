@@ -1,12 +1,21 @@
-import { messageController, type TitleMessageParams } from "$lib/overlays";
+import { messageOverlay, type TitleMessageParams } from "$lib/overlays";
+
+import { playAudio } from "$lib/audio";
 
 import { type Gate } from "$lib/core/gates";
 
 export const minToggleLimit = 10, maxToggleLimit = 100;
 export const minDeltaLimit = 1000, maxDeltaLimit = 10000;
 
-function clamp(value: number, min: number, max: number) {
+function clamp(value: number, min: number, max: number) : number {
     return Math.min(Math.max(value, min), max);
+}
+
+async function error(params: TitleMessageParams) : Promise<void>{
+    await Promise.allSettled([
+        playAudio("error"),
+        messageOverlay.open(params)
+    ]);
 }
 
 const deltaLimitCrossParams = {
@@ -54,7 +63,8 @@ export class CycleGuard {
     public async logGateUpdate(gate: Gate): Promise<boolean> {
         if(++this.delta >= CycleGuard.deltaLimit) {
             this.resetCycle();
-            await messageController.open(deltaLimitCrossParams);
+            await error(deltaLimitCrossParams);
+
             return false;
         }
 
@@ -66,7 +76,8 @@ export class CycleGuard {
 
         if(count + 1 >= CycleGuard.toggleLimit) {
             this.resetCycle();
-            await messageController.open(toggleLimitCrossParams);
+            await error(toggleLimitCrossParams);
+
             return false;
         }
 

@@ -1,4 +1,5 @@
 import { ClockGate } from "$lib/core/gates";
+
 import { CycleGuard } from "$lib/core/runtime/cycle-guard";
 
 const frameRate = 0.5;

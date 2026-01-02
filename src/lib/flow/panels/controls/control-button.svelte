@@ -10,7 +10,6 @@
     }
 
     let { action, disabled = false, onclick, fabIcon } : ControlButtonProps = $props();
-    let icon = $derived(fabIcon);
 </script>
 
 <div class="utility-popup-parent group">
@@ -18,6 +17,6 @@
         { action }
     </div>
     <button class="utility-button" onclick={onclick} disabled={disabled}>
-        <FontAwesomeIcon icon={icon} />
+        <FontAwesomeIcon icon={fabIcon} />
     </button>
 </div>

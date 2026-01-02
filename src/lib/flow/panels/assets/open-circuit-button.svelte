@@ -2,9 +2,9 @@
     import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
     import { FontAwesomeIcon } from "@fortawesome/svelte-fontawesome";
 
-    import type {AssetGateType, GateType} from "$lib/core";
+    import type { GateType } from "$lib/core";
 
-    import { capitalise } from "$lib/flow/utils.js";
+    import { capitalise } from "$lib/flow/utils";
     import { AssetTypeStore } from "$lib/flow/types";
 
     export interface InstantiateGateButtonProps {

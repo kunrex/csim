@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Panel } from "@xyflow/svelte";
 
+    import { playAudio } from "$lib/audio";
     import type { GateType, AssetGateType } from "$lib/core";
 
     import { nonIconGateTypes, iconGateTypes } from "$lib/flow/constants";
@@ -59,6 +60,11 @@
         assets = assets.filter(asset => asset.typeStore.gateType.id != gateType.id);
     }
 
+    function chooseAssetType(assetType: AssetType) : void {
+        window = assetType;
+        playAudio("click");
+    }
+
     function checkOpenAssetCircuitDependency(asset: Asset) : boolean {
         if(openAsset == null)
             return false;
@@ -74,11 +80,11 @@
     }
 </script>
 
-<Panel class="flex flex-col h-auto w-1/2 relative panel-background pt-0" position="bottom-right">
+<Panel class="flex flex-col h-auto w-1/2 min-w-80 relative panel-background pt-0" position="bottom-right">
     <div class="flex flex-row justify-start absolute top-0 left-0 -translate-y-full px-2">
-        <AssetWindow title="Core" onclick={() => { window = "core" }} selected={window === "core"}></AssetWindow>
-        <AssetWindow title="Prefabs" onclick={() => { window = "prefabs" }} selected={window === "prefabs"}></AssetWindow>
-        <AssetWindow title="Circuits" onclick={() => { window = "circuits" }} selected={window === "circuits"}></AssetWindow>
+        <AssetWindow title="Core" onclick={() => chooseAssetType("core")} selected={window === "core"}></AssetWindow>
+        <AssetWindow title="Prefabs" onclick={() => chooseAssetType("prefabs")} selected={window === "prefabs"}></AssetWindow>
+        <AssetWindow title="Circuits" onclick={() => chooseAssetType("circuits")} selected={window === "circuits"}></AssetWindow>
     </div>
     <div class="flex flex-row justify-center items-center w-full font-extralight text-gray-500 p-2">
         {#if window === "circuits"}

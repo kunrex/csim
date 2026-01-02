@@ -3,8 +3,9 @@
 
     import type { InputGateData } from "$lib/core";
 
-    import { InputPin } from "$lib/flow/gates/pins";
     import type { GateProps } from "$lib/flow/types";
+
+    import { InputPin } from "$lib/flow/gates/pins";
 
     let { data, dragging, selected, parentId } : GateProps<InputGateData> = $props();
 

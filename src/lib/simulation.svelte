@@ -1,35 +1,13 @@
 <script lang="ts">
     import { SvelteFlowProvider } from "@xyflow/svelte";
 
-    import {
-        Flow,
-        DragDrop,
-        type AnonymousConnection,
-        type GateCreationParams,
-        type GateCreationCallbackParams, type WireModel, type IdentifiedConnection
-    } from "$lib/flow";
-    import {MasterGatePool, WirePool} from "$lib/pools";
-    import {
-        type AssetGateType,
-        type MutableAssetGateType,
-        type Gate,
-        type GateType,
-        masterTick,
-        type Pin, createAssetType, getGateType
-    } from "$lib/core";
-    import {
-        loadingController,
-        MessageOverlay,
-        LoadingOverlay,
-        TextInputOverlay,
-        ConfirmationOverlay,
-        SimulationSettingsOverlay,
-        prefabNameController, messageController, type TitleMessageParams, notificationController
-    } from "$lib/overlays";
-    import type { ICircuitGraph } from "$lib/circuits/graph";
-    import {Circuit, PrefabCircuit} from "$lib/circuits";
-    import {textInputController} from "$lib/overlays/controllers";
-    import {NotificationOverlay} from "$lib/overlays/index.js";
+    import { notify, prompt } from "$lib/utils";
+    import { preLoadAudioFiles } from "$lib/audio";
+    import { MasterGatePool, WirePool } from "$lib/pools";
+    import { type ICircuitGraph, Circuit, PrefabCircuit } from "$lib/circuits";
+    import { masterTick, createAssetType, getGateType, type GateType, type AssetGateType, type MutableAssetGateType, type Pin } from "$lib/core";
+    import { type AnonymousConnection, type GateCreationParams, type GateCreationCallbackParams, type WireModel, type IdentifiedConnection, Flow, DragDrop } from "$lib/flow";
+    import { loadingOverlay, type TitleMessageParams, MessageOverlay, LoadingOverlay, PromptOverlay, ConfirmationOverlay, SettingsOverlay, NotificationOverlay } from "$lib/overlays";
 
     const renameAssetParams = {
         title: "Rename Asset",
@@ -74,11 +52,11 @@
         if(!circuit)
             return;
 
-        const result = await textInputController.open(renameAssetParams);
-        if(!result.result)
+        const result = await prompt(renameAssetParams);
+        if(!result)
             return;
 
-        circuit.renameType(result.value);
+        circuit.renameType(result);
     }
 
     function saveAsset(gateType: GateType, circuitGraph: ICircuitGraph) : Promise<void> {
@@ -102,29 +80,29 @@
     }
 
     async function createPrefab(circuitGraph: ICircuitGraph) : Promise<void> {
-        const result = await prefabNameController.open(namePrefabParams);
-        if(!result.result || duplicateCircuitCheck(result.value))
+        const result = await prompt(namePrefabParams);
+        if(!result || duplicateCircuitCheck(result))
             return;
 
-        const gateType = createAssetType(result.value);
+        const gateType = createAssetType(result);
 
         createAsset(gateType, circuitGraph);
         flow.addPrefabHandler(gateType);
 
-        await notificationController.open("Circuit prefab successfully!");
+        await notify("Prefab created successfully!");
     }
 
     async function createCircuit(circuitGraph: ICircuitGraph) : Promise<void> {
-        const result = await prefabNameController.open(namePrefabParams);
-        if(!result.result || duplicateCircuitCheck(result.value))
+        const result = await prompt(namePrefabParams);
+        if(!result || duplicateCircuitCheck(result))
             return;
 
-        const gateType = createAssetType(result.value);
+        const gateType = createAssetType(result);
 
         createAsset(gateType, circuitGraph);
         flow.addCircuitHandler(gateType);
 
-        await notificationController.open("Circuit created successfully!");
+        await notify("Circuit created successfully!");
     }
 
     async function openAsset(gateType: GateType) : Promise<void> {
@@ -198,6 +176,7 @@
     }
 
     async function onInitialise() : Promise<void> {
+        preLoadAudioFiles()
         requestAnimationFrame(masterTick);
 
         WirePool.initInstance(flow.updateWireData);
@@ -225,7 +204,7 @@
         resolveInitialised = resolve;
     });
 
-    loadingController.open({
+    loadingOverlay.open({
         title: "Initialising...",
         action: initialisedPromise
     });
@@ -242,8 +221,8 @@
         <Flow bind:this={flow} createPrefabCallback={createPrefab} createCircuitCallback={createCircuit} openAssetCallback={openAsset} deleteAssetCallback={deleteAsset} renameAssetCallback={renameAsset} saveAssetCallback={saveAsset} connectionCallback={onConnection} disconnectionCallback={onDisconnection} createGateCallback={onCreateGate} destroyGateCallback={onDeleteGate} />
     </DragDrop>
 </SvelteFlowProvider>
-<TextInputOverlay duplicateCheck={duplicateCircuitCheck} />
-<SimulationSettingsOverlay />
+<PromptOverlay duplicateCheck={duplicateCircuitCheck} />
+<SettingsOverlay />
 <ConfirmationOverlay />
 <NotificationOverlay />
 <MessageOverlay />

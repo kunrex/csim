@@ -1,74 +1,27 @@
 <script lang="ts">
-    import {tick} from "svelte";
+    import { tick } from "svelte";
+
+    import { faBroom, faCircleNodes, faCube, faExpand, faGear, faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 
     import '@xyflow/svelte/dist/style.css'
-    import {
-        Background,
-        BackgroundVariant,
-        type Connection,
-        ConnectionLineType,
-        ConnectionMode,
-        type EdgeTypes,
-        type FitViewOptions,
-        MiniMap,
-        type NodeTypes,
-        Panel,
-        SvelteFlow,
-        useSvelteFlow,
-        type XYPosition
-    } from '@xyflow/svelte';
+    import { useSvelteFlow, SvelteFlow, Panel, Background, MiniMap, BackgroundVariant, type Connection, ConnectionMode, ConnectionLineType, type EdgeTypes, type FitViewOptions, type NodeTypes, type XYPosition, type SetCenterOptions } from '@xyflow/svelte';
 
-    import {faBroom, faCircleNodes, faCube, faExpand, faGear, faLayerGroup} from "@fortawesome/free-solid-svg-icons";
-
+    import type { ElkNode } from "elkjs";
     import ELK from 'elkjs/lib/elk.bundled.js';
-    import type {ElkNode, LayoutOptions} from "elkjs";
 
-    import {type AssetGateType, type GateData, type GateType, type PrefabGateData, type WireData} from "$lib/core";
+    import type { GateCircuitSpec, ICircuitGraph } from "$lib/circuits";
+    import type { AssetGateType, GateData, GateType, PrefabGateData, WireData } from "$lib/core";
 
-    import {InternalWire, Wire} from "$lib/flow/wires";
-    import {dragDropProvider} from "$lib/flow/drag-drop";
-    import {Assets, Control, Inspector} from "$lib/flow/panels";
-    import {
-        compressAndHideGateNode,
-        compressGateNode,
-        constructElkGraph,
-        convertElkConnections,
-        createGateNode,
-        createWireEdge,
-        expandGateNode,
-        layoutGateNode,
-        unHideChildGateNode,
-    } from "$lib/flow/utils";
-    import {BinaryCoreGate, InputGate, OutputGate, PrefabGate, SevenSegment, UnaryCoreGate} from "$lib/flow/gates";
-    import {
-        type AnonymousConnection,
-        AssetTypeStore,
-        type CircuitModel,
-        type GateCreationCallbackParams,
-        type GateCreationParams,
-        type GateModel,
-        type GateNode,
-        type GateNodeType,
-        type IdentifiedConnection, type RefGateData,
-        type WireEdge,
-        type WireEdgeType,
-        type WireModel
-    } from "$lib/flow/types";
-    import type {GateCircuitSpec, ICircuitGraph} from "$lib/circuits";
-    import {
-        confirmationController,
-        loadingController,
-        type LoadingControllerParams,
-        messageController, notificationController,
-        simulationSettingsController
-    } from "$lib/overlays";
-    import {
-        actionFailureParams,
-        deletionConfirmationParams,
-        parentElkOptions,
-        rootElkOptions,
-        saveConfirmationParams
-    } from "$lib/flow/constants";
+    import { notify } from "$lib/utils";
+    import { playAudio } from "$lib/audio";
+    import { InternalWire, Wire } from "$lib/flow/wires";
+    import { dragDropProvider } from "$lib/flow/drag-drop";
+    import { Assets, Control, Inspector } from "$lib/flow/panels";
+    import { BinaryCoreGate, InputGate, OutputGate, PrefabGate, SevenSegment, UnaryCoreGate } from "$lib/flow/gates";
+    import { actionFailureParams, deletionConfirmationParams, parentElkOptions, rootElkOptions, saveConfirmationParams } from "$lib/flow/constants";
+    import { confirmationOverlay, loadingOverlay, messageOverlay, settingsOverlay, type LoadingControllerParams } from "$lib/overlays";
+    import { compressAndHideGateNode, compressGateNode, constructElkGraph, convertElkConnections, createGateNode, createWireEdge, expandGateNode, layoutGateNode, unHideChildGateNode } from "$lib/flow/utils";
+    import { type AnonymousConnection, type CircuitModel, type GateCreationCallbackParams, type GateCreationParams, type GateModel, type GateNode, type GateNodeType, type IdentifiedConnection, type RefGateData, type WireEdge, type WireEdgeType, type WireModel, AssetTypeStore } from "$lib/flow/types";
 
     interface FlowProps {
         destroyGateCallback: (gateId: string) => void,
@@ -129,6 +82,11 @@
 
     const fitOptions: FitViewOptions = {
         padding: 0.2,
+        duration: 300,
+        interpolate: "smooth"
+    };
+
+    const centerOptions: SetCenterOptions = {
         duration: 300,
         interpolate: "smooth"
     };
@@ -225,10 +183,14 @@
 
         if(model.nodeType == "prefab")
             createInternals(model);
+
+        playAudio("gate");
     }
 
     export function instantiateWireHandler(createCallback: WireModel) : void {
         createWireHandler(createCallback.id, "wire", createCallback.wireData, createCallback);
+
+        playAudio("wire");
     }
 
     export function instantiateCircuitHandler(gateType: GateType, model: CircuitModel) : void {
@@ -404,12 +366,16 @@
             await rearrangeLayout();
         }
         else {
-            await messageController.open(actionFailureParams);
+            await Promise.allSettled([
+                playAudio("error"),
+                messageOverlay.open(actionFailureParams)
+            ]);
+
             await compressGate(gateId);
         }
     }
 
-    function expandGateHandler(gateId: string) : Promise<void> {
+    async function expandGateHandler(gateId: string) : Promise<void> {
         const index = getGateIndex(gateId);
         if(index == undefined)
             return Promise.resolve();
@@ -425,16 +391,27 @@
         } satisfies LoadingControllerParams: {
             title: "Expanding...",
             action: expandGate(gateId)
-        }
+        };
 
-        return loadingController.open(params);
+        await Promise.allSettled([
+            playAudio("overlay"),
+            loadingOverlay.open(params)
+        ]);
     }
 
     async function rearrangeHandler() : Promise<void> {
-        return await loadingController.open({
-            title: "Rearranging...",
-            action: rearrangeLayout(),
-        } satisfies LoadingControllerParams);
+        if(gates.length == 0) {
+            await notify("Circuit is empty!");
+            return;
+        }
+
+        await Promise.allSettled([
+            playAudio("click"),
+            loadingOverlay.open({
+                title: "Rearranging...",
+                action: rearrangeLayout(),
+            } satisfies LoadingControllerParams)
+        ]);
     }
 
     function calculateWorldPosition(gateId: string) : XYPosition {
@@ -459,18 +436,43 @@
 
         const node = gates[index];
         const position = calculateWorldPosition(gateId);
-        setCenter(position.x + (node.measured?.width ?? 0) / 2, position.y + (node.measured?.height ?? 0) / 2);
+        setCenter(position.x + (node.measured?.width ?? 0) / 2, position.y + (node.measured?.height ?? 0) / 2, centerOptions);
+
+        playAudio("click");
     }
 
-    function fitViewHandler() : Promise<boolean> {
-        return fitView(fitOptions);
+    async function fitViewHandler() : Promise<void> {
+        if(gates.length == 0) {
+            await notify("Circuit is empty!");
+            return;
+        }
+
+        await Promise.allSettled([
+            playAudio("click"),
+            fitView(fitOptions)
+        ]);
     }
 
     async function clearCircuitHandler() : Promise<void> {
-        await deleteElements({
-            nodes: gates,
-            edges: wires
-        });
+        if(gates.length == 0) {
+            await notify("Circuit already empty!");
+            return;
+        }
+
+        await Promise.allSettled([
+            playAudio("clear"),
+            deleteElements({
+                nodes: gates,
+                edges: wires
+            })
+        ]);
+    }
+
+    async function openSettingsHandler() : Promise<void> {
+        await Promise.allSettled([
+            playAudio("overlay"),
+            settingsOverlay.open(null)
+        ]);
     }
 
     function renameGateHandler(id: string, name: string) : void {
@@ -492,7 +494,6 @@
         gates = updated;
     }
 
-
     function generateCircuitGraph(): ICircuitGraph {
         const localGateMap = new Map<string, string>();
 
@@ -500,6 +501,9 @@
         const rootWires: AnonymousConnection[] = [];
 
         for(const gate of gates) {
+            if(gate.parentId)
+                continue;
+
             const circuitSpec = {
                 name: gate.data.ref.name,
                 type: gate.data.ref.type,
@@ -548,11 +552,11 @@
             return;
 
         if(openTypeStore.gateType.id == gateType.id) {
-            await notificationController.open("Circuit already open!");
+            await notify("Circuit already open!");
             return;
         }
 
-        if(await confirmationController.open(saveConfirmationParams))
+        if(await confirmationOverlay.open(saveConfirmationParams))
             await saveAssetCallback(openTypeStore.gateType, generateCircuitGraph());
 
         await clearCircuitHandler();
@@ -572,9 +576,20 @@
     }
 
     async function deleteAssetHandler(gateType: GateType) : Promise<void> {
-        if(await confirmationController.open(deletionConfirmationParams)) {
+        const result = await Promise.allSettled([
+            playAudio("overlay"),
+            confirmationOverlay.open(deletionConfirmationParams)
+        ]);
+
+        const confirmation = result[1];
+        if(confirmation.status == "rejected")
+            return;
+
+        if(confirmation.value) {
             deleteAssetCallback(gateType);
             assets.deleteAssetHandler(gateType);
+
+            await playAudio("delete");
         }
     }
 
@@ -656,6 +671,8 @@
         const count = gates.length;
         for(let i = 0; i < count; i++)
             gateIndexMap.set(gates[i].id, i);
+
+        playAudio("delete");
     }
 </script>
 
@@ -697,13 +714,13 @@
         <Assets bind:this={assets} openAssetCallback={openAssetHandler} deleteAssetCallback={deleteAssetHandler} />
         <MiniMap bgColor="#1e1e1e" position="top-right" />
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
-        <Panel class="flex md:flex-row flex-col items-center max-w-1/4 gap-y-4 md:gap-x-4" position="bottom-left">
+        <Panel class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 place-items-center" position="bottom-left">
             <Control action="Fit" fabIcon={faExpand} onclick={fitViewHandler} />
             <Control action="Clear" fabIcon={faBroom} onclick={clearCircuitHandler} />
             <Control action="Rearrange" fabIcon={faLayerGroup} onclick={rearrangeHandler} />
-            <Control action="Prefab"  fabIcon={faCube} onclick={createPrefabHandler} />
-            <Control action="Circuit"  fabIcon={faCircleNodes} onclick={createCircuitHandler} />
-            <Control action="Settings" fabIcon={faGear} onclick={() => simulationSettingsController.open(null)}></Control>
+            <Control action="Prefab" fabIcon={faCube} onclick={createPrefabHandler} />
+            <Control action="Circuit" fabIcon={faCircleNodes} onclick={createCircuitHandler} />
+            <Control action="Settings" fabIcon={faGear} onclick={openSettingsHandler} />
         </Panel>
         <Inspector bind:this={inspector} title={title} renameAssetCallback={renameAssetHandler} expandGateCallback={expandGateHandler} maximiseGateCallback={maximiseGateHandler} renameGateCallback={renameGateHandler} />
     </SvelteFlow>

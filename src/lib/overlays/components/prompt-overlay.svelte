@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { textInputController } from "$lib/overlays/controllers";
+    import { promptOverlay } from "$lib/overlays/controllers";
 
     interface PromptPrefabProps {
         duplicateCheck: (value: string) => boolean;
@@ -9,19 +9,19 @@
 
     let { duplicateCheck }: PromptPrefabProps = $props();
 
-    const controllerState = textInputController.state;
+    const controllerState = promptOverlay.state;
     const resolvableState = $derived($controllerState);
 
     let value = $state("");
     let disabled = $derived(value.length == 0 || duplicateCheck(value));
 
-    function submit(e: SubmitEvent) : void {
+    async function submit(e: SubmitEvent) : Promise<void> {
         e.preventDefault();
         if(!resolvableState || disabled)
             return;
 
         resolvableState.resolve({ result: true, value: value });
-        textInputController.close();
+        promptOverlay.close();
         value = "";
     }
 
@@ -30,7 +30,7 @@
             return;
 
         resolvableState.resolve({ result: false, value: value });
-        textInputController.close();
+        promptOverlay.close();
         value = "";
     }
 </script>

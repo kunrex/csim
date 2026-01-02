@@ -1,15 +1,6 @@
 import { MasterGatePool } from "$lib/pools";
 import type { AnonymousConnection, CircuitModel, GateModel, WireModel } from "$lib/flow";
-import {
-    type AssetGateType,
-    type MutableAssetGateType,
-    PowerGateType,
-    ClockGateType,
-    DisplayGateType,
-    ProbeGateType,
-    type PrefabGateData,
-    type GateType, getGateType
-} from "$lib/core";
+import { type GateType, type AssetGateType, type MutableAssetGateType, type PrefabGateData, PowerGateType, ClockGateType, DisplayGateType, ProbeGateType, getGateType } from "$lib/core";
 
 import type { GateCircuitSpec } from "$lib/circuits/graph";
 import { initCircuitGate, initCircuitConnection, createPowerBuffer, createClockBuffer, createProbeBuffer } from "$lib/circuits/utils";

@@ -1,8 +1,9 @@
 <script lang="ts">
     import { isSegmentOn } from "$lib/flow/utils";
+    import { a as A, b as B, c as C, d as D, e as E, f as F, g as G } from "$lib/flow/constants";
+
     import VerticalDisplay from "$lib/flow/gates/display/vertical-display.svelte";
     import HorizontalDisplay from "$lib/flow/gates/display/horizontal-display.svelte";
-    import { a as A, b as B, c as C, d as D, e as E, f as F, g as G } from "$lib/flow/constants";
 
     interface SevenSegmentProps {
         value: number,

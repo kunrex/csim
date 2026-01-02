@@ -4,9 +4,9 @@
 
     import { fly } from 'svelte/transition';
 
-    import { notificationController } from "$lib/overlays/controllers";
+    import { notificationOverlay } from "$lib/overlays/controllers";
 
-    const controllerState = notificationController.state;
+    const controllerState = notificationOverlay.state;
     const resolvableState = $derived($controllerState);
 
     function close() {
@@ -14,7 +14,7 @@
             return;
 
         resolvableState.resolve();
-        notificationController.close();
+        notificationOverlay.close();
     }
 
     $effect(() => {

@@ -15,9 +15,9 @@ export interface OverlayControllerResult {
     result: boolean
 }
 
-export const notificationController = new OverlayController<string, void>();
-export const simulationSettingsController = new OverlayController<null, void>();
-export const messageController = new OverlayController<TitleMessageParams, void>();
-export const loadingController = new OverlayController<LoadingControllerParams, void>();
-export const confirmationController = new OverlayController<TitleMessageParams, boolean>();
-export const textInputController = new OverlayController<TitleMessageParams, OverlayControllerResult>();
+export const settingsOverlay = new OverlayController<null, void>();
+export const notificationOverlay = new OverlayController<string, void>();
+export const messageOverlay = new OverlayController<TitleMessageParams, void>();
+export const loadingOverlay = new OverlayController<LoadingControllerParams, void>();
+export const confirmationOverlay = new OverlayController<TitleMessageParams, boolean>();
+export const promptOverlay = new OverlayController<TitleMessageParams, OverlayControllerResult>();
