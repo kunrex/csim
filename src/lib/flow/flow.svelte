@@ -10,7 +10,7 @@
     import ELK from 'elkjs/lib/elk.bundled.js';
 
     import type { GateCircuitSpec, ICircuitGraph } from "$lib/circuits";
-    import type { AssetGateType, GateData, GateType, PrefabGateData, WireData } from "$lib/core";
+    import { type AssetGateType, type GateData, type GateType, type PrefabGateData, type WireData, CycleGuard } from "$lib/core";
 
     import { notify } from "$lib/utils";
     import { playAudio } from "$lib/audio";
@@ -24,11 +24,11 @@
     import { type AnonymousConnection, type CircuitModel, type GateCreationCallbackParams, type GateCreationParams, type GateModel, type GateNode, type GateNodeType, type IdentifiedConnection, type RefGateData, type WireEdge, type WireEdgeType, type WireModel, AssetTypeStore } from "$lib/flow/types";
 
     interface FlowProps {
-        destroyGateCallback: (gateId: string) => void,
+        destroyGateCallback: (gateId: string) => Promise<void>,
         createGateCallback: (createGateData: GateCreationParams) => void,
 
         connectionCallback: (connectionData: AnonymousConnection) => void,
-        disconnectionCallback: (disconnectionData: IdentifiedConnection) => void,
+        disconnectionCallback: (disconnectionData: IdentifiedConnection) => Promise<void>,
 
         createPrefabCallback: (circuit: ICircuitGraph) => void,
         createCircuitCallback: (circuit: ICircuitGraph) => void,
@@ -605,11 +605,12 @@
         return false;
     }
 
-    function onDisconnection(wire: WireEdge) : void {
+    async function onDisconnection(wire: WireEdge) : Promise<void> {
         if(wire.sourceHandle && wire.targetHandle) {
-            wireIndexMap.delete(wire.id);
+            const result = wireIndexMap.delete(wire.id);
+            console.log(result);
 
-            disconnectionCallback({
+            await disconnectionCallback({
                 id: wire.id,
                 source: wire.source,
                 target: wire.target,
@@ -619,9 +620,9 @@
         }
     }
 
-    function onReconnection(oldWire: WireEdge, newWire: Connection) : void {
+    async function onReconnection(oldWire: WireEdge, newWire: Connection) : Promise<void> {
         if(oldWire.sourceHandle && oldWire.targetHandle) {
-            onDisconnection(oldWire);
+            await onDisconnection(oldWire);
             onConnection(newWire);
         }
     }
@@ -651,26 +652,30 @@
             edges: edges } satisfies OnDeleteParams);
     }
 
-    function onDeleteGate(id: string) : void {
+    async function onDeleteGate(id: string) : Promise<void> {
         gateIndexMap.delete(id);
         inspector.removeGate(id);
 
-        destroyGateCallback(id);
+        await destroyGateCallback(id);
     }
 
-    function onDelete(params: OnDeleteParams) : void {
+    async function onDelete(params: OnDeleteParams) : Promise<void> {
         const edges = params.edges;
         const nodes = params.nodes;
 
         for(const edge of edges)
-            onDisconnection(edge);
+            await onDisconnection(edge);
 
         for(const node of nodes)
-            onDeleteGate(node.id);
+            await onDeleteGate(node.id);
 
-        const count = gates.length;
-        for(let i = 0; i < count; i++)
+        const gateCount = gates.length;
+        for(let i = 0; i < gateCount; i++)
             gateIndexMap.set(gates[i].id, i);
+
+        const wireCount = wires.length;
+        for(let i = 0; i < wireCount; i++)
+            wireIndexMap.set(wires[i].id, i);
 
         playAudio("delete");
     }

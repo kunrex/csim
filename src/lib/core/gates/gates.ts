@@ -377,6 +377,16 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
                 return this.in4;
             case this.in5.id:
                 return this.in5;
+            case this.out1.id:
+                return this.out1;
+            case this.out2.id:
+                return this.out2;
+            case this.out3.id:
+                return this.out3;
+            case this.out4.id:
+                return this.out4;
+            case this.out5.id:
+                return this.out5;
             default:
                 return null;
         }

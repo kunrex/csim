@@ -6,7 +6,8 @@
 
     import { nonIconGateTypes, iconGateTypes } from "$lib/flow/constants";
 
-    import { AssetTypeStore } from "$lib/flow/types";
+    import { dragDropProvider } from "$lib/flow/drag-drop";
+    import {AssetTypeStore, type GateCreationParams} from "$lib/flow/types";
 
     import AssetWindow from "$lib/flow/panels/assets/asset-window-button.svelte";
     import OpenCircuit from "$lib/flow/panels/assets/open-circuit-button.svelte";
@@ -34,6 +35,16 @@
     let openAsset: Asset | null = $state.raw(null);
 
     let prefabFlag: boolean = $state.raw(false);
+
+    const type = dragDropProvider();
+    function onDrop(event: DragEvent) : void {
+        event.preventDefault();
+
+        if (!type.current)
+            return;
+
+        type.current = null;
+    }
 
     export function openAssetHandler(gateType: GateType) : AssetTypeStore | null {
         for(const asset of assets)
@@ -80,7 +91,7 @@
     }
 </script>
 
-<Panel class="flex flex-col h-auto w-1/2 min-w-80 relative panel-background pt-0" position="bottom-right">
+<Panel class="flex flex-col h-auto w-1/2 min-w-80 relative panel-background pt-0" position="bottom-right" ondrop={onDrop}>
     <div class="flex flex-row justify-start absolute top-0 left-0 -translate-y-full px-2">
         <AssetWindow title="Core" onclick={() => chooseAssetType("core")} selected={window === "core"}></AssetWindow>
         <AssetWindow title="Prefabs" onclick={() => chooseAssetType("prefabs")} selected={window === "prefabs"}></AssetWindow>

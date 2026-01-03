@@ -1,8 +1,8 @@
-import {Pin} from "$lib/core/pins";
-import {propagateState, TriState} from "$lib/core/tri-state";
+import { Pin} from "$lib/core/pins";
+import { propagateState, TriState } from "$lib/core/tri-state";
 
 export interface WireData {
-    state: boolean,
+    state: boolean
 }
 
 export type UpdateWireSignature = (id: string, gateData: WireData) => void;
@@ -26,7 +26,7 @@ export class Wire {
 
     public async propagate() : Promise<void> {
         if(this.source && this.target) {
-            this.wireData.state = this.source.getState() == TriState.High;
+            this.wireData.state = this.source.getState() === TriState.High;
             this.onUpdateFunction(this.id, this.wireData);
 
             await propagateState(this.source, this.target);

@@ -15,6 +15,13 @@
     let value = $state("");
     let disabled = $derived(value.length == 0 || duplicateCheck(value));
 
+    $effect(() => {
+        if(!resolvableState)
+            return;
+
+        value = resolvableState.params.placeholder ?? "";
+    });
+
     async function submit(e: SubmitEvent) : Promise<void> {
         e.preventDefault();
         if(!resolvableState || disabled)
@@ -46,7 +53,7 @@
                 <div class="text-lg text-gray-400 text-center font-extralight">
                     { resolvableState.params.message }
                 </div>
-                <input class="input-clean text-xl text-center font-bold" type="text" minlength="1" maxlength="32" placeholder="supercoolprefab" bind:value={value}>
+                <input class="input-clean text-xl text-center font-bold" type="text" minlength="1" maxlength="32" placeholder="supercoolasset" bind:value={value}>
                 <div class="flex flex-row w-full justify-between items-center">
                     <button type="submit" class="modal-button bg-emerald-500 hover:bg-emerald-600 hover:cursor-pointer active:bg-emerald-400 disabled:bg-emerald-800 disabled:hover:text-white disabled:hover:cursor-not-allowed" disabled={disabled}>
                         Confirm
@@ -55,7 +62,7 @@
                         {#if value.length === 0 }
                             <div class="text-red-700">*name cannot be empty</div>
                         {:else if duplicateCheck(value)}
-                            <div class="text-red-700">*gate already exists</div>
+                            <div class="text-red-700">*asset already exists</div>
                         {:else}
                             <div class="text-emerald-500">valid</div>
                         {/if}

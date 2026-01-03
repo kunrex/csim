@@ -7,7 +7,7 @@
     import { type ICircuitGraph, Circuit, PrefabCircuit } from "$lib/circuits";
     import { masterTick, createAssetType, getGateType, type GateType, type AssetGateType, type MutableAssetGateType, type Pin } from "$lib/core";
     import { type AnonymousConnection, type GateCreationParams, type GateCreationCallbackParams, type WireModel, type IdentifiedConnection, Flow, DragDrop } from "$lib/flow";
-    import { loadingOverlay, type TitleMessageParams, MessageOverlay, LoadingOverlay, PromptOverlay, ConfirmationOverlay, SettingsOverlay, NotificationOverlay } from "$lib/overlays";
+    import { loadingOverlay, type TitleMessageParams, type PromptMessageParams, MessageOverlay, LoadingOverlay, PromptOverlay, ConfirmationOverlay, SettingsOverlay, NotificationOverlay } from "$lib/overlays";
 
     const renameAssetParams = {
         title: "Rename Asset",
@@ -52,7 +52,10 @@
         if(!circuit)
             return;
 
-        const result = await prompt(renameAssetParams);
+        const result = await prompt({
+            ...renameAssetParams,
+            placeholder: circuit.type.name
+        } satisfies PromptMessageParams);
         if(!result)
             return;
 
@@ -164,7 +167,7 @@
         } satisfies WireModel);
     }
 
-    function onDisconnection(connectionData: IdentifiedConnection) : void {
+    async function onDisconnection(connectionData: IdentifiedConnection) : Promise<void> {
         const pins = getPins(connectionData);
         const sourcePin = pins[0];
         const targetPin = pins[1];
@@ -172,7 +175,7 @@
         if(!sourcePin || !targetPin)
             return;
 
-        WirePool.instance.deleteWire(connectionData.id, sourcePin, targetPin);
+        await WirePool.instance.deleteWire(connectionData.id, sourcePin, targetPin);
     }
 
     async function onInitialise() : Promise<void> {

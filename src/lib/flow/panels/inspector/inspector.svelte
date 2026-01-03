@@ -82,14 +82,14 @@
 
 <Panel class="flex flex-col min-w-64 w-1/6 min-h-72 h-1/2 panel-background text-white p-4" position="top-left">
     <div class="flex flex-row gap-x-2 text-2xl mb-4">
-        <div class="flex-1 font-bold overflow-x-scroll">
+        <div class="flex-1 font-bold overflow-x-scroll overflow-scrollbar">
             { title }
         </div>
         <button class="flex items-center justify-center text-slate-300 hover:text-slate-400 active:text-slate-100 rounded" onclick={renameAssetCallback}>
             <FontAwesomeIcon icon={faPencil}></FontAwesomeIcon>
         </button>
     </div>
-    <div class="flex flex-col w-full overflow-y-scroll overflow-x-scroll">
+    <div class="flex flex-col w-full overflow-y-scroll overflow-x-scroll overflow-scrollbar">
         {#each gates as gate (gate.ref.gateId)}
             <InspectorElement inspectorData={gate} renameGateCallback={renameGateCallback} expandGateCallback={expandGate} maximiseGateCallback={maximiseGateCallback} />
         {/each}

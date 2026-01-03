@@ -1,5 +1,5 @@
 import { playAudio } from "$lib/audio";
-import {notificationOverlay, promptOverlay, type TitleMessageParams} from "$lib/overlays";
+import {notificationOverlay, promptOverlay, type PromptMessageParams} from "$lib/overlays";
 
 export async function notify(notification: string) : Promise<void> {
     await Promise.allSettled([
@@ -8,7 +8,7 @@ export async function notify(notification: string) : Promise<void> {
     ]);
 }
 
-export async function prompt(params: TitleMessageParams) : Promise<string | null> {
+export async function prompt(params: PromptMessageParams) : Promise<string | null> {
     const result = await Promise.allSettled([
         playAudio("overlay"),
         promptOverlay.open(params)

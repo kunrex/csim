@@ -10,6 +10,10 @@ export interface TitleMessageParams {
     message: string
 }
 
+export interface PromptMessageParams extends TitleMessageParams {
+    placeholder?: string,
+}
+
 export interface OverlayControllerResult {
     value: string,
     result: boolean
@@ -20,4 +24,4 @@ export const notificationOverlay = new OverlayController<string, void>();
 export const messageOverlay = new OverlayController<TitleMessageParams, void>();
 export const loadingOverlay = new OverlayController<LoadingControllerParams, void>();
 export const confirmationOverlay = new OverlayController<TitleMessageParams, boolean>();
-export const promptOverlay = new OverlayController<TitleMessageParams, OverlayControllerResult>();
+export const promptOverlay = new OverlayController<PromptMessageParams, OverlayControllerResult>();

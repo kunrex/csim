@@ -52,7 +52,7 @@
             {#each displays as display (display.id)}
                 <div class="flex flex-col text-slate-100 px-7 py-3 rounded-md border-2 border-slate-600 color-display">
                     <SevenSegmentDisplay value={display.data.value} decimal={display.data.in5} />
-                    <div class="flex flex-row justify-center items-center w-full overflow-x-scroll mt-1">
+                    <div class="flex flex-row justify-center items-center w-full overflow-x-scroll overflow-scrollbar mt-1">
                         <b> { display.data.name} </b>
                     </div>
                 </div>

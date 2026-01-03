@@ -16,7 +16,5 @@
 
 <div class={`icon-core-gate color-${type}`} class:dragging class:selected class:input={true}>
     <InputPin id="in-1" label="in-1" enabled={data.ref.in1} connectable={connectable} />
-    <div>
-        <b><FontAwesomeIcon icon={icon} /></b>
-    </div>
+    <b><FontAwesomeIcon icon={icon} /></b>
 </div>

@@ -53,7 +53,7 @@
 }
 
 .color-probe {
-    @apply bg-orange-600;
+    @apply bg-amber-400;
 }
 
 .color-power {
@@ -271,5 +271,22 @@
 
     .overlay-backdrop {
         @apply absolute inset-0 backdrop-blur-sm;
+    }
+
+    .overflow-scrollbar::-webkit-scrollbar {
+        @apply h-1.5;
+    }
+
+    .overflow-scrollbar::-webkit-scrollbar-track {
+        @apply bg-transparent
+    }
+
+    .overflow-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-gray-600 rounded-full;
+    }
+
+    .overflow-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(75 85 99) transparent;
     }
 }
