@@ -1,15 +1,15 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import { minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, CycleGuard } from "$lib/core";
+    import { minToggleLimit, maxToggleLimit, minDeltaLimit, maxDeltaLimit, getDeltaLimit, setDeltaLimit, getToggleLimit, setToggleLimit } from "$lib/core";
 
     import { settingsOverlay } from "$lib/overlays/controllers";
 
     const writableState = settingsOverlay.state;
     const resolvableState = $derived($writableState);
 
-    let deltaLimit = $state(CycleGuard.getDeltaLimit());
-    let toggleLimit = $state(CycleGuard.getToggleLimit());
+    let deltaLimit = $state(getDeltaLimit());
+    let toggleLimit = $state(getToggleLimit());
 
     function submit(e: SubmitEvent) : void {
         e.preventDefault();
@@ -21,11 +21,11 @@
     }
 
     function onChangeDelta() : void {
-        CycleGuard.setDeltaLimit(deltaLimit);
+        setDeltaLimit(deltaLimit);
     }
 
     function onChangeToggle() : void {
-        CycleGuard.setToggleLimit(toggleLimit);
+        setToggleLimit(toggleLimit);
     }
 </script>
 

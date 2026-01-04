@@ -4,8 +4,8 @@ import { MasterGatePool } from "$lib/pools";
 import type { GateNodeType } from "$lib/flow";
 
 import { InputPin, OutputPin, Pin } from "$lib/core/pins";
-import { invert, fromBoolean, propagateState, TriState } from "$lib/core/tri-state";
-import { NotGateType, AndGateType, NandGateType, OrGateType, NorGateType, XorGateType, XnorGateType, PowerGateType, ClockGateType, ProbeGateType, DisplayGateType, BufferGateType, UndefinedGateType, masterState, registerClock, CycleGuard } from "$lib/core/runtime";
+import { fromBoolean, invert, propagateObjectState, TriState } from "$lib/core/tri-state";
+import { AndGateType, BufferGateType, ClockGateType, DisplayGateType, masterState, NandGateType, NorGateType, NotGateType, OrGateType, PowerGateType, ProbeGateType, pushGate, registerClock, UndefinedGateType, XnorGateType, XorGateType } from "$lib/core/runtime";
 
 import type { GateType } from "$lib/core/gates/types";
 import { BaseGate, type UpdateGateSignature } from "$lib/core/gates/base";
@@ -20,14 +20,14 @@ export class NotGate extends UnaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        this.next = invert[this.in.getState()];
+        this.next = invert[this.in.objectState];
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         await this.onPropagateSyncState();
     }
 }
@@ -40,10 +40,10 @@ export class AndGate extends BinaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState(): boolean {
         this.onCalculateSyncState();
-        const in1 = this.in1.getState();
-        const in2 = this.in2.getState();
+        const in1 = this.in1.objectState;
+        const in2 = this.in2.objectState;
 
         if(in1 === TriState.Low || in2 === TriState.Low)
             this.next = TriState.Low;
@@ -52,7 +52,7 @@ export class AndGate extends BinaryGate {
         else
             this.next = TriState.High;
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
     public async propagateState(): Promise<void> {
@@ -68,10 +68,10 @@ export class NandGate extends BinaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        const in1 = this.in1.getState();
-        const in2 = this.in2.getState();
+        const in1 = this.in1.objectState;
+        const in2 = this.in2.objectState;
 
         if(in1 === TriState.Low || in2 === TriState.Low)
             this.next = TriState.High;
@@ -80,10 +80,10 @@ export class NandGate extends BinaryGate {
         else
             this.next = TriState.Low;
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         await this.onPropagateSyncState();
     }
 }
@@ -96,10 +96,10 @@ export class OrGate extends BinaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        const in1 = this.in1.getState();
-        const in2 = this.in2.getState();
+        const in1 = this.in1.objectState;
+        const in2 = this.in2.objectState;
 
         if(in1 === TriState.High || in2 === TriState.High)
             this.next = TriState.High;
@@ -108,10 +108,10 @@ export class OrGate extends BinaryGate {
         else
             this.next = TriState.Low;
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         await this.onPropagateSyncState();
     }
 }
@@ -124,10 +124,10 @@ export class NorGate extends BinaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        const in1 = this.in1.getState();
-        const in2 = this.in2.getState();
+        const in1 = this.in1.objectState;
+        const in2 = this.in2.objectState;
 
         if(in1 === TriState.High || in2 === TriState.High)
             this.next = TriState.Low;
@@ -136,10 +136,10 @@ export class NorGate extends BinaryGate {
         else
             this.next = TriState.High;
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         await this.onPropagateSyncState();
     }
 }
@@ -152,20 +152,20 @@ export class XorGate extends BinaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        const in1 = this.in1.getState();
-        const in2 = this.in2.getState();
+        const in1 = this.in1.objectState;
+        const in2 = this.in2.objectState;
 
         if (in1 === TriState.Unknown || in2 === TriState.Unknown)
             this.next = TriState.Unknown;
         else
             this.next = fromBoolean(in1 != in2);
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         await this.onPropagateSyncState();
     }
 }
@@ -178,20 +178,20 @@ export class XNorGate extends BinaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        const in1 = this.in1.getState();
-        const in2 = this.in2.getState();
+        const in1 = this.in1.objectState;
+        const in2 = this.in2.objectState;
 
         if (in1 === TriState.Unknown || in2 === TriState.Unknown)
             this.next = TriState.Unknown;
         else
             this.next = fromBoolean(in1 == in2);
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         await this.onPropagateSyncState();
     }
 }
@@ -203,23 +203,24 @@ export class PowerGate extends OutputGate {
         super(id, onUpdateFunction);
         this.gateData.icon = faPowerOff;
         this.gateData.type = this.gateType;
-        this.gateData.toggle = () => this.calculateState();
+        this.gateData.toggle = () => pushGate(this);
 
         this.state = TriState.Low;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onResetState() {
+        super.onResetState();
+        this.next = this.state = TriState.Low;
+    }
+
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
         this.next = fromBoolean(!this.state);
 
-        return Promise.resolve();
+        return true;
     }
 
-    public async propagateState(): Promise<void> {
-        if(this.state == this.next)
-            return;
-
-        CycleGuard.instance.resetCycle();
+    public async propagateState() : Promise<void> {
         this.state = this.next;
 
         if(this.state == TriState.High) {
@@ -244,12 +245,12 @@ export class ProbeGate extends InputGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        return Promise.resolve();
+        return false;
     }
 
-    public propagateState(): Promise<void> {
+    public propagateState() : Promise<void> {
         return Promise.resolve();
     }
 }
@@ -269,14 +270,19 @@ export class ClockGate extends OutputGate {
         this.state = TriState.Low;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onResetState() {
+        super.onResetState();
+        this.next = this.state = TriState.Low;
+    }
+
+    protected onCalculateState() : boolean {
         this.onCalculateSyncState();
         this.next = fromBoolean(!this.next);
 
-        return Promise.resolve();
+        return true;
     }
 
-    public async propagateState(): Promise<void> {
+    public async propagateState() : Promise<void> {
         if(this.enabled)
             await this.onPropagateSyncState();
     }
@@ -310,6 +316,9 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
     private readonly out4 = new OutputPin("out-4");
     private readonly out5 = new OutputPin("out-5");
 
+    private next = 0;
+    private state = 0;
+
     constructor(id: string, private readonly onUpdateFunction: UpdateGateSignature) {
         super(id, {
             name: "",
@@ -323,20 +332,20 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
             in5: false,
 
             value: 0
-        });
+        } satisfies SevenSegmentGateData);
         this.gateData.type = this.gateType;
     }
 
-    protected onSyncGateData(): void {
+    protected syncGateData(): void {
         this.onUpdateFunction(this.id, this.gateData);
     }
 
-    protected async onResetState(): Promise<void> {
-        await this.in1.reset();
-        await this.in2.reset();
-        await this.in3.reset();
-        await this.in4.reset();
-        await this.in5.reset();
+    protected onResetState(): void {
+        this.in1.reset();
+        this.in2.reset();
+        this.in3.reset();
+        this.in4.reset();
+        this.in5.reset();
         this.gateData.in1 = false;
         this.gateData.in2 = false;
         this.gateData.in3 = false;
@@ -344,25 +353,27 @@ export class SevenSegmentDisplay extends BaseGate<SevenSegmentGateData> {
         this.gateData.in5 = false;
     }
 
-    public async onCalculateState(): Promise<void> {
-        const in1 = this.gateData.in1 = this.in1.getState() == TriState.High;
-        const in2 = this.gateData.in2 = this.in2.getState() == TriState.High;
-        const in3 = this.gateData.in3 = this.in3.getState() == TriState.High;
-        const in4 = this.gateData.in4 = this.in4.getState() == TriState.High;
-        this.gateData.in5 = this.in5.getState() == TriState.High;
+    protected onCalculateState(): boolean {
+        const in1 = this.gateData.in1 = this.in1.objectState === TriState.High;
+        const in2 = this.gateData.in2 = this.in2.objectState === TriState.High;
+        const in3 = this.gateData.in3 = this.in3.objectState === TriState.High;
+        const in4 = this.gateData.in4 = this.in4.objectState === TriState.High;
+        this.gateData.in5 = this.in5.objectState === TriState.High;
 
-        this.gateData["value"] =  +in1 + (+in2 << 1) + (+in3 << 2) + (+in4 << 3);
+        this.next = this.gateData.value = +in1 + (+in2 << 1) + (+in3 << 2) + (+in4 << 3);
 
         this.syncGateData();
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
     protected async propagateState(): Promise<void> {
-        await propagateState(this.in1, this.out1);
-        await propagateState(this.in2, this.out2);
-        await propagateState(this.in3, this.out3);
-        await propagateState(this.in4, this.out4);
-        await propagateState(this.in5, this.out5);
+        this.state = this.next;
+
+        await propagateObjectState(this.in1, this.out1);
+        await propagateObjectState(this.in2, this.out2);
+        await propagateObjectState(this.in3, this.out3);
+        await propagateObjectState(this.in4, this.out4);
+        await propagateObjectState(this.in5, this.out5);
     }
 
     public getPin(id: string): Pin | null {
@@ -401,15 +412,20 @@ export class BufferGate extends UnaryGate {
         this.gateData.type = this.gateType;
     }
 
-    public async onCalculateState(): Promise<void> {
+    protected onCalculateState(): boolean {
         this.onCalculateSyncState();
-        this.next = this.in.getState();
+        this.next = this.in.objectState;
 
-        return Promise.resolve();
+        return this.state != this.next;
     }
 
     public async propagateState(): Promise<void> {
         await this.onPropagateSyncState();
+    }
+
+    protected onResetState(): void {
+        super.onResetState();
+        this.gateData.icon = this.gateData.hideInput = this.gateData.hideOutput = undefined;
     }
 }
 
@@ -427,23 +443,23 @@ export class PrefabGate extends BaseGate<PrefabGateData> {
 
             bufferMap: new Map(),
             displaySet: new Set()
-        });
+        } satisfies PrefabGateData);
     }
 
-    protected onSyncGateData() : void {
+    protected syncGateData() : void {
         this.onUpdateFunction(this.id, this.gateData);
     }
 
-    protected onCalculateState() : Promise<void> {
+    protected onCalculateState() : boolean {
         this.syncGateData();
-        return Promise.resolve();
+        return false;
     }
 
     protected propagateState() : Promise<void> {
         return Promise.resolve();
     }
 
-    protected async onResetState() : Promise<void> {
+    protected onResetState() : void {
         this.gateData.type = UndefinedGateType;
         this.gateData.icon = undefined;
 

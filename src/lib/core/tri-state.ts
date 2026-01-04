@@ -5,7 +5,7 @@ export enum TriState {
 }
 
 export interface TriStateObject {
-    getState() : TriState;
+    get objectState() : TriState;
 
     propagateLow() : Promise<void>;
     propagateHigh() : Promise<void>;
@@ -22,8 +22,8 @@ export function fromBoolean (value: boolean) : TriState {
     return value ? TriState.High : TriState.Low;
 }
 
-export function propagateState(from: TriStateObject, to: TriStateObject) : Promise<void> {
-    switch (from.getState()) {
+export function propagateObjectState(from: TriStateObject, to: TriStateObject) : Promise<void> {
+    switch (from.objectState) {
         case TriState.Low:
             return to.propagateLow();
         case TriState.High:

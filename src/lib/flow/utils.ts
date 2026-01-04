@@ -5,15 +5,7 @@ import type { ElkExtendedEdge, ElkNode, LayoutOptions } from "elkjs";
 import type {GateData, PrefabGateData, WireData} from "$lib/core";
 
 import { sevenSegmentBits, segments } from "$lib/flow/constants";
-import type {
-    AnonymousConnection,
-    GateNode,
-    GateNodeType,
-    RefGateData,
-    RefWireData,
-    WireEdge,
-    WireEdgeType
-} from "$lib/flow/types";
+import type { AnonymousConnection, GateNode, GateNodeType, RefGateData, RefWireData, WireEdge, WireEdgeType } from "$lib/flow/types";
 
 export function capitalise(word: string) : string {
     return word.charAt(0).toUpperCase() + word.slice(1);

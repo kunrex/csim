@@ -1,7 +1,6 @@
 import type { GateNodeType } from "$lib/flow";
 
 import { Pin } from "$lib/core/pins";
-import { CycleGuard } from "$lib/core/runtime";
 
 import type { GateData } from "$lib/core/gates/data";
 import type { GateType } from "$lib/core/gates/types";
@@ -17,29 +16,26 @@ export abstract class BaseGate<T extends GateData> {
         this.gateData.name = `Gate ${this.id}`;
     }
 
-    protected abstract onResetState(): Promise<void>;
+    protected abstract onResetState() : void;
 
-    public async resetState(): Promise<void> {
+    public resetState() : void {
         this.gateData.name = `Gate ${this.id}`;
-        await this.onResetState();
+        this.onResetState();
     }
 
-    protected abstract propagateState(): Promise<void>;
-    protected abstract onCalculateState(): Promise<void>;
+    protected abstract onCalculateState() : boolean;
+    protected abstract propagateState() : Promise<void>;
 
-    public async calculateState() : Promise<void> {
-        await this.onCalculateState();
-        if(!await CycleGuard.instance.logGateUpdate(this))
-            return;
+    public calculateState() : boolean {
+        const propagateState = this.onCalculateState();
+        if(!propagateState)
+            return false;
 
-        await this.propagateState();
+        this.propagateState();
+        return true;
     }
 
-    public abstract getPin(nodeId: string): Pin | null;
+    public abstract getPin(nodeId: string) : Pin | null;
 
-    protected abstract onSyncGateData(): void;
-
-    protected syncGateData(): void {
-        this.onSyncGateData();
-    }
+    protected abstract syncGateData() : void;
 }

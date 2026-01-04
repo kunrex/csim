@@ -10,7 +10,7 @@
     import ELK from 'elkjs/lib/elk.bundled.js';
 
     import type { GateCircuitSpec, ICircuitGraph } from "$lib/circuits";
-    import { type AssetGateType, type GateData, type GateType, type PrefabGateData, type WireData, CycleGuard } from "$lib/core";
+    import { type AssetGateType, type GateData, type GateType, type PrefabGateData, type WireData, lockState, unlockState } from "$lib/core";
 
     import { notify } from "$lib/utils";
     import { playAudio } from "$lib/audio";
@@ -459,6 +459,7 @@
             return;
         }
 
+        lockState();
         await Promise.allSettled([
             playAudio("clear"),
             deleteElements({
@@ -466,6 +467,8 @@
                 edges: wires
             })
         ]);
+
+        return unlockState(false);
     }
 
     async function openSettingsHandler() : Promise<void> {
@@ -607,8 +610,7 @@
 
     async function onDisconnection(wire: WireEdge) : Promise<void> {
         if(wire.sourceHandle && wire.targetHandle) {
-            const result = wireIndexMap.delete(wire.id);
-            console.log(result);
+            wireIndexMap.delete(wire.id);
 
             await disconnectionCallback({
                 id: wire.id,
@@ -660,6 +662,8 @@
     }
 
     async function onDelete(params: OnDeleteParams) : Promise<void> {
+        const locked = lockState();
+
         const edges = params.edges;
         const nodes = params.nodes;
 
@@ -677,7 +681,9 @@
         for(let i = 0; i < wireCount; i++)
             wireIndexMap.set(wires[i].id, i);
 
-        playAudio("delete");
+        await playAudio("delete");
+        if(locked)
+            return unlockState(true);
     }
 </script>
 
@@ -711,6 +717,10 @@
 
     :global(.svelte-flow__edge.animated .svelte-flow__edge-path) {
         stroke: red;
+    }
+
+    :global(.svelte-flow__minimap-svg) {
+        border-radius: .25rem;
     }
 </style>
 

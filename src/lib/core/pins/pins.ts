@@ -1,7 +1,7 @@
 import type { Wire } from "$lib/core/wires";
 import type { Gate } from "$lib/core/gates";
+import { pushGate } from "$lib/core/runtime";
 import { TriState } from "$lib/core/tri-state";
-import { CycleGuard } from "$lib/core/runtime";
 
 import { Pin } from "$lib/core/pins/pin";
 
@@ -12,48 +12,42 @@ export class InputPin extends Pin {
         super(id);
     }
 
-    public async propagateHigh(): Promise<void> {
-        this.state = TriState.High;
-        await this.gate.calculateState();
-    }
-
-    public async propagateLow(): Promise<void> {
+    public propagateLow() : Promise<void> {
         this.state = TriState.Low;
-        await this.gate.calculateState();
+        return pushGate(this.gate);
     }
 
-    public async propagateUnknown(): Promise<void> {
+    public propagateHigh() : Promise<void> {
+        this.state = TriState.High;
+        return pushGate(this.gate);
+    }
+
+    public propagateUnknown() : Promise<void> {
         this.state = TriState.Unknown;
-        await this.gate.calculateState();
+        return pushGate(this.gate);
     }
 
-    public async pushConnection(input: Wire): Promise<void> {
+    public pushConnection(input: Wire) : Promise<void> {
         if(this.connection)
-            return;
+            return Promise.resolve();
 
         this.connection = input;
-
-        switch (input.getState()) {
+        switch (this.connection.sourceState) {
             case TriState.Low:
-                await this.propagateLow();
-                break;
+                return this.propagateLow();
             case TriState.High:
-                await this.propagateHigh();
-                break;
+                return this.propagateHigh();
             default:
-                await this.propagateUnknown();
-                break;
+                return this.propagateUnknown();
         }
     }
 
-    public async popConnection(input: Wire): Promise<void> {
+    public popConnection(input: Wire) : Promise<void> {
         if(this.connection != input)
-            return;
+            return Promise.resolve();
 
         this.connection = null;
-
-        CycleGuard.instance.resetCycle();
-        await this.propagateUnknown();
+        return this.propagateUnknown();
     }
 }
 
@@ -85,13 +79,9 @@ export class OutputPin extends Pin {
             await connection.propagate();
     }
 
-    public async pushConnection(input: Wire): Promise<void> {
+    public pushConnection(input: Wire): Promise<void> {
         this.connections.push(input);
-
-        if(this.state == TriState.High) {
-            CycleGuard.instance.resetCycle();
-            await input.propagate();
-        }
+        return input.propagate();
     }
 
     public popConnection(input: Wire): Promise<void> {

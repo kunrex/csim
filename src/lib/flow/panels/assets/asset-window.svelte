@@ -91,7 +91,7 @@
     }
 </script>
 
-<Panel class="flex flex-col h-auto w-1/2 min-w-80 relative panel-background pt-0" position="bottom-right" ondrop={onDrop}>
+<Panel class="flex flex-col h-auto w-1/2 min-w-80 panel-background pt-0" position="bottom-right" ondrop={onDrop}>
     <div class="flex flex-row justify-start absolute top-0 left-0 -translate-y-full px-2">
         <AssetWindow title="Core" onclick={() => chooseAssetType("core")} selected={window === "core"}></AssetWindow>
         <AssetWindow title="Prefabs" onclick={() => chooseAssetType("prefabs")} selected={window === "prefabs"}></AssetWindow>

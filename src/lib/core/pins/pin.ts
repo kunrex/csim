@@ -1,10 +1,10 @@
 import type { Wire } from "$lib/core/wires";
 import { TriState, type TriStateObject } from "$lib/core/tri-state";
 
-export abstract class Pin implements TriStateObject{
+export abstract class Pin implements TriStateObject {
     protected state: TriState = TriState.Unknown;
 
-    public getState() : TriState {
+    public get objectState() : TriState {
         return this.state;
     }
 
@@ -17,8 +17,7 @@ export abstract class Pin implements TriStateObject{
     public abstract popConnection(connection: Wire) : Promise<void>;
     public abstract pushConnection(connection: Wire) : Promise<void>;
 
-    public reset(): Promise<void> {
+    public reset(): void {
         this.state = TriState.Unknown;
-        return Promise.resolve();
     }
 }

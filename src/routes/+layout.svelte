@@ -1,10 +1,12 @@
-<script>import '../app.css';
-import favicon from '$lib/assets/favicon.svg';
+<script>
+	import "../app.css";
+	import { svg } from "$lib";
 
-let { children } = $props();</script>
+	let { children } = $props();
+</script>
 
 <svelte:head>
-	<link rel="icon" href="{favicon}" />
+	<link rel="icon" href="{svg}" />
 	<title>csim0.1</title>
 </svelte:head>
 

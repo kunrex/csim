@@ -1,30 +1,23 @@
-import type {GateNodeType} from "$lib/flow";
+import type { GateNodeType } from "$lib/flow";
 
-import {TriState} from "$lib/core/tri-state";
-import {UndefinedGateType} from "$lib/core/runtime";
-import {InputPin, OutputPin, Pin} from "$lib/core/pins";
+import { TriState } from "$lib/core/tri-state";
+import { UndefinedGateType } from "$lib/core/runtime";
+import { InputPin, OutputPin, Pin } from "$lib/core/pins";
 
-import {BaseGate, type UpdateGateSignature} from "$lib/core/gates/base";
-import type {
-    BinaryGateData,
-    GateData,
-    InputGateData,
-    OutputGateData,
-    UnaryGateData,
-    UnaryOutputData
-} from "$lib/core/gates/data";
+import { BaseGate, type UpdateGateSignature } from "$lib/core/gates/base";
+import type { BinaryGateData, GateData, InputGateData, OutputGateData, UnaryGateData, UnaryOutputData } from "$lib/core/gates/data";
 
 abstract class CoreGate<T extends GateData> extends BaseGate<T> {
     protected constructor(id: string, gateData: T, protected readonly onUpdateFunction: UpdateGateSignature) {
         super(id, gateData);
     }
 
-    protected onSyncGateData(): void {
+    protected syncGateData() : void {
         this.onUpdateFunction(this.id, this.gateData);
     }
 
-    protected abstract onCalculateSyncState(): void;
-    protected abstract onPropagateSyncState(): Promise<void>;
+    protected abstract onCalculateSyncState() : void;
+    protected abstract onPropagateSyncState() : Promise<void>;
 }
 
 abstract class SingleOutputGate<T extends UnaryOutputData> extends CoreGate<T> {
@@ -33,15 +26,14 @@ abstract class SingleOutputGate<T extends UnaryOutputData> extends CoreGate<T> {
 
     public readonly out: OutputPin = new OutputPin("out-1");
 
-    protected onResetState(): Promise<void> {
+    protected onResetState() : void {
         this.next = this.state = TriState.Unknown;
-        return Promise.resolve();
+
+        this.out.reset()
+        this.gateData.out1 = false;
     }
 
-    protected async onPropagateSyncState(): Promise<void> {
-        if(this.state == this.next)
-            return;
-
+    protected async onPropagateSyncState() : Promise<void> {
         this.state = this.next;
         switch (this.state) {
             case TriState.Low:
@@ -55,7 +47,7 @@ abstract class SingleOutputGate<T extends UnaryOutputData> extends CoreGate<T> {
                 break;
         }
 
-        this.gateData.out1 = this.out.getState() == TriState.High;
+        this.gateData.out1 = this.out.objectState === TriState.High;
         this.syncGateData();
         return;
     }
@@ -74,27 +66,22 @@ export abstract class UnaryGate extends SingleOutputGate<UnaryGateData> {
 
             in1: false,
             out1: false,
-        }, onUpdateFunction);
+        } satisfies UnaryGateData, onUpdateFunction);
     }
 
-    protected async onResetState(): Promise<void> {
-        await super.onResetState();
+    protected onResetState() : void {
+        super.onResetState();
 
-        await this.in.reset();
-        await this.out.reset();
-
+        this.in.reset();
         this.gateData.in1 = false;
-        this.gateData.out1 = false;
-
-        this.gateData.icon = this.gateData.hideInput = this.gateData.hideOutput = undefined;
     }
 
-    protected onCalculateSyncState(): void {
-        this.gateData.in1 = this.in.getState() == TriState.High;
+    protected onCalculateSyncState() : void {
+        this.gateData.in1 = this.in.objectState === TriState.High;
         this.syncGateData();
     }
 
-    public getPin(nodeId: string): Pin | null {
+    public getPin(nodeId: string) : Pin | null {
         switch (nodeId) {
             case this.in.id:
                 return this.in;
@@ -121,28 +108,25 @@ export abstract class BinaryGate extends SingleOutputGate<BinaryGateData> {
             in1: false,
             in2: false,
             out1: false,
-        }, onUpdateFunction);
+        } satisfies BinaryGateData, onUpdateFunction);
     }
 
-    protected async onResetState(): Promise<void> {
-        await super.onResetState();
+    protected onResetState() : void {
+        super.onResetState();
 
-        await this.in1.reset();
-        await this.in2.reset();
-        this.gateData.in1 = false;
-        this.gateData.in2 = false;
+        this.in1.reset();
+        this.in2.reset();
 
-        await this.out.reset();
-        this.gateData.out1 = false;
+        this.gateData.in1 = this.gateData.in2 = false;
     }
 
-    protected onCalculateSyncState(): void {
-        this.gateData.in1 = this.in1.getState() == TriState.High;
-        this.gateData.in2 = this.in2.getState() == TriState.High;
+    protected onCalculateSyncState() : void {
+        this.gateData.in1 = this.in1.objectState === TriState.High;
+        this.gateData.in2 = this.in2.objectState === TriState.High;
         this.syncGateData();
     }
 
-    public getPin(id: string): Pin | null {
+    public getPin(id: string) : Pin | null {
         switch (id) {
             case this.in2.id:
                 return this.in2;
@@ -168,24 +152,24 @@ export abstract class InputGate extends CoreGate<InputGateData> {
             icon: undefined,
 
             in1: false,
-        }, onUpdateFunction);
+        } satisfies InputGateData, onUpdateFunction);
     }
 
-    protected async onResetState(): Promise<void> {
-        await this.in.reset();
+    protected onResetState() : void {
+        this.in.reset();
         this.gateData.in1 = false;
     }
 
-    protected onCalculateSyncState(): void {
-        this.gateData.in1 = this.in.getState() == TriState.High;
+    protected onCalculateSyncState() : void {
+        this.gateData.in1 = this.in.objectState === TriState.High;
         this.syncGateData();
     }
 
-    protected onPropagateSyncState(): Promise<void> {
+    protected onPropagateSyncState() : Promise<void> {
         return Promise.resolve();
     }
 
-    public getPin(id: string): Pin | null {
+    public getPin(id: string) : Pin | null {
         switch (id) {
             case this.in.id:
                 return this.in;
@@ -208,14 +192,7 @@ export abstract class OutputGate extends SingleOutputGate<OutputGateData> {
         }, onUpdateFunction);
     }
 
-    protected async onResetState(): Promise<void> {
-        this.state = this.next = TriState.Low;
-
-        this.gateData.out1 = false;
-        await this.out.reset();
-    }
-
-    protected onCalculateSyncState(): void { }
+    protected onCalculateSyncState() : void { }
 
     public getPin(id: string): Pin | null {
         switch (id) {
