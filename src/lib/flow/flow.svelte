@@ -718,10 +718,6 @@
     :global(.svelte-flow__edge.animated .svelte-flow__edge-path) {
         stroke: red;
     }
-
-    :global(.svelte-flow__minimap-svg) {
-        border-radius: .25rem;
-    }
 </style>
 
 <div class="w-screen h-screen z-0" tabindex="0" role="button">
