@@ -1,5 +1,7 @@
 <script>
+	import '@xyflow/svelte/dist/style.css';
 	import "../app.css";
+
 	import { svg } from "$lib";
 
 	let { children } = $props();

@@ -13,9 +13,11 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-vercel": "^6.2.0",
 		"@sveltejs/kit": "^2.47.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"autoprefixer": "^10.4.22",
+		"baseline-browser-mapping": "^2.9.11",
 		"postcss": "^8.5.6",
 		"svelte": "^5.41.0",
 		"svelte-check": "^4.3.3",

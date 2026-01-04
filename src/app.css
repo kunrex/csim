@@ -290,3 +290,44 @@
         scrollbar-color: rgb(75 85 99) transparent;
     }
 }
+
+.svelte-flow__handle {
+    width: calc(var(--handle-radius) * 2);
+    height: calc(var(--handle-radius) * 2);
+
+    border-width: 2px;
+    border-radius: 50%;
+    border-style: solid;
+    border-color: #1e1e1e;
+}
+
+.svelte-flow__handle.target {
+    background-color: dimgray;
+}
+
+.svelte-flow__handle.source {
+    background-color: slategray;
+}
+
+.svelte-flow__handle-left {
+    position: absolute;
+    left: 0;
+}
+
+.svelte-flow__handle-right {
+    position: absolute;
+    right: 0;
+}
+
+.svelte-flow__edge.selected {
+    stroke: darkslategray;
+}
+
+.svelte-flow__edge-path {
+    stroke-width: 2px;
+    stroke: lightslategray;
+}
+
+.svelte-flow__edge.animated .svelte-flow__edge-path {
+    stroke: red;
+}

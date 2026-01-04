@@ -3,7 +3,6 @@
 
     import { faBroom, faCircleNodes, faCube, faExpand, faGear, faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 
-    import '@xyflow/svelte/dist/style.css'
     import { useSvelteFlow, SvelteFlow, Panel, Background, MiniMap, BackgroundVariant, type Connection, ConnectionMode, ConnectionLineType, type EdgeTypes, type FitViewOptions, type NodeTypes, type XYPosition, type SetCenterOptions } from '@xyflow/svelte';
 
     import type { ElkNode } from "elkjs";
@@ -686,39 +685,6 @@
             return unlockState(true);
     }
 </script>
-
-<style>
-    :global(.svelte-flow__handle) {
-        width: calc(var(--handle-radius) * 2);
-        height: calc(var(--handle-radius) * 2);
-
-        border-width: 2px;
-        border-radius: 50%;
-        border-style: solid;
-        border-color: #1e1e1e;
-    }
-
-    :global(.svelte-flow__handle.target) {
-        background-color: dimgray;
-    }
-
-    :global(.svelte-flow__handle.source) {
-        background-color: slategray;
-    }
-
-    :global(.svelte-flow__edge.selected) {
-        stroke: darkslategray;
-    }
-
-    :global(.svelte-flow__edge-path) {
-        stroke-width: 2px;
-        stroke: lightslategray;
-    }
-
-    :global(.svelte-flow__edge.animated .svelte-flow__edge-path) {
-        stroke: red;
-    }
-</style>
 
 <div class="w-screen h-screen z-0" tabindex="0" role="button">
     <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} onbeforedelete={onBeforeDelete} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} connectionLineType={ConnectionLineType.Bezier} {nodeTypes} {edgeTypes} fitView>
