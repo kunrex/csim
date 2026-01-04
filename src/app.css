@@ -295,39 +295,27 @@
     width: calc(var(--handle-radius) * 2);
     height: calc(var(--handle-radius) * 2);
 
-    border-width: 2px;
-    border-radius: 50%;
-    border-style: solid;
     border-color: #1e1e1e;
-}
 
-.svelte-flow__handle.target {
-    background-color: dimgray;
-}
-
-.svelte-flow__handle.source {
-    background-color: slategray;
+    @apply border-2 rounded-full border-solid bg-slate-500;
 }
 
 .svelte-flow__handle-left {
-    position: absolute;
-    left: 0;
+    @apply absolute left-0;
 }
 
 .svelte-flow__handle-right {
-    position: absolute;
-    right: 0;
+    @apply absolute right-0;
 }
 
 .svelte-flow__edge.selected {
-    stroke: darkslategray;
+    @apply bg-slate-700;
 }
 
 .svelte-flow__edge-path {
-    stroke-width: 2px;
-    stroke: lightslategray;
+    @apply stroke-2 stroke-slate-500;
 }
 
 .svelte-flow__edge.animated .svelte-flow__edge-path {
-    stroke: red;
+    @apply stroke-red-600;
 }
