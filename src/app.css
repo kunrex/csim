@@ -319,3 +319,7 @@
 .svelte-flow__edge.animated .svelte-flow__edge-path {
     @apply stroke-red-600;
 }
+
+.svelte-flow__minimap-svg {
+    @apply rounded-lg;
+}

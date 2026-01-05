@@ -46,6 +46,10 @@
         type.current = null;
     }
 
+    export function openCoreHandler() : void {
+        window = "core";
+    }
+
     export function openAssetHandler(gateType: GateType) : AssetTypeStore | null {
         for(const asset of assets)
             if(asset.typeStore.gateType == gateType) {

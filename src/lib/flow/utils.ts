@@ -1,8 +1,8 @@
-import type { XYPosition } from "@xyflow/svelte";
+import type { Node, XYPosition } from "@xyflow/svelte";
 
 import type { ElkExtendedEdge, ElkNode, LayoutOptions } from "elkjs";
 
-import type {GateData, PrefabGateData, WireData} from "$lib/core";
+import { AndGateType, BufferGateType, ClockGateType, DisplayGateType, NandGateType, NorGateType, NotGateType, OrGateType, PowerGateType, type GateData, type PrefabGateData, ProbeGateType, type WireData, XnorGateType, XorGateType } from "$lib/core";
 
 import { sevenSegmentBits, segments } from "$lib/flow/constants";
 import type { AnonymousConnection, GateNode, GateNodeType, RefGateData, RefWireData, WireEdge, WireEdgeType } from "$lib/flow/types";
@@ -189,4 +189,37 @@ export function convertElkConnections(wires: WireEdge[]) : ElkExtendedEdge[] {
     }
 
     return edges;
+}
+
+export function minimapNodeColor(node: Node): string {
+    const gateNode = node as GateNode;
+
+    switch (gateNode.data.ref.type.id) {
+        case NotGateType.id:
+            return "#111827";
+        case AndGateType.id:
+            return "#dc2626";
+        case NandGateType.id:
+            return "#38bdf8";
+        case OrGateType.id:
+            return "#a855f7";
+        case NorGateType.id:
+            return "#84cc16";
+        case XorGateType.id:
+            return "#7c2d12";
+        case XnorGateType.id:
+            return "#4c1d95";
+        case PowerGateType.id:
+            return "#ef4444";
+        case ClockGateType.id:
+            return "#991b1b";
+        case ProbeGateType.id:
+            return "#fbbf24";
+        case DisplayGateType.id:
+            return "#1f2937";
+        case BufferGateType.id:
+            return "#94a3b8";
+        default:
+            return "#0891b2";
+    }
 }

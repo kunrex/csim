@@ -17,9 +17,9 @@
     import { dragDropProvider } from "$lib/flow/drag-drop";
     import { Assets, Control, Inspector } from "$lib/flow/panels";
     import { BinaryCoreGate, InputGate, OutputGate, PrefabGate, SevenSegment, UnaryCoreGate } from "$lib/flow/gates";
-    import { actionFailureParams, deletionConfirmationParams, parentElkOptions, rootElkOptions, saveConfirmationParams } from "$lib/flow/constants";
     import { confirmationOverlay, loadingOverlay, messageOverlay, settingsOverlay, type LoadingControllerParams } from "$lib/overlays";
-    import { compressAndHideGateNode, compressGateNode, constructElkGraph, convertElkConnections, createGateNode, createWireEdge, expandGateNode, layoutGateNode, unHideChildGateNode } from "$lib/flow/utils";
+    import { actionFailureParams, deletionConfirmationParams, parentElkOptions, rootElkOptions, saveConfirmationParams } from "$lib/flow/constants";
+    import { compressAndHideGateNode, compressGateNode, constructElkGraph, convertElkConnections, createGateNode, createWireEdge, expandGateNode, layoutGateNode, unHideChildGateNode, minimapNodeColor } from "$lib/flow/utils";
     import { type AnonymousConnection, type CircuitModel, type GateCreationCallbackParams, type GateCreationParams, type GateModel, type GateNode, type GateNodeType, type IdentifiedConnection, type RefGateData, type WireEdge, type WireEdgeType, type WireModel, AssetTypeStore } from "$lib/flow/types";
 
     interface FlowProps {
@@ -209,6 +209,10 @@
 
         rearrangeLayout();
         title = openTypeStore.gateType.name;
+    }
+
+    export function openCoreAssetsHandler() : void {
+        assets.openCoreHandler();
     }
 
     export function addPrefabHandler(gateType: AssetGateType) : void {
@@ -689,7 +693,7 @@
 <div class="w-screen h-screen z-0" tabindex="0" role="button">
     <SvelteFlow onbeforeconnect={onConnection} ondragover={onDragOver} ondrop={onDrop} onreconnect={onReconnection} onbeforedelete={onBeforeDelete} ondelete={onDelete} connectionMode={ConnectionMode.Strict} bind:nodes={gates} bind:edges={wires} connectionLineType={ConnectionLineType.Bezier} {nodeTypes} {edgeTypes} fitView>
         <Assets bind:this={assets} openAssetCallback={openAssetHandler} deleteAssetCallback={deleteAssetHandler} />
-        <MiniMap bgColor="#1e1e1e" position="top-right" />
+        <MiniMap bgColor="#1e1e1e" position="top-right" nodeColor={minimapNodeColor} />
         <Background bgColor="#1e1e1e" variant={BackgroundVariant.Dots} />
         <Panel class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 place-items-center" position="bottom-left">
             <Control action="Fit" fabIcon={faExpand} onclick={fitViewHandler} />

@@ -198,6 +198,8 @@
 
         flow.addCircuitHandler(defaultGateType);
         flow.instantiateCircuitHandler(defaultGateType, await defaultCircuit.instantiateCircuit());
+
+        flow.openCoreAssetsHandler();
     }
 
     let initialised = false;
