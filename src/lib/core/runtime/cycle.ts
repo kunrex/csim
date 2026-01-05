@@ -58,18 +58,20 @@ export function lockState() : boolean {
     return !locked && (locked = true);
 }
 
-export async function unlockState(clearIfQueue: boolean) : Promise<void> {
+export async function unlockState(processQueue: boolean) : Promise<void> {
     locked = false;
-    if(queue.length > 0 && clearIfQueue)
-        await clearGateQueue();
+    if(processQueue)
+        await processGateQueue();
+    else
+        queue.clear();
 }
 
 export async function pushGate(gate: Gate) : Promise<void> {
     queue.enqueue(gate);
-    await clearGateQueue();
+    await processGateQueue();
 }
 
-async function clearGateQueue() : Promise<void> {
+async function processGateQueue() : Promise<void> {
     if(locked || active)
         return;
 
