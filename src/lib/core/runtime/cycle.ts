@@ -60,7 +60,7 @@ export function lockState() : boolean {
 
 export async function unlockState(clearIfQueue: boolean) : Promise<void> {
     locked = false;
-    if(queue.length > 0 && !clearIfQueue)
+    if(queue.length > 0 && clearIfQueue)
         await clearGateQueue();
 }
 
