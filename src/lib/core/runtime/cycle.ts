@@ -79,7 +79,7 @@ async function clearGateQueue() : Promise<void> {
         if(!gate)
             return;
 
-        const calculated = gate.calculateState();
+        const calculated = await gate.calculateState();
         if(!calculated)
             continue;
 

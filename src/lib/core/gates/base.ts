@@ -26,12 +26,12 @@ export abstract class BaseGate<T extends GateData> {
     protected abstract onCalculateState() : boolean;
     protected abstract propagateState() : Promise<void>;
 
-    public calculateState() : boolean {
+    public async calculateState() : Promise<boolean> {
         const propagateState = this.onCalculateState();
         if(!propagateState)
             return false;
 
-        this.propagateState();
+        await this.propagateState();
         return true;
     }
 
