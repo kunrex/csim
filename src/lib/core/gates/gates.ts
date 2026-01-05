@@ -272,6 +272,7 @@ export class ClockGate extends OutputGate {
 
     protected onResetState() {
         super.onResetState();
+        this.enabled = false;
         this.next = this.state = TriState.Low;
     }
 
