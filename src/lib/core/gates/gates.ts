@@ -270,7 +270,7 @@ export class ClockGate extends OutputGate {
         this.state = TriState.Low;
     }
 
-    protected onResetState() {
+    protected onResetState() : void {
         super.onResetState();
         this.enabled = false;
         this.next = this.state = TriState.Low;
@@ -278,7 +278,7 @@ export class ClockGate extends OutputGate {
 
     protected onCalculateState() : boolean {
         this.onCalculateSyncState();
-        this.next = fromBoolean(!this.next);
+        this.next = fromBoolean(!this.state);
 
         return true;
     }
@@ -292,7 +292,6 @@ export class ClockGate extends OutputGate {
         if(this.enabled) {
             this.enabled = false;
             this.next = TriState.Low;
-
             await this.onPropagateSyncState();
         } else {
             this.next = fromBoolean(masterState());

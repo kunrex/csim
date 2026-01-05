@@ -47,8 +47,8 @@
     {#each probeBuffers as probe, i (probe.id)}
         <OutputPin id={gateData.bufferMap.get(probe.id)?.pin ?? `out-${i + 1}`} label={probe.data.name} enabled={probe.data.out1} connectable={connectable} style={`top: ${(100 / (probeBuffers.length + 1)) * (i + 1)}%;`} />
     {/each}
-    {#if !data.ref.expanded }
-        <div class="flex flex-row gap-x-4">
+    {#if displays.length > 0 && !data.ref.expanded }
+        <div class="flex flex-row gap-x-4 mb-1">
             {#each displays as display (display.id)}
                 <div class="flex flex-col text-slate-100 px-7 py-3 rounded-md border-2 border-slate-600 color-display">
                     <SevenSegmentDisplay value={display.data.value} decimal={display.data.in5} />
@@ -59,7 +59,7 @@
             {/each}
         </div>
     {/if}
-    <div class="flex flex-row justify-center items-center whitespace-nowrap" class:mt-1={!data.ref.expanded && displays.length > 0}>
+    <div class="flex flex-row justify-center items-center whitespace-nowrap">
         <b>{ capitalise(gateData.type.name) }</b>
     </div>
 </div>
