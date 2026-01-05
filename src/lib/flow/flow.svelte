@@ -565,8 +565,10 @@
         if(await confirmationOverlay.open(saveConfirmationParams))
             await saveAssetCallback(openTypeStore.gateType, generateCircuitGraph());
 
-        await clearCircuitHandler();
-        await tick();
+        if(gates.length > 0) {
+            await clearCircuitHandler();
+            await tick();
+        }
 
         openAssetCallback(gateType);
     }
