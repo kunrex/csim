@@ -300,6 +300,10 @@
     @apply border-2 rounded-full border-solid bg-slate-500;
 }
 
+.svelte-flow__handle-top {
+    @apply absolute top-0;
+}
+
 .svelte-flow__handle-left {
     @apply absolute left-0;
 }
